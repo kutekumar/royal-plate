@@ -118,14 +118,14 @@ const Payment = () => {
         {/* Payment Method */}
         <Card className="p-4 space-y-4">
           <h2 className="font-semibold text-lg">Payment Method</h2>
-          <RadioGroup value={selectedPayment} onValueChange={setSelectedPayment}>
+          <RadioGroup value={selectedPayment} onValueChange={(value) => setSelectedPayment(value as 'mpu' | 'kbzpay' | 'wavepay')}>
             {paymentMethods.map((method) => {
               const Icon = method.icon;
               return (
                 <div
                   key={method.id}
                   className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-accent/50 transition-colors"
-                  onClick={() => setSelectedPayment(method.id)}
+                  onClick={() => setSelectedPayment(method.id as 'mpu' | 'kbzpay' | 'wavepay')}
                 >
                   <RadioGroupItem value={method.id} id={method.id} />
                   <Label htmlFor={method.id} className="flex items-center gap-3 cursor-pointer flex-1">
