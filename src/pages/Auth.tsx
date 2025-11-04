@@ -12,15 +12,19 @@ import { useEffect } from 'react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp, signIn, user } = useAuth();
+  const { signUp, signIn, user, userRole } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      navigate('/home');
+    if (user && userRole) {
+      if (userRole === 'restaurant_owner' || userRole === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/home');
+      }
     }
-  }, [user, navigate]);
+  }, [user, userRole, navigate]);
 
   const [signUpData, setSignUpData] = useState({
     email: '',
@@ -64,8 +68,8 @@ const Auth = () => {
     if (error) {
       toast.error(error.message || 'Failed to sign in');
     } else {
-      toast.success('Welcome back!');
-      navigate('/home');
+      toast.success('Signing in...');
+      // The useEffect will handle navigation based on role
     }
 
     setIsLoading(false);

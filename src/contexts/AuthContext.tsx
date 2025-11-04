@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  userRole: 'customer' | 'restaurant_owner' | 'admin' | null;
   signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [userRole, setUserRole] = useState<'customer' | 'restaurant_owner' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +27,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Fetch user role when session changes
+        if (session?.user) {
+          setTimeout(() => {
+            fetchUserRole(session.user.id);
+          }, 0);
+        } else {
+          setUserRole(null);
+        }
       }
     );
 
@@ -32,11 +43,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      
+      if (session?.user) {
+        fetchUserRole(session.user.id).then(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    if (!error && data) {
+      setUserRole(data.role as 'customer' | 'restaurant_owner' | 'admin');
+    } else {
+      setUserRole('customer'); // Default to customer
+    }
+  };
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     const redirectUrl = `${window.location.origin}/home`;
@@ -69,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, userRole, signUp, signIn, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   );
