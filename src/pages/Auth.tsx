@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,13 +7,64 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
-import { useEffect } from 'react';
+import gsap from 'gsap';
+import ALANLogo from '@/imgs/ALANLOGO.png';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, signIn, user, userRole } = useAuth();
   const navigate = useNavigate();
+
+  const [tab, setTab] = useState<'signin' | 'signup'>('signin');
+  const logoRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const heightWrapperRef = useRef<HTMLDivElement>(null);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+    tl.fromTo(logoRef.current, { opacity: 0, y: -12, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.5 })
+      .fromTo(cardRef.current, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.25');
+  }, []);
+
+  useEffect(() => {
+    const wrapper = heightWrapperRef.current;
+    if (!wrapper) return;
+
+    const active = wrapper.querySelector('[data-state="active"]') as HTMLElement | null;
+    if (!active) return;
+
+    const targetHeight = active.scrollHeight;
+
+    // Animate wrapper height smoothly: lock current height, animate to target, then release to auto
+    const fromHeight = wrapper.offsetHeight;
+    gsap.set(wrapper, { height: fromHeight });
+    gsap.to(wrapper, {
+      height: targetHeight,
+      duration: 0.45,
+      ease: 'power2.out',
+      onComplete: () => gsap.set(wrapper, { height: 'auto' }),
+    });
+
+    // Animate active panel content
+    gsap.fromTo(
+      active,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+    );
+  }, [tab]);
+
+  // Set initial height on mount after first render
+  useEffect(() => {
+    const wrapper = heightWrapperRef.current;
+    if (!wrapper) return;
+    const active = wrapper.querySelector('[data-state="active"]') as HTMLElement | null;
+    if (!active) return;
+    // Set initial height after mount to avoid clipping
+    gsap.set(wrapper, { height: active.scrollHeight });
+    // Release to auto so normal layout works; transitions will relock height as needed
+    gsap.set(wrapper, { height: 'auto' });
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -81,10 +132,10 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2" ref={logoRef}>
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full luxury-gradient flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-full luxury-gradient flex items-center justify-center overflow-hidden">
+              <img src={ALANLogo} alt="ALAN Logo" className="w-10 h-10 object-contain drop-shadow" />
             </div>
           </div>
           <h1 className="text-4xl font-bold text-foreground">ALAN</h1>
@@ -92,19 +143,20 @@ const Auth = () => {
         </div>
 
         {/* Auth Card */}
-        <Card className="border-border/50 luxury-shadow">
+        <Card className="border-border/50 luxury-shadow" ref={cardRef}>
           <CardHeader>
             <CardTitle>Welcome</CardTitle>
             <CardDescription>Sign in or create an account to continue</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+          <CardContent className="px-6 pt-2 pb-6">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as 'signin' | 'signup')} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="signin">
+              <div ref={heightWrapperRef} className="relative overflow-visible box-border px-3 sm:px-4 pb-5">
+              <TabsContent value="signin" forceMount>
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
@@ -115,6 +167,7 @@ const Auth = () => {
                       value={signInData.email}
                       onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                       required
+                      className="h-12 px-4"
                     />
                   </div>
 
@@ -127,6 +180,7 @@ const Auth = () => {
                       value={signInData.password}
                       onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                       required
+                      className="h-12 px-4"
                     />
                   </div>
 
@@ -140,7 +194,7 @@ const Auth = () => {
                 </form>
               </TabsContent>
 
-              <TabsContent value="signup">
+              <TabsContent value="signup" forceMount>
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full Name</Label>
@@ -151,6 +205,7 @@ const Auth = () => {
                       value={signUpData.fullName}
                       onChange={(e) => setSignUpData({ ...signUpData, fullName: e.target.value })}
                       required
+                      className="h-12 px-4"
                     />
                   </div>
 
@@ -163,6 +218,7 @@ const Auth = () => {
                       value={signUpData.phone}
                       onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value })}
                       required
+                      className="h-12 px-4"
                     />
                   </div>
 
@@ -175,6 +231,7 @@ const Auth = () => {
                       value={signUpData.email}
                       onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                       required
+                      className="h-12 px-4"
                     />
                   </div>
 
@@ -187,6 +244,7 @@ const Auth = () => {
                       value={signUpData.password}
                       onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                       required
+                      className="h-12 px-4"
                     />
                   </div>
 
@@ -199,6 +257,7 @@ const Auth = () => {
                   </Button>
                 </form>
               </TabsContent>
+              </div>
             </Tabs>
           </CardContent>
         </Card>

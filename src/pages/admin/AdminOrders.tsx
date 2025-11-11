@@ -11,6 +11,21 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Search, Printer, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Utility: Format date as M/D/YYYY - h:mm AM/PM (e.g., 11/6/2025 - 3:00 PM)
+function formatDateTime(iso: string | Date): string {
+  const d = typeof iso === 'string' ? new Date(iso) : iso;
+  const mm = d.getMonth() + 1; // 1-12
+  const dd = d.getDate();
+  const yyyy = d.getFullYear();
+  let hours = d.getHours();
+  const minutes = d.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0 -> 12
+  const minutesStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
+  return `${mm}/${dd}/${yyyy} - ${hours}:${minutesStr} ${ampm}`;
+}
+
 interface Order {
   id: string;
   customer_id: string;
@@ -600,7 +615,7 @@ const AdminOrders = () => {
                         <TableCell className="capitalize">{order.order_type}</TableCell>
                         <TableCell className="font-semibold">{Number(order.total_amount).toLocaleString()} MMK</TableCell>
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
-                        <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDateTime(order.created_at)}</TableCell>
                       </TableRow>
                     ))
                   ) : (

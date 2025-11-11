@@ -9,11 +9,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { BottomNav } from '@/components/BottomNav';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
+  const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -23,6 +26,7 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchOrderHistory();
     }
   }, [user]);
 
@@ -43,6 +47,33 @@ const Profile = () => {
       });
     } catch (error: any) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchOrderHistory = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(
+          `
+          *,
+          restaurants (
+            name,
+            image_url,
+            address
+          ),
+          order_items
+        `
+        )
+        .eq('customer_id', user.id)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrderHistory(data || []);
+    } catch (error: any) {
+      console.error('Error fetching order history:', error);
     }
   };
 
@@ -76,9 +107,19 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-card border-b border-border px-6 py-6">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold text-foreground">Profile</h1>
-          <p className="text-muted-foreground">Manage your account settings</p>
+        <div className="max-w-md mx-auto flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Profile</h1>
+            <p className="text-muted-foreground">Manage your account settings</p>
+          </div>
+          <Button
+            onClick={handleSignOut}
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -160,16 +201,92 @@ const Profile = () => {
           )}
         </Card>
 
-        {/* Sign Out Button */}
-        <Button
-          onClick={handleSignOut}
-          variant="destructive"
-          className="w-full"
-          size="lg"
-        >
-          <LogOut className="mr-2 h-5 w-5" />
-          Sign Out
-        </Button>
+        {/* Orders History Summary & List */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Orders History</h2>
+
+          {/* Highlight total spent */}
+          <Card className="p-4 luxury-gradient text-white flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide opacity-80">
+                Total Spent
+              </p>
+              <p className="text-2xl font-semibold">
+                {orderHistory.reduce(
+                  (sum, o) => sum + (o.total_amount || 0),
+                  0
+                ).toLocaleString()}{' '}
+                MMK
+              </p>
+            </div>
+            <div className="text-right text-[10px] opacity-80">
+              <p>Completed orders only</p>
+              <p>{orderHistory.length} orders</p>
+            </div>
+          </Card>
+
+          {orderHistory.length === 0 ? (
+            <Card className="p-4 text-sm text-muted-foreground">
+              No completed orders yet. Once your orders are completed, they will appear here.
+            </Card>
+          ) : (
+            <Card className="p-0">
+              <ScrollArea className="max-h-72">
+                <div className="divide-y">
+                  {orderHistory.map((order) => (
+                    <div
+                      key={order.id}
+                      className="px-4 py-3 space-y-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={order.restaurants?.image_url}
+                          alt={order.restaurants?.name}
+                          className="w-10 h-10 rounded-md object-cover"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-medium">
+                                {order.restaurants?.name}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground capitalize">
+                                {order.order_type?.replace('_', ' ')} •{' '}
+                                {new Date(order.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs font-semibold text-primary">
+                                {order.total_amount?.toLocaleString()} MMK
+                              </p>
+                              <Badge className="mt-1 bg-gray-500 text-white border-0 text-[9px]">
+                                Completed
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Order items summary */}
+                      {Array.isArray(order.order_items) && order.order_items.length > 0 && (
+                        <div className="pl-13 text-[10px] text-muted-foreground leading-snug">
+                          {order.order_items
+                            .map(
+                              (item: any) =>
+                                `${item.name} x${item.quantity}`
+                            )
+                            .join(' • ')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </Card>
+          )}
+        </div>
+
+        {/* Sign Out Button moved to header */}
       </div>
 
       <BottomNav />

@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, MapPin, Loader2 } from 'lucide-react';
+import { Search, Star, MapPin, Loader2, LogOut } from 'lucide-react';
+import ALANLogo from '@/imgs/ALANLOGO.png';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +28,18 @@ const Home = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const displayName = (user?.user_metadata as any)?.full_name || user?.email || 'Guest';
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   useEffect(() => {
     fetchRestaurants();
@@ -55,15 +69,28 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-6">
-        <div className="max-w-md mx-auto space-y-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">ALAN</h1>
-            <p className="text-muted-foreground">Discover premium dining</p>
+      {/* Luxury top nav bar with logo and logout (sticky, not full width) */}
+      <div className="sticky top-0 z-40 py-2 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto max-w-md px-4">
+          <div className="luxury-gradient text-white rounded-xl shadow-md">
+            <div className="px-4 py-2 flex items-center justify-between">
+              <img src={ALANLogo} alt="ALAN Logo" className="h-7 w-auto object-contain drop-shadow" />
+              <button onClick={handleLogout} aria-label="Log out" className="p-2 focus:outline-none active:scale-95 rounded-md hover:bg-white/10">
+                <LogOut className="h-5 w-5 text-white" />
+              </button>
+            </div>
           </div>
+          <p className="text-xs opacity-80 mt-2 text-center">Discover Fine Dining with Ease and Comfort</p>
+        </div>
+      </div>
 
-          {/* Search */}
+      {/* Welcome + Search + Restaurant List */}
+      <div className="max-w-md mx-auto px-6 py-6 space-y-4">
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold">
+            {getGreeting()}, <span className="font-bold text-yellow-500">{displayName}</span>
+          </h2>
+          {/* Search moved below greeting */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -74,10 +101,6 @@ const Home = () => {
             />
           </div>
         </div>
-      </div>
-
-      {/* Restaurant List */}
-      <div className="max-w-md mx-auto px-6 py-6 space-y-4">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -119,9 +142,9 @@ const Home = () => {
                 <Badge variant="secondary" className="font-normal">
                   {restaurant.cuisine_type}
                 </Badge>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 text-[0.625rem]">
                   <MapPin className="h-3 w-3" />
-                  {restaurant.distance}
+                  {restaurant.address}
                 </div>
               </div>
             </div>

@@ -21,6 +21,7 @@ const statusColors: Record<string, string> = {
 const Orders = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [fullscreenQR, setFullscreenQR] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -83,15 +84,17 @@ const Orders = () => {
       </div>
 
       <div className="max-w-md mx-auto px-6 py-6 space-y-4">
-        {orders.length === 0 ? (
+        {orders.filter((o) => o.status !== 'completed').length === 0 ? (
           <Card className="p-8 text-center space-y-2">
-            <p className="text-muted-foreground">No orders yet</p>
+            <p className="text-muted-foreground">No active orders</p>
             <p className="text-sm text-muted-foreground">
-              Start exploring restaurants to make your first booking
+              Your completed orders are now available in your profile under Order History.
             </p>
           </Card>
         ) : (
-          orders.map((order) => (
+          orders
+            .filter((order) => order.status !== 'completed')
+            .map((order) => (
             <Card
               key={order.id}
               className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
@@ -132,20 +135,41 @@ const Orders = () => {
       </div>
 
       {/* Order Details Dialog */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent className="max-w-md">
+      <Dialog
+        open={!!selectedOrder && !fullscreenQR}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedOrder(null);
+            setFullscreenQR(false);
+          }
+        }}
+      >
+        <DialogContent className="w-full max-w-md">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
-            <div className="space-y-4">
-              <div className="flex justify-center p-4 bg-white rounded-lg">
-                <QRCodeSVG
-                  value={selectedOrder.qr_code}
-                  size={150}
-                  level="H"
-                  includeMargin
-                />
+            <div className="space-y-5">
+              <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-sm">
+                <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase text-center">
+                  Present this QR code at the restaurant
+                </div>
+                {/* Tap QR to view fullscreen */}
+                <button
+                  type="button"
+                  className="mt-1"
+                  onClick={() => setFullscreenQR(true)}
+                >
+                  <QRCodeSVG
+                    value={selectedOrder.qr_code}
+                    size={220}
+                    level="H"
+                    includeMargin
+                  />
+                </button>
+                <div className="text-[0.65rem] text-muted-foreground text-center">
+                  Tap the QR code to enlarge for easier scanning.
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -186,6 +210,44 @@ const Orders = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Fullscreen QR-only view for scanning */}
+      <Dialog
+        open={!!selectedOrder && fullscreenQR}
+        onOpenChange={(open) => {
+          if (!open) {
+            // Close fullscreen; keep order details dialog open by leaving selectedOrder
+            setFullscreenQR(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-sm w-full bg-background border-none shadow-none p-0 flex flex-col items-center justify-center">
+          {selectedOrder && (
+            <div className="w-full flex flex-col items-center gap-3">
+              <div className="text-[0.65rem] font-medium text-muted-foreground text-center mt-2">
+                Show this QR code to the restaurant for scanning
+              </div>
+              <div className="w-full flex justify-center">
+                <QRCodeSVG
+                  value={selectedOrder.qr_code}
+                  // Maximize QR within modal: remove padding and increase size while preventing overflow
+                  size={360}
+                  level="H"
+                  includeMargin={false}
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1 mb-2 w-32"
+                onClick={() => setFullscreenQR(false)}
+              >
+                Close
+              </Button>
             </div>
           )}
         </DialogContent>

@@ -21,6 +21,8 @@ interface Restaurant {
   cuisine_type: string | null;
   owner_id: string | null;
   image_url: string | null;
+  open_hours: string | null;
+  rating: number | null;
 }
 
 const AdminRestaurants = () => {
@@ -38,7 +40,46 @@ const AdminRestaurants = () => {
     phone: '',
     cuisine_type: '',
     image_url: '',
+    open_hours: '',
+    rating: '',
   });
+
+  // Opening hours are stored as a single string "START - END"
+  // but edited via two dropdowns for better UX.
+  const OPENING_START_OPTIONS = [
+    '7:00 AM',
+    '8:00 AM',
+    '9:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '12:00 PM'
+  ];
+
+  const OPENING_END_OPTIONS = [
+    '1:00 PM',
+    '2:00 PM',
+    '3:00 PM',
+    '4:00 PM',
+    '5:00 PM',
+    '6:00 PM',
+    '7:00 PM',
+    '8:00 PM',
+    '9:00 PM',
+    '10:00 PM',
+    '11:00 PM',
+    '12:00 AM'
+  ];
+
+  const parseOpenHours = (value: string | null) => {
+    if (!value || !value.includes(' - ')) {
+      return { start: '', end: '' };
+    }
+    const [start, end] = value.split(' - ').map((v) => v.trim());
+    return {
+      start: OPENING_START_OPTIONS.includes(start) ? start : '',
+      end: OPENING_END_OPTIONS.includes(end) ? end : '',
+    };
+  };
 
   useEffect(() => {
     if (!loading && (!user || userRole !== 'admin')) {
@@ -82,10 +123,19 @@ const AdminRestaurants = () => {
       return;
     }
 
+    const openHoursValue =
+      formData.open_hours && formData.open_hours.includes(' - ')
+        ? formData.open_hours
+        : null;
+
     if (editingRestaurant) {
       const { error } = await supabase
         .from('restaurants')
-        .update(formData)
+        .update({
+          ...formData,
+          open_hours: openHoursValue,
+          rating: formData.rating ? Number(formData.rating) : null,
+        })
         .eq('id', editingRestaurant.id);
 
       if (error) {
@@ -97,7 +147,11 @@ const AdminRestaurants = () => {
     } else {
       const { error } = await supabase
         .from('restaurants')
-        .insert([formData]);
+        .insert([{
+          ...formData,
+          open_hours: openHoursValue,
+          rating: formData.rating ? Number(formData.rating) : null,
+        }]);
 
       if (error) {
         toast.error('Failed to create restaurant');
@@ -131,6 +185,7 @@ const AdminRestaurants = () => {
 
   const handleEdit = (restaurant: Restaurant) => {
     setEditingRestaurant(restaurant);
+    const parsed = parseOpenHours(restaurant.open_hours);
     setFormData({
       name: restaurant.name,
       address: restaurant.address,
@@ -138,6 +193,12 @@ const AdminRestaurants = () => {
       phone: restaurant.phone || '',
       cuisine_type: restaurant.cuisine_type || '',
       image_url: restaurant.image_url || '',
+      open_hours:
+        parsed.start && parsed.end ? `${parsed.start} - ${parsed.end}` : (restaurant.open_hours || ''),
+      rating:
+        restaurant.rating !== null && restaurant.rating !== undefined
+          ? String(restaurant.rating)
+          : '',
     });
     setIsDialogOpen(true);
   };
@@ -151,6 +212,8 @@ const AdminRestaurants = () => {
       phone: '',
       cuisine_type: '',
       image_url: '',
+      open_hours: '',
+      rating: '',
     });
   };
 
@@ -240,6 +303,71 @@ const AdminRestaurants = () => {
                     value={formData.image_url}
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                     placeholder="Enter image URL"
+                  />
+                </div>
+                <div>
+                  <Label>Opening Hours</Label>
+                  <div className="mt-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Start</span>
+                      <select
+                        value={parseOpenHours(formData.open_hours).start}
+                        onChange={(e) => {
+                          const current = parseOpenHours(formData.open_hours);
+                          const start = e.target.value;
+                          const end = current.end;
+                          const combined =
+                            start && end ? `${start} - ${end}` : start || end ? `${start}${end ? ` - ${end}` : ''}` : '';
+                          setFormData({ ...formData, open_hours: combined });
+                        }}
+                        className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="">Select start time</option>
+                        {OPENING_START_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">End</span>
+                      <select
+                        value={parseOpenHours(formData.open_hours).end}
+                        onChange={(e) => {
+                          const current = parseOpenHours(formData.open_hours);
+                          const end = e.target.value;
+                          const start = current.start;
+                          const combined =
+                            start && end ? `${start} - ${end}` : end && start ? `${start} - ${end}` : end || start ? `${start}${end ? ` - ${end}` : ''}` : '';
+                          setFormData({ ...formData, open_hours: combined });
+                        }}
+                        className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="">Select end time</option>
+                        {OPENING_END_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Stored as a single value like "11:00 AM - 11:00 PM" in the database.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="rating">Rating</Label>
+                  <Input
+                    id="rating"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={formData.rating}
+                    onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                    placeholder="Enter rating (e.g., 4.5)"
                   />
                 </div>
                 <Button onClick={handleSave} className="w-full">

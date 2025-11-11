@@ -35,38 +35,32 @@ const Payment = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         toast.error('Please sign in to complete your order');
         navigate('/auth');
         return;
       }
 
-      // Generate unique QR code
-      const qrData = `ALAN-${Date.now()}-${restaurant.id}-${user.id.substring(0, 8)}`;
+      const qr_code = `ALAN-${Date.now()}-${restaurant.id}-${user.id.substring(0, 8)}`;
 
-      // Create order in database
       const { data: order, error } = await supabase
         .from('orders')
-        .insert([
-          {
-            customer_id: user.id,
-            restaurant_id: restaurant.id,
-            order_type: orderType,
-            payment_method: selectedPayment,
-            total_amount: totalAmount,
-            status: 'paid' as const,
-            qr_code: qrData,
-            order_items: cart as any,
-          },
-        ])
+        .insert({
+          customer_id: user.id,
+          restaurant_id: restaurant.id,
+          order_type: orderType,
+          payment_method: selectedPayment,
+          total_amount: totalAmount,
+          status: 'paid',
+          qr_code,
+          order_items: cart,
+        })
         .select()
         .single();
 
       if (error) {
         console.error('Order creation error:', error);
         toast.error('Failed to create order. Please try again.');
-        setIsProcessing(false);
         return;
       }
 
@@ -75,6 +69,7 @@ const Payment = () => {
     } catch (error: any) {
       console.error('Payment error:', error);
       toast.error('Failed to process payment. Please try again.');
+    } finally {
       setIsProcessing(false);
     }
   };

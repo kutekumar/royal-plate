@@ -19,6 +19,7 @@ interface Owner {
   phone: string | null;
   restaurant_id: string | null;
   restaurant_name: string | null;
+  restaurant_address: string | null;
 }
 
 interface Restaurant {
@@ -35,10 +36,7 @@ const AdminOwners = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-    phone: '',
+    ownerId: '',
     restaurantId: '',
   });
 
@@ -58,7 +56,6 @@ const AdminOwners = () => {
 
   useEffect(() => {
     const filtered = owners.filter((owner) =>
-      owner.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       owner.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (owner.restaurant_name && owner.restaurant_name.toLowerCase().includes(searchQuery.toLowerCase()))
     );
@@ -66,56 +63,134 @@ const AdminOwners = () => {
   }, [searchQuery, owners]);
 
   const fetchOwners = async () => {
-    // Fetch all restaurant owners
-    const { data: ownerRoles, error: rolesError } = await supabase
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'restaurant_owner');
+    try {
+      // Prefer the server-side view via RPC to ensure we get the OWNER email (not restaurant email)
+      // This returns: user_id, full_name, email, phone, restaurant_id, restaurant_name
+      const { data: ownersData, error: ownersError } = await supabase.rpc('get_restaurant_owners');
+      if (!ownersError && ownersData && ownersData.length > 0) {
+        const ownersList = ownersData || [];
+        const restaurantIds = Array.from(new Set(ownersList.map((o: any) => o.restaurant_id).filter(Boolean)));
+        const { data: restaurantsData, error: restaurantsError } = await supabase
+          .from('restaurants')
+          .select('id, address')
+          .in('id', restaurantIds);
+        if (restaurantsError) {
+          console.error('Failed to fetch restaurant addresses:', restaurantsError);
+        }
+        const addressMap = new Map<string, string | null>((restaurantsData || []).map((r: any) => [r.id, r.address ?? null]));
+        const assembledOwners: Owner[] = ownersList.map((row: any) => ({
+          user_id: row.user_id,
+          full_name: row.full_name ?? 'Unnamed Owner',
+          email: row.email ?? 'Email not available',
+          phone: row.phone ?? null,
+          restaurant_id: row.restaurant_id ?? null,
+          restaurant_name: row.restaurant_name ?? null,
+          restaurant_address: row.restaurant_id ? (addressMap.get(row.restaurant_id) ?? null) : null,
+        }));
+        setOwners(assembledOwners);
+        setFilteredOwners(assembledOwners);
+        return;
+      }
 
-    if (rolesError) {
+      // Fallback path if RPC is missing or returns empty
+      console.warn('RPC get_restaurant_owners unavailable or empty; falling back. Error:', ownersError);
+
+      // 1) Get restaurant owner user IDs
+      const { data: ownerRoles, error: ownerRolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'restaurant_owner');
+      if (ownerRolesError) {
+        console.error('Failed to load owner roles:', ownerRolesError);
+        toast.error('Failed to load owners');
+        return;
+      }
+      const ownerIds = Array.from(new Set((ownerRoles ?? []).map((role) => role.user_id).filter((id): id is string => Boolean(id))));
+      if (ownerIds.length === 0) {
+        setOwners([]);
+        setFilteredOwners([]);
+        return;
+      }
+
+      // 2) Profiles
+      const { data: profileRows, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', ownerIds);
+      if (profilesError) {
+        console.error('Failed to load owner profiles:', profilesError);
+      }
+
+      // 3) Emails via get_user_emails or fallback
+      let emailMap = new Map<string, string>();
+      try {
+        const { data: emailsData, error: emailsError } = await supabase
+          .rpc('get_user_emails', { user_ids: ownerIds });
+        if (!emailsError && emailsData) {
+          emailMap = new Map((emailsData ?? []).filter((row: any) => row.email).map((row: any) => [row.user_id, row.email]));
+        } else {
+          console.warn('RPC get_user_emails failed, attempting direct fallback:', emailsError);
+          const { data: fallbackEmails, error: fallbackError } = await supabase
+            .from('user_emails')
+            .select('user_id, email')
+            .in('user_id', ownerIds);
+          if (!fallbackError && fallbackEmails) {
+            emailMap = new Map((fallbackEmails ?? []).map((row: any) => [row.user_id, row.email]));
+          }
+        }
+      } catch (e) {
+        console.warn('Error getting emails via RPC/fallback:', e);
+      }
+
+      // 4) Restaurants and address
+      const { data: restaurantRows, error: restaurantsError2 } = await supabase
+        .from('restaurants')
+        .select('id, name, address, owner_id')
+        .in('owner_id', ownerIds);
+      if (restaurantsError2) {
+        console.error('Failed to load restaurants for owners:', restaurantsError2);
+        toast.error('Failed to load owners');
+        return;
+      }
+
+      const profileMap = new Map(
+        (profileRows ?? []).map((profile) => [
+          profile.id,
+          { fullName: profile.full_name ?? 'Unnamed Owner', phone: profile.phone ?? null },
+        ])
+      );
+      const restaurantMap = new Map<string, { id: string; name: string; address: string | null }>();
+      (restaurantRows ?? []).forEach((restaurant: any) => {
+        if (restaurant.owner_id) {
+          restaurantMap.set(restaurant.owner_id, {
+            id: restaurant.id,
+            name: restaurant.name ?? 'Unnamed Restaurant',
+            address: restaurant.address ?? null,
+          });
+        }
+      });
+
+      const assembledOwners: Owner[] = ownerIds.map((ownerId) => {
+        const profile = profileMap.get(ownerId);
+        const email = emailMap.get(ownerId) ?? 'Email not available';
+        const restaurant = restaurantMap.get(ownerId);
+        return {
+          user_id: ownerId,
+          full_name: profile?.fullName ?? 'Unnamed Owner',
+          email,
+          phone: profile?.phone ?? null,
+          restaurant_id: restaurant?.id ?? null,
+          restaurant_name: restaurant?.name ?? null,
+          restaurant_address: restaurant?.address ?? null,
+        };
+      });
+
+      setOwners(assembledOwners);
+      setFilteredOwners(assembledOwners);
+    } catch (error) {
+      console.error('Unexpected error fetching owners:', error);
       toast.error('Failed to load owners');
-      return;
     }
-
-    const ownerIds = ownerRoles.map(role => role.user_id);
-
-    // Fetch profiles for these users
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, full_name, phone')
-      .in('id', ownerIds);
-
-    if (profilesError) {
-      toast.error('Failed to load owner profiles');
-      return;
-    }
-
-    // Fetch their restaurants
-    const { data: restaurantsData, error: restaurantsError } = await supabase
-      .from('restaurants')
-      .select('id, name, owner_id')
-      .in('owner_id', ownerIds);
-
-    if (restaurantsError) {
-      console.error('Failed to load restaurants:', restaurantsError);
-    }
-
-    // We need to get emails from auth.users metadata via a server function
-    // For now, we'll show a placeholder and implement proper email fetching
-    const ownersData: Owner[] = profiles.map(profile => {
-      const restaurant = restaurantsData?.find(r => r.owner_id === profile.id);
-      return {
-        user_id: profile.id,
-        full_name: profile.full_name,
-        email: 'owner@example.com', // Placeholder - would need server function to get real email
-        phone: profile.phone,
-        restaurant_id: restaurant?.id || null,
-        restaurant_name: restaurant?.name || null,
-      };
-    });
-
-    setOwners(ownersData);
-    setFilteredOwners(ownersData);
   };
 
   const fetchRestaurants = async () => {
@@ -133,49 +208,41 @@ const AdminOwners = () => {
     setRestaurants(data || []);
   };
 
-  const handleCreateOwner = async () => {
-    if (!formData.email || !formData.password || !formData.fullName || !formData.restaurantId) {
-      toast.error('All fields are required');
+  const handleLinkOwner = async () => {
+    if (!formData.ownerId || !formData.restaurantId) {
+      toast.error('Please select both an owner and a restaurant');
       return;
     }
 
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            phone: formData.phone,
-          },
-        },
-      });
-
-      if (authError) {
-        toast.error(`Failed to create owner account: ${authError.message}`);
-        return;
-      }
-
-      if (!authData.user) {
-        toast.error('Failed to create owner account');
-        return;
-      }
-
-      // Assign restaurant owner role
-      const { error: roleError } = await supabase
+      // Ensure the selected user has the restaurant_owner role
+      const { data: existingRole, error: roleCheckError } = await supabase
         .from('user_roles')
-        .insert([{ user_id: authData.user.id, role: 'restaurant_owner' }]);
+        .select('user_id')
+        .eq('user_id', formData.ownerId)
+        .eq('role', 'restaurant_owner')
+        .maybeSingle();
 
-      if (roleError) {
-        toast.error('Failed to assign owner role');
+      if (roleCheckError) {
+        console.error('Error checking owner role:', roleCheckError);
+        toast.error('Failed to verify owner role');
         return;
       }
 
-      // Link restaurant to owner
+      if (!existingRole) {
+        const { error: roleInsertError } = await supabase
+          .from('user_roles')
+          .insert([{ user_id: formData.ownerId, role: 'restaurant_owner' }]);
+        if (roleInsertError) {
+          toast.error('Failed to assign owner role');
+          return;
+        }
+      }
+
+      // Link restaurant to the existing owner
       const { error: restaurantError } = await supabase
         .from('restaurants')
-        .update({ owner_id: authData.user.id })
+        .update({ owner_id: formData.ownerId })
         .eq('id', formData.restaurantId);
 
       if (restaurantError) {
@@ -183,23 +250,20 @@ const AdminOwners = () => {
         return;
       }
 
-      toast.success('Restaurant owner created successfully');
+      toast.success('Owner linked to restaurant successfully');
       setIsDialogOpen(false);
       resetForm();
       fetchOwners();
       fetchRestaurants();
     } catch (error) {
-      console.error('Error creating owner:', error);
-      toast.error('Failed to create owner');
+      console.error('Error linking owner:', error);
+      toast.error('Failed to link owner');
     }
   };
 
   const resetForm = () => {
     setFormData({
-      email: '',
-      password: '',
-      fullName: '',
-      phone: '',
+      ownerId: '',
       restaurantId: '',
     });
   };
@@ -225,59 +289,38 @@ const AdminOwners = () => {
             if (!open) resetForm();
           }}>
             <DialogTrigger asChild>
-              <Button disabled={restaurants.length === 0}>
+              <Button disabled={restaurants.length === 0 || owners.filter(o => !o.restaurant_id).length === 0}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Owner
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Create Restaurant Owner</DialogTitle>
+                <DialogTitle>Link Existing Owner to Restaurant</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="owner@example.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Enter password"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="fullName">Full Name *</Label>
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    placeholder="Enter full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+95..."
-                  />
+                  <Label htmlFor="owner">Owner *</Label>
+                  <Select value={formData.ownerId} onValueChange={(value) => setFormData({ ...formData, ownerId: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select owner without restaurant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {owners
+                        .filter((o) => !o.restaurant_id)
+                        .map((o) => (
+                          <SelectItem key={o.user_id} value={o.user_id}>
+                            {o.full_name || 'Unnamed Owner'} — {o.email}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="restaurant">Restaurant *</Label>
                   <Select value={formData.restaurantId} onValueChange={(value) => setFormData({ ...formData, restaurantId: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select restaurant" />
+                      <SelectValue placeholder="Select restaurant without owner" />
                     </SelectTrigger>
                     <SelectContent>
                       {restaurants.map((restaurant) => (
@@ -288,8 +331,8 @@ const AdminOwners = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleCreateOwner} className="w-full">
-                  Create Owner Account
+                <Button onClick={handleLinkOwner} className="w-full" disabled={!formData.ownerId || !formData.restaurantId}>
+                  Link Owner
                 </Button>
               </div>
             </DialogContent>
@@ -332,17 +375,16 @@ const AdminOwners = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone</TableHead>
                     <TableHead>Restaurant</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredOwners.map((owner) => (
                     <TableRow key={owner.user_id}>
-                      <TableCell className="font-medium">{owner.full_name}</TableCell>
-                      <TableCell>{owner.phone || 'N/A'}</TableCell>
                       <TableCell>
                         {owner.restaurant_name ? (
                           <div className="flex items-center gap-2">
@@ -353,11 +395,10 @@ const AdminOwners = () => {
                           <span className="text-muted-foreground">No restaurant</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          View Details
-                        </Button>
-                      </TableCell>
+                      <TableCell>{owner.restaurant_address || <span className="text-muted-foreground">N/A</span>}</TableCell>
+                      <TableCell>{owner.full_name || <span className="text-muted-foreground">Unnamed Owner</span>}</TableCell>
+                      <TableCell className="text-muted-foreground">{owner.email}</TableCell>
+                      <TableCell>{owner.phone || 'N/A'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

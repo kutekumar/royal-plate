@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, ShoppingBag, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, Users, ShoppingBag, DollarSign, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Stats {
@@ -14,7 +15,7 @@ interface Stats {
 }
 
 const AdminDashboard = () => {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({
     totalRestaurants: 0,
@@ -30,6 +31,16 @@ const AdminDashboard = () => {
       navigate('/auth');
     }
   }, [user, userRole, loading, navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logged out successfully');
+      navigate('/auth');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
+  };
 
   useEffect(() => {
     if (user && userRole === 'admin') {
@@ -124,8 +135,20 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your ALAN platform</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+              <p className="text-muted-foreground">Manage your ALAN platform</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="flex items-center gap-2 hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Star, MapPin, Clock, Phone, Plus, Minus, ShoppingBag, UtensilsCrossed, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,9 +44,12 @@ const RestaurantDetails = () => {
   const navigate = useNavigate();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderType, setOrderType] = useState<'dine_in' | 'takeaway'>('dine_in');
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isCartPreviewOpen, setIsCartPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -102,7 +106,6 @@ const RestaurantDetails = () => {
       }
       return [...prev, { id: item.id, name: item.name, price: item.price, quantity: 1 }];
     });
-    toast.success(`${item.name} added to cart`);
   };
 
   const removeFromCart = (itemId: string) => {
@@ -130,13 +133,15 @@ const RestaurantDetails = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header Image */}
+      {/* Header Image with View on Map overlay */}
       <div className="relative h-64">
         <img
           src={restaurant.image_url}
           alt={restaurant.name}
           className="w-full h-full object-cover"
         />
+
+        {/* Back button */}
         <Button
           variant="ghost"
           size="icon"
@@ -144,6 +149,20 @@ const RestaurantDetails = () => {
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="h-5 w-5" />
+        </Button>
+
+        {/* View on Map: opens Google Maps search in new tab using address/name */}
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute bottom-4 right-4 bg-black/65 text-white hover:bg-black/80 border-none px-3 py-1 text-xs rounded-full"
+          onClick={() => {
+            const query = encodeURIComponent(restaurant.address || restaurant.name);
+            const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }}
+        >
+          View on Map
         </Button>
       </div>
 
@@ -164,7 +183,7 @@ const RestaurantDetails = () => {
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              {restaurant.distance}
+              {restaurant.address}
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -197,16 +216,41 @@ const RestaurantDetails = () => {
         {/* Menu */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Menu</h2>
-          {menuItems.map((item) => {
+          {/* Search bar for filtering menu items */}
+          <div className="mt-2">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search menu items..."
+              className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          {menuItems
+            .filter((item) => {
+              const value = searchTerm.toLowerCase().trim();
+              if (!value) return true;
+              return (
+                item.name.toLowerCase().includes(value) ||
+                (item.description || '').toLowerCase().includes(value)
+              );
+            })
+            .map((item) => {
             const cartItem = cart.find(c => c.id === item.id);
             return (
               <Card key={item.id} className="overflow-hidden">
                 <div className="flex gap-4 p-4">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-24 h-24 rounded-lg object-cover"
-                  />
+                  <button
+                    type="button"
+                    className="focus:outline-none"
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      className="w-24 h-24 rounded-lg object-cover transition-transform duration-200 hover:scale-105"
+                    />
+                  </button>
                   <div className="flex-1 space-y-2">
                     <div>
                       <h3 className="font-semibold">{item.name}</h3>
@@ -255,6 +299,52 @@ const RestaurantDetails = () => {
         </div>
       </div>
 
+      {/* Menu Item Preview Modal */}
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+        <DialogContent className="max-w-sm p-0 border-0 bg-transparent shadow-none">
+          {selectedItem && (
+            <div className="relative rounded-2xl overflow-hidden bg-black">
+              <img
+                src={selectedItem.image_url}
+                alt={selectedItem.name}
+                className="w-full h-[360px] object-cover"
+              />
+              {/* Gradient overlay for contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+              {/* Content overlay */}
+              <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col gap-2 text-white">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="text-lg font-semibold leading-tight">
+                    {selectedItem.name}
+                  </h3>
+                  <span className="text-sm font-semibold px-2 py-1 rounded-full bg-white/12 backdrop-blur">
+                    {selectedItem.price.toLocaleString()} MMK
+                  </span>
+                </div>
+                {selectedItem.description && (
+                  <p className="text-xs text-white/80 line-clamp-2">
+                    {selectedItem.description}
+                  </p>
+                )}
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    size="sm"
+                    className="luxury-gradient px-5 py-2 text-sm font-medium shadow-md hover:shadow-lg transition-all"
+                    onClick={() => {
+                      addToCart(selectedItem);
+                      setSelectedItem(null);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add to Cart
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Cart Summary Footer */}
       {cart.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
@@ -263,16 +353,68 @@ const RestaurantDetails = () => {
               <div className="text-sm text-muted-foreground">{totalItems} items</div>
               <div className="text-lg font-bold">{totalAmount.toLocaleString()} MMK</div>
             </div>
-            <Button
-              onClick={handleProceedToPayment}
-              className="luxury-gradient"
-              size="lg"
-            >
-              Proceed to Payment
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setIsCartPreviewOpen(true)}
+              >
+                View Orders
+              </Button>
+              <Button
+                onClick={handleProceedToPayment}
+                className="luxury-gradient"
+                size="lg"
+              >
+                Pay
+              </Button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Cart Preview Modal */}
+      <Dialog open={isCartPreviewOpen} onOpenChange={setIsCartPreviewOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Your Order Summary</DialogTitle>
+          </DialogHeader>
+          {cart.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              No items in your cart.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.quantity} x {item.price.toLocaleString()} MMK
+                      </span>
+                    </div>
+                    <span className="font-semibold">
+                      {(item.price * item.quantity).toLocaleString()} MMK
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t">
+                <span className="text-sm text-muted-foreground">
+                  Total ({totalItems} items)
+                </span>
+                <span className="text-lg font-bold text-primary">
+                  {totalAmount.toLocaleString()} MMK
+                </span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

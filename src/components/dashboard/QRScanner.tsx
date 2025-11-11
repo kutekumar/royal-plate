@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, CheckCircle2, XCircle } from 'lucide-react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,61 +12,118 @@ const QRScanner = () => {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const [verifying, setVerifying] = useState(false);
 
+  // Consider secure-context rules:
+  // - Live camera requires HTTPS or localhost/127.0.0.1.
+  // - File scan is allowed everywhere.
+  const isSecure =
+    typeof window !== 'undefined' &&
+    (window.isSecureContext ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1');
+
   const startScanning = () => {
-    setScanning(true);
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
-
-    scanner.render(
-      async (decodedText) => {
-        setVerifying(true);
-        try {
-          // Parse the QR code to get order ID
-          let orderId = decodedText;
-          try {
-            const parsed = JSON.parse(decodedText);
-            orderId = parsed.orderId || parsed.id || decodedText;
-          } catch {
-            // Use as is if not JSON
-          }
-
-          // Fetch the actual order from database
-          const { data, error } = await supabase
-            .from('orders')
-            .select(`
-              *,
-              profiles (full_name),
-              restaurants (name)
-            `)
-            .eq('qr_code', decodedText)
-            .single();
-
-          if (error) throw error;
-
-          if (!data) {
-            toast.error('Order not found');
-            return;
-          }
-
-          setScannedOrder(data);
-          toast.success('Order verified successfully!');
-          stopScanning();
-        } catch (error) {
-          console.error('Error verifying order:', error);
-          toast.error('Failed to verify order');
-        } finally {
-          setVerifying(false);
-        }
-      },
-      (error) => {
-        console.log(error);
+    // If a previous scanner exists, clear it first to avoid "element not found" issues
+    if (scannerRef.current) {
+      try {
+        scannerRef.current.clear();
+      } catch {
+        // ignore
       }
-    );
+      scannerRef.current = null;
+    }
 
-    scannerRef.current = scanner;
+    setScanning(true);
+
+    // Defer initialization until after the DOM updates so #qr-reader definitely exists
+    setTimeout(() => {
+      const container = document.getElementById('qr-reader');
+      if (!container) {
+        console.error('qr-reader container not found at init time');
+        toast.error('Unable to start scanner. Please try again.');
+        setScanning(false);
+        return;
+      }
+
+      // Always enable FILE mode so laptops/desktops can upload images.
+      // On secure origins (localhost/HTTPS) also enable CAMERA mode.
+      const config: any = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true,
+        aspectRatio: 1.0,
+        showTorchButtonIfSupported: true,
+        supportedScanTypes: isSecure
+          ? [
+              Html5QrcodeScanType.SCAN_TYPE_CAMERA,
+              Html5QrcodeScanType.SCAN_TYPE_FILE,
+            ]
+          : [Html5QrcodeScanType.SCAN_TYPE_FILE],
+      };
+
+      const scanner = new Html5QrcodeScanner('qr-reader', config, false);
+
+      scanner.render(
+        async (decodedText) => {
+          setVerifying(true);
+          try {
+            // Parse QR code content (supports plain or JSON payloads)
+            let qrValue = decodedText;
+            try {
+              const parsed = JSON.parse(decodedText);
+              qrValue =
+                parsed.qr_code ||
+                parsed.qrCode ||
+                parsed.orderId ||
+                parsed.id ||
+                decodedText;
+            } catch {
+              // not JSON; use raw decodedText
+            }
+
+            // Match what Payment generates: qr_code stored equals qrData string
+            const { data, error } = await supabase
+              .from('orders')
+              .select(
+                `
+                *,
+                profiles (full_name),
+                restaurants (name)
+              `
+              )
+              .eq('qr_code', qrValue)
+              .single();
+
+            if (error || !data) {
+              console.error('Order fetch error:', error);
+              toast.error('Order not found for this QR code');
+              return;
+            }
+
+            setScannedOrder(data);
+            toast.success('Order verified successfully!');
+            stopScanning();
+          } catch (error) {
+            console.error('Error verifying order:', error);
+            toast.error('Failed to verify order');
+          } finally {
+            setVerifying(false);
+          }
+        },
+        (errorMessage) => {
+          // html5-qrcode emits many benign messages; only log significant ones
+          if (
+            typeof errorMessage === 'string' &&
+            !errorMessage.toLowerCase().includes('not found') &&
+            !errorMessage.toLowerCase().includes('no qr code') &&
+            !errorMessage.toLowerCase().includes('inactive')
+          ) {
+            console.debug('QR scan error:', errorMessage);
+          }
+        }
+      );
+
+      scannerRef.current = scanner;
+    }, 0);
   };
 
   const stopScanning = () => {
@@ -76,6 +133,15 @@ const QRScanner = () => {
     }
     setScanning(false);
   };
+
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      }
+    };
+  }, []);
 
   const markAsServed = async () => {
     if (!scannedOrder) return;
@@ -109,9 +175,14 @@ const QRScanner = () => {
             <Camera className="h-16 w-16 mx-auto text-primary" />
             <div>
               <h3 className="text-lg font-semibold mb-2">Ready to Scan</h3>
-              <p className="text-muted-foreground mb-4">
-                Click the button below to activate your camera and scan customer QR codes
+              <p className="text-muted-foreground mb-2">
+                Start the scanner to use your camera or upload a QR code image.
               </p>
+              {!isSecure && (
+                <p className="text-sm text-yellow-600 mb-2">
+                  Live camera requires HTTPS or localhost. On this origin, only image upload will be available.
+                </p>
+              )}
               <Button onClick={startScanning} className="luxury-gradient" size="lg">
                 <Camera className="w-5 h-5 mr-2" />
                 Start Scanner
@@ -123,13 +194,135 @@ const QRScanner = () => {
 
       {scanning && (
         <Card className="border-border/50 luxury-shadow">
-          <CardHeader>
-            <CardTitle>Scanning...</CardTitle>
-            <CardDescription>Position the QR code within the frame</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between gap-3">
+              <span>Scan QR Code</span>
+              <span className="text-[0.65rem] font-normal text-muted-foreground">
+                Align customer QR within the frame
+              </span>
+            </CardTitle>
+            <CardDescription className="mt-1 text-xs text-muted-foreground">
+              {isSecure
+                ? 'Choose your camera if available, or upload a QR screenshot. Use landscape for best view.'
+                : 'On this connection only image upload is available. Use a screenshot/photo of the QR code.'}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div id="qr-reader" className="w-full"></div>
-            <Button onClick={stopScanning} variant="outline" className="w-full">
+          <CardContent className="space-y-4 pt-2">
+            {/*
+              Scanner container:
+              - Center scan-region icon/video
+              - Make camera select full-width with bigger padding
+              - Place Start/Stop/Scan File on separate lines with spacing
+            */}
+            <div
+              id="qr-reader"
+              className="
+                w-full rounded-2xl border border-border/40 bg-muted/40
+                px-3 py-4 md:px-5 md:py-6
+                flex flex-col items-stretch
+                gap-4
+              "
+            >
+              {/* Style overrides for html5-qrcode DOM elements */}
+              <style>{`
+                /* 1. Center content in scan region (including default icon/video) */
+                #qr-reader__scan_region {
+                  display: flex !important;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  text-align: center;
+                  gap: 8px;
+                }
+
+                #qr-reader__scan_region img,
+                #qr-reader__scan_region svg {
+                  margin: 0 auto;
+                }
+
+                /* 2. Make camera select large, touch-friendly, and separated */
+                #html5-qrcode-select-camera {
+                  width: 100% !important;
+                  padding: 10px 14px !important;
+                  margin: 8px 0 4px 0 !important;
+                  border-radius: 9999px !important;
+                  font-size: 0.8rem !important;
+                }
+
+                /* 3. Lay out dashboard controls vertically with spacing */
+                #qr-reader__dashboard {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: stretch;
+                  gap: 8px;
+                  padding-top: 4px;
+                }
+
+                /* 4. Ensure each button is on its own line, full-width, with space */
+                #qr-reader__dashboard .html5-qrcode-element,
+                #qr-reader__dashboard button {
+                  display: block !important;
+                  width: 100% !important;
+                  margin: 2px 0 !important;
+                  text-align: center !important;
+                }
+
+                #qr-reader__dashboard button {
+                  padding: 9px 14px !important;
+                  border-radius: 9999px !important;
+                  font-size: 0.8rem !important;
+                }
+
+                /* Specifically separate the camera stop button from others */
+                #html5-qrcode-button-camera-stop {
+                  margin-top: 10px !important;
+                }
+
+                /* Video aesthetics */
+                #qr-reader__scan_region video {
+                  border-radius: 18px;
+                  max-height: 260px;
+                  object-fit: cover;
+                }
+
+                @media (min-width: 640px) {
+                  #qr-reader__dashboard {
+                    max-width: 420px;
+                    align-self: center;
+                  }
+                }
+              `}</style>
+
+              {/* Labels / helper text above controls */}
+              <div className="flex flex-col items-center gap-1 text-center">
+                <div className="text-[0.7rem] font-semibold text-muted-foreground tracking-wide uppercase">
+                  Select Camera
+                </div>
+                <div className="text-[0.65rem] text-muted-foreground">
+                  Choose front or back camera from the dropdown below.
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-1 text-center">
+                <div className="text-[0.7rem] font-semibold text-foreground">
+                  Scan Options
+                </div>
+                <div className="text-[0.65rem] text-muted-foreground">
+                  Use “Start Scanning” for live camera or “Scan an Image File” to upload a QR screenshot.
+                </div>
+              </div>
+            </div>
+
+            {/* Helper layout hint */}
+            <div className="text-[0.65rem] text-muted-foreground text-center px-3">
+              If camera buttons or options are hidden, scroll inside the scanner box or rotate your phone.
+            </div>
+
+            <Button
+              onClick={stopScanning}
+              variant="outline"
+              className="w-full mt-1 md:mt-2"
+            >
               <XCircle className="w-4 h-4 mr-2" />
               Stop Scanning
             </Button>
