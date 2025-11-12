@@ -97,10 +97,15 @@ const OrdersManagement = () => {
 
       if (error) throw error;
 
-      setOrders(orders.map(order => 
+      setOrders(orders.map(order =>
         order.id === orderId ? { ...order, status: newStatus } : order
       ));
       toast.success('Order status updated');
+
+      // Loyalty + notification logic is handled in DB trigger:
+      // - trg_order_completed_loyalty on public.orders
+      // - public.handle_order_completed_loyalty()
+      // This keeps frontend minimal and consistent.
     } catch (error) {
       console.error('Error updating order:', error);
       toast.error('Failed to update order status');

@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogOut, User, Phone, Mail, Edit2 } from 'lucide-react';
+import { LogOut, User, Phone, Mail, Edit2, Sparkles, Compass, Star as StarIcon, Shield, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNav } from '@/components/BottomNav';
@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCustomerLoyalty } from '@/hooks/useCustomerLoyalty';
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -22,6 +23,25 @@ const Profile = () => {
     full_name: '',
     phone: ''
   });
+
+  const { loading: loyaltyLoading, summary, badgeLabel, badgeDescription, badgeIcon } = useCustomerLoyalty();
+
+  const getBadgeIconNode = () => {
+    const base = 'w-4 h-4';
+    switch (badgeIcon) {
+      case 'compass':
+        return <Compass className={base} />;
+      case 'star':
+        return <StarIcon className={base} />;
+      case 'shield':
+        return <Shield className={base} />;
+      case 'crown':
+        return <Crown className={base} />;
+      case 'sparkles':
+      default:
+        return <Sparkles className={base} />;
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -124,16 +144,47 @@ const Profile = () => {
       </div>
 
       <div className="max-w-md mx-auto px-6 py-6 space-y-6">
-        {/* Profile Card */}
+        {/* Profile + Loyalty Card */}
         <Card className="p-6 space-y-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full luxury-gradient flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full luxury-gradient flex items-center justify-center relative">
               <User className="w-8 h-8 text-white" />
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-background border border-yellow-400 flex items-center justify-center shadow-sm">
+                {getBadgeIconNode()}
+              </div>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold">{profile?.full_name || 'User'}</h2>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <h2 className="text-xl font-semibold">
+                {profile?.full_name || 'User'}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {user?.email}
+              </p>
+              <div className="mt-1 flex items-center gap-2 flex-wrap">
+                <Badge
+                  className="px-2 py-0.5 text-[9px] rounded-full bg-primary/10 text-primary border-primary/20"
+                >
+                  {loyaltyLoading
+                    ? 'Calculating badge...'
+                    : badgeLabel || 'Newbie'}
+                </Badge>
+                {summary && (
+                  <>
+                    <span className="inline-flex items-baseline gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
+                      <span className="text-[11px] font-semibold text-primary">
+                        {summary.total_points}
+                      </span>
+                      <span className="text-[8px] uppercase tracking-wide text-primary/80">
+                        pts
+                      </span>
+                    </span>
+                    <span className="text-[9px] text-muted-foreground/80">
+                      {summary.total_completed_orders} completed orders
+                    </span>
+                  </>
+                )}
             </div>
+          </div>
             <Button
               variant="ghost"
               size="icon"
@@ -141,6 +192,11 @@ const Profile = () => {
             >
               <Edit2 className="h-4 w-4" />
             </Button>
+          </div>
+
+          {/* Minimal loyalty description */}
+          <div className="text-[10px] text-muted-foreground bg-muted/40 rounded-xl px-3 py-2">
+            {badgeDescription}
           </div>
 
           {isEditing ? (
