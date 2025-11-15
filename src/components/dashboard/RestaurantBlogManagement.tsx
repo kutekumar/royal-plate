@@ -278,10 +278,10 @@ const RestaurantBlogManagement = () => {
             Loading your blog studio...
           </span>
         </div>
-        <Card className="p-4 bg-card/80 border-border/40 animate-pulse">
-          <div className="h-3 w-24 bg-muted/70 rounded mb-2" />
-          <div className="h-3 w-40 bg-muted/60 rounded mb-1" />
-          <div className="h-3 w-32 bg-muted/50 rounded" />
+        <Card className="p-3 sm:p-4 bg-card/80 border-border/40 animate-pulse">
+          <div className="h-2.5 sm:h-3 w-20 sm:w-24 bg-muted/70 rounded mb-2" />
+          <div className="h-2.5 sm:h-3 w-32 sm:w-40 bg-muted/60 rounded mb-1" />
+          <div className="h-2.5 sm:h-3 w-24 sm:w-32 bg-muted/50 rounded" />
         </Card>
       </div>
     );
@@ -353,8 +353,8 @@ const RestaurantBlogManagement = () => {
           {/* Existing posts */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {posts.length === 0 && (
-          <Card className="p-4 bg-card/80 border-dashed border-border/60">
-            <p className="text-[11px] text-muted-foreground">
+          <Card className="p-3 sm:p-4 bg-card/80 border-dashed border-border/60">
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground">
               You haven't published any stories yet. Create your first post to
               showcase your restaurant's personality and promotions.
             </p>
@@ -404,9 +404,15 @@ const RestaurantBlogManagement = () => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-[8px] sm:text-[9px] text-muted-foreground line-clamp-2">
-                    {post.excerpt || post.content.slice(0, 120)}
-                  </p>
+                  <div
+                    className="text-[8px] sm:text-[9px] text-muted-foreground line-clamp-2"
+                    dangerouslySetInnerHTML={{
+                      __html: post.excerpt ||
+                        (post.content.length > 120
+                          ? post.content.slice(0, 120) + '...'
+                          : post.content)
+                    }}
+                  />
                   <div className="flex items-center gap-2 text-[7px] sm:text-[8px] text-muted-foreground/80">
                     <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     <span>
@@ -489,10 +495,10 @@ const RestaurantBlogManagement = () => {
                     {post.linked_menu_items.map((mi) => (
                       <div
                         key={mi.id}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/5 border border-primary/15 text-[7px] text-primary/80"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/5 border border-primary/15 text-[6px] sm:text-[7px] text-primary/80"
                       >
-                        <ImageIcon className="w-2.5 h-2.5" />
-                        <span className="truncate max-w-[80px]">
+                        <ImageIcon className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                        <span className="truncate max-w-[60px] sm:max-w-[80px]">
                           {mi.name}
                         </span>
                       </div>

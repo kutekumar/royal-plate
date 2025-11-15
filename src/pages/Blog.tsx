@@ -404,16 +404,20 @@ const Blog = () => {
                       {post.title}
                     </h2>
                     {expandedContentPostIds.has(post.id) ? (
-                      <p className="text-[11px] text-muted-foreground font-sans whitespace-pre-line leading-loose">
-                        {post.content}
-                      </p>
+                      <div
+                        className="text-[11px] text-muted-foreground font-sans leading-loose"
+                        dangerouslySetInnerHTML={{ __html: post.content }}
+                      />
                     ) : (
-                      <p className="text-[11px] text-muted-foreground font-sans line-clamp-3 leading-loose">
-                        {post.excerpt ||
-                          post.content
-                            .slice(0, 180)
-                            .concat(post.content.length > 180 ? '…' : '')}
-                      </p>
+                      <div
+                        className="text-[11px] text-muted-foreground font-sans line-clamp-3 leading-loose"
+                        dangerouslySetInnerHTML={{
+                          __html: post.excerpt ||
+                            (post.content.length > 180
+                              ? post.content.slice(0, 180) + '…'
+                              : post.content)
+                        }}
+                      />
                     )}
                   </div>
 

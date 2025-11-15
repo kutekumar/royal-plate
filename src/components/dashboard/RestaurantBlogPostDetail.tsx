@@ -356,9 +356,10 @@ const RestaurantBlogPostDetail = ({
 
             {/* Post Content */}
             <div className="prose prose-sm max-w-none">
-              <div className="text-[13px] md:text-[15px] text-foreground leading-relaxed whitespace-pre-line">
-                {post.content}
-              </div>
+              <div
+                className="text-[13px] md:text-[15px] text-foreground leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
             </div>
 
             {/* Linked Menu Items */}

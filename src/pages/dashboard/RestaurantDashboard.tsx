@@ -41,7 +41,7 @@ const RestaurantDashboard = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'orders' | 'scanner' | 'menu' | 'blog' | 'settings'>('blog');
+  const [activeTab, setActiveTab] = useState<'orders' | 'scanner' | 'menu' | 'blog' | 'settings'>('orders');
 
   useEffect(() => {
     // Read tab from URL parameters
