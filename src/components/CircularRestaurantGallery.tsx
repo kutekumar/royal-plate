@@ -231,7 +231,7 @@ function CircularRestaurantGallery({ restaurants }: CircularRestaurantGalleryPro
               />
             </div>
             <div className="mt-1.5 w-20 text-center">
-              <span className="text-[9px] font-semibold text-black block truncate">
+              <span className="text-[9px] font-semibold text-foreground block truncate">
                 {item.title}
               </span>
             </div>

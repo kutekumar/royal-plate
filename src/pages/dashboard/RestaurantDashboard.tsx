@@ -206,17 +206,17 @@ const RestaurantDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 pb-20">
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40">
+      <header className="border-b border-border/50 bg-card/90 backdrop-blur-xl sticky top-0 z-40 luxury-shadow">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full luxury-gradient flex items-center justify-center">
-              <UtensilsCrossed className="w-5 h-5 text-white" />
+            <div className="w-11 h-11 rounded-xl luxury-gradient flex items-center justify-center shadow-lg">
+              <UtensilsCrossed className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Restaurant Dashboard</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Restaurant Dashboard</h1>
+              <p className="text-xs text-muted-foreground font-light">
                 Manage your restaurant
                 {restaurantId ? ' • Live order notifications enabled' : ''}
               </p>

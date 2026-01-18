@@ -5,9 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Star, MapPin, Clock, Phone, Plus, Minus, ShoppingBag, UtensilsCrossed, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, Phone, Plus, Minus, ShoppingBag, UtensilsCrossed, Loader2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import RestaurantChatbot from '@/components/RestaurantChatbot';
 
 interface CartItem {
   id: string;
@@ -50,6 +51,14 @@ const RestaurantDetails = () => {
   const [orderType, setOrderType] = useState<'dine_in' | 'takeaway'>('dine_in');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isCartPreviewOpen, setIsCartPreviewOpen] = useState(false);
+  
+  // Dine-in specific states
+  const [partySize, setPartySize] = useState<number>(2);
+  const [selectedDate, setSelectedDate] = useState<string>('today');
+  const [selectedTime, setSelectedTime] = useState<string>('12:00 PM');
+  
+  // Chatbot state
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -128,7 +137,56 @@ const RestaurantDetails = () => {
       toast.error('Please add items to your cart');
       return;
     }
-    navigate('/payment', { state: { cart, restaurant, orderType, totalAmount } });
+    
+    const orderDetails = {
+      cart,
+      restaurant,
+      orderType,
+      totalAmount,
+      ...(orderType === 'dine_in' && {
+        partySize,
+        reservationDate: selectedDate,
+        reservationTime: selectedTime
+      })
+    };
+    
+    navigate('/payment', { state: orderDetails });
+  };
+
+  // Generate date options (Today, Tomorrow, and next 5 days)
+  const generateDateOptions = () => {
+    const dates = [];
+    const today = new Date();
+    
+    dates.push({ value: 'today', label: 'Today' });
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dates.push({ value: 'tomorrow', label: 'Tomorrow' });
+    
+    for (let i = 2; i <= 6; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + i);
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      dates.push({ value: date.toISOString(), label: `${dayName}, ${dateStr}` });
+    }
+    
+    return dates;
+  };
+
+  // Generate time options (11:00 AM to 10:00 PM)
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 11; hour <= 22; hour++) {
+      for (let min = 0; min < 60; min += 30) {
+        const displayHour = hour > 12 ? hour - 12 : hour;
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayMin = min === 0 ? '00' : min;
+        times.push(`${displayHour}:${displayMin} ${period}`);
+      }
+    }
+    return times;
   };
 
   return (
@@ -164,6 +222,16 @@ const RestaurantDetails = () => {
         >
           View on Map
         </Button>
+
+        {/* AI Chatbot Button */}
+        <Button
+          size="icon"
+          className="absolute bottom-4 left-4 w-14 h-14 rounded-full luxury-gradient shadow-2xl hover:scale-110 transition-all duration-300 group"
+          onClick={() => setIsChatbotOpen(true)}
+        >
+          <MessageCircle className="w-6 h-6 text-white group-hover:animate-pulse" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
+        </Button>
       </div>
 
       {/* Restaurant Info */}
@@ -197,20 +265,95 @@ const RestaurantDetails = () => {
         </div>
 
         {/* Order Type Selection */}
-        <Card className="p-4">
-          <h3 className="font-semibold mb-3">Order Type</h3>
-          <Tabs value={orderType} onValueChange={(v) => setOrderType(v as any)}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="dine_in">
-                <UtensilsCrossed className="h-4 w-4 mr-2" />
-                Dine In
-              </TabsTrigger>
-              <TabsTrigger value="takeaway">
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Takeaway
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <Card className="p-4 space-y-4">
+          <div>
+            <h3 className="font-semibold mb-3">Order Type</h3>
+            <Tabs value={orderType} onValueChange={(v) => setOrderType(v as any)}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="dine_in">
+                  <UtensilsCrossed className="h-4 w-4 mr-2" />
+                  Dine In
+                </TabsTrigger>
+                <TabsTrigger value="takeaway">
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Takeaway
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Dine-in specific options */}
+          {orderType === 'dine_in' && (
+            <div className="space-y-4 pt-2 border-t border-border">
+              {/* Party Size */}
+              <div>
+                <h3 className="font-semibold mb-3 text-sm">Party Size</h3>
+                <div className="flex gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  {Array.from({ length: 20 }, (_, i) => i + 1).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setPartySize(size)}
+                      className={`flex-shrink-0 w-10 h-10 rounded-full font-semibold text-sm transition-all ${
+                        partySize === size
+                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/50'
+                          : 'bg-muted/50 text-muted-foreground hover:bg-muted border border-border'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date and Time Selection */}
+              <div>
+                <h3 className="font-semibold mb-3 text-sm">Reservation Date & Time</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Date Picker - iOS Style */}
+                  <div className="relative">
+                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
+                    <select
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full px-3 py-3 rounded-lg bg-muted/50 border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.75rem center',
+                      }}
+                    >
+                      {generateDateOptions().map((date) => (
+                        <option key={date.value} value={date.value}>
+                          {date.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Time Picker - iOS Style */}
+                  <div className="relative">
+                    <label className="text-xs text-muted-foreground mb-1 block">Time</label>
+                    <select
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                      className="w-full px-3 py-3 rounded-lg bg-muted/50 border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.75rem center',
+                      }}
+                    >
+                      {generateTimeOptions().map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Menu */}
@@ -415,6 +558,14 @@ const RestaurantDetails = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* AI Chatbot */}
+      <RestaurantChatbot
+        isOpen={isChatbotOpen}
+        onClose={() => setIsChatbotOpen(false)}
+        restaurantName={restaurant.name}
+        restaurantImage={restaurant.image}
+      />
     </div>
   );
 };

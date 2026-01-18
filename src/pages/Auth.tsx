@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import gsap from 'gsap';
-import ALANLogo from '@/imgs/ALANLOGO.png';
+import RPLogo from '@/imgs/RPLogo.png';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -129,30 +129,39 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="w-full max-w-md space-y-6 relative z-10">
         {/* Logo */}
-        <div className="text-center space-y-2" ref={logoRef}>
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full luxury-gradient flex items-center justify-center overflow-hidden">
-              <img src={ALANLogo} alt="ALAN Logo" className="w-10 h-10 object-contain drop-shadow" />
+        <div className="text-center space-y-3" ref={logoRef}>
+          <div className="flex justify-center mb-2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl"></div>
+              <div className="relative bg-card/80 backdrop-blur-sm p-4 rounded-2xl border border-primary/30 luxury-shadow">
+                <img src={RPLogo} alt="Royal Plate Logo" className="w-20 h-20 object-contain drop-shadow-2xl" />
+              </div>
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-foreground">ALAN</h1>
-          <p className="text-muted-foreground">Luxury dining made simple</p>
+          <h1 className="text-4xl font-bold text-foreground tracking-tight">Royal Plate</h1>
+          <p className="text-muted-foreground font-light">Premium dining experience</p>
         </div>
 
         {/* Auth Card */}
-        <Card className="border-border/50 luxury-shadow" ref={cardRef}>
+        <Card className="border-primary/20 luxury-shadow bg-card/90 backdrop-blur-sm" ref={cardRef}>
           <CardHeader>
-            <CardTitle>Welcome</CardTitle>
-            <CardDescription>Sign in or create an account to continue</CardDescription>
+            <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
+            <CardDescription className="font-light">Sign in or create an account to continue</CardDescription>
           </CardHeader>
           <CardContent className="px-6 pt-2 pb-6">
             <Tabs value={tab} onValueChange={(v) => setTab(v as 'signin' | 'signup')} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                <TabsTrigger value="signin" className="font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Sign Up</TabsTrigger>
               </TabsList>
 
               <div ref={heightWrapperRef} className="relative overflow-visible box-border px-3 sm:px-4 pb-5">
@@ -186,7 +195,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full luxury-gradient"
+                    className="w-full h-12 luxury-gradient hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 font-semibold"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Signing in...' : 'Sign In'}
@@ -250,7 +259,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full luxury-gradient"
+                    className="w-full h-12 luxury-gradient hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 font-semibold"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Creating account...' : 'Create Account'}

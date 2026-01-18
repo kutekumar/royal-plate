@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Luxury Gold Theme */
+    /* Luxury Gold Theme - Light Mode (fallback) */
     --background: 0 0% 98%;
     --foreground: 0 0% 10%;
 
@@ -18,8 +18,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 43 72% 52%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 64% 58%;
+    --primary-foreground: 0 0% 10%;
 
     --secondary: 43 18% 92%;
     --secondary-foreground: 0 0% 10%;
@@ -27,72 +27,82 @@ All colors MUST be HSL.
     --muted: 43 18% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 43 72% 52%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 43 64% 58%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 43 18% 88%;
     --input: 43 18% 88%;
-    --ring: 43 72% 52%;
+    --ring: 43 64% 58%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
     /* Custom luxury tokens */
-    --gold: 43 72% 52%;
-    --gold-light: 43 72% 65%;
-    --gold-dark: 43 72% 40%;
-    --cream: 43 18% 96%;
-    --luxury-shadow: 0 10px 30px -10px hsl(43 72% 52% / 0.2);
+    --gold: 43 64% 58%;
+    --gold-light: 43 64% 70%;
+    --gold-dark: 43 64% 45%;
+    --luxury-shadow: 0 10px 30px -10px hsl(43 64% 58% / 0.3);
     --glass-bg: 0 0% 100% / 0.7;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 43 64% 58%;
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 98%;
+    /* Royal Plate Dark Theme - #D7AE4D gold on dark gray */
+    --background: 0 0% 12%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 16%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 14%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 43 72% 52%;
+    --primary: 43 64% 58%;
     --primary-foreground: 0 0% 10%;
 
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 43 72% 52%;
+    --accent: 43 64% 58%;
     --accent-foreground: 0 0% 10%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 43 72% 52%;
+    --border: 0 0% 24%;
+    --input: 0 0% 20%;
+    --ring: 43 64% 58%;
+
+    /* Custom luxury dark tokens */
+    --gold: 43 64% 58%;
+    --gold-light: 43 64% 70%;
+    --gold-dark: 43 64% 45%;
+    --luxury-shadow: 0 10px 40px -10px hsl(43 64% 58% / 0.25);
+    --glass-bg: 0 0% 16% / 0.8;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 14%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 43 64% 58%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 24%;
+    --sidebar-ring: 43 64% 58%;
   }
 }
 
@@ -102,21 +112,37 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-poppins;
+    @apply bg-background text-foreground font-montserrat antialiased;
   }
 }
 
 @layer utilities {
   .glass-effect {
-    @apply backdrop-blur-xl bg-white/70 border border-white/20;
+    @apply backdrop-blur-xl bg-card/70 border border-border/50;
   }
   
   .luxury-shadow {
-    box-shadow: 0 10px 30px -10px hsl(43 72% 52% / 0.2);
+    box-shadow: 0 10px 40px -10px hsl(43 64% 58% / 0.25);
   }
   
   .luxury-gradient {
-    background: linear-gradient(135deg, hsl(43 72% 52%), hsl(43 72% 40%));
+    background: linear-gradient(135deg, hsl(43 64% 58%), hsl(43 64% 45%));
+  }
+  
+  .luxury-text-gradient {
+    background: linear-gradient(135deg, hsl(43 64% 70%), hsl(43 64% 50%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

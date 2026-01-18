@@ -131,19 +131,19 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Manage your ALAN platform</p>
+              <h1 className="text-4xl font-bold text-foreground mb-2 tracking-tight">Admin Dashboard</h1>
+              <p className="text-muted-foreground font-light">Manage your Royal Plate platform</p>
             </div>
             <Button
               variant="outline"
               onClick={handleLogout}
-              className="flex items-center gap-2 hover:bg-destructive hover:text-destructive-foreground"
+              className="flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive border-border/50 font-semibold"
             >
               <LogOut className="h-4 w-4" />
               Logout
@@ -156,16 +156,16 @@ const AdminDashboard = () => {
           {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.title} className="hover:shadow-lg transition-shadow">
+              <Card key={stat.title} className="luxury-shadow hover:shadow-2xl transition-all border-border/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-semibold tracking-wide">
                     {stat.title}
                   </CardTitle>
                   <Icon className={`h-5 w-5 ${stat.color}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground mt-1 font-light">
                     {stat.description}
                   </p>
                 </CardContent>
@@ -177,7 +177,7 @@ const AdminDashboard = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
             onClick={() => navigate('/admin/restaurants')}
           >
             <CardHeader>
@@ -190,33 +190,33 @@ const AdminDashboard = () => {
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
             onClick={() => navigate('/admin/owners')}
           >
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 font-bold">
                 <Users className="h-5 w-5" />
                 Restaurant Owners
               </CardTitle>
-              <CardDescription>Manage owner accounts</CardDescription>
+              <CardDescription className="font-light">Manage owner accounts</CardDescription>
             </CardHeader>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
             onClick={() => navigate('/admin/orders')}
           >
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 font-bold">
                 <ShoppingBag className="h-5 w-5" />
                 Orders Report
               </CardTitle>
-              <CardDescription>View all orders</CardDescription>
+              <CardDescription className="font-light">View all orders</CardDescription>
             </CardHeader>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
             onClick={() => navigate('/admin/users')}
           >
             <CardHeader>

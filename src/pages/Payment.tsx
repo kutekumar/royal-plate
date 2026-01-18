@@ -17,7 +17,7 @@ const paymentMethods = [
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cart, restaurant, orderType, totalAmount } = location.state || {};
+  const { cart, restaurant, orderType, totalAmount, partySize, reservationDate, reservationTime } = location.state || {};
   
   const [selectedPayment, setSelectedPayment] = useState<'mpu' | 'kbzpay' | 'wavepay'>('kbzpay');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -43,18 +43,27 @@ const Payment = () => {
 
       const qr_code = `ALAN-${Date.now()}-${restaurant.id}-${user.id.substring(0, 8)}`;
 
+      const orderData: any = {
+        customer_id: user.id,
+        restaurant_id: restaurant.id,
+        order_type: orderType,
+        payment_method: selectedPayment,
+        total_amount: totalAmount,
+        status: 'paid',
+        qr_code,
+        order_items: cart,
+      };
+
+      // Add reservation details for dine-in orders
+      if (orderType === 'dine_in' && partySize) {
+        orderData.party_size = partySize;
+        orderData.reservation_date = reservationDate;
+        orderData.reservation_time = reservationTime;
+      }
+
       const { data: order, error } = await supabase
         .from('orders')
-        .insert({
-          customer_id: user.id,
-          restaurant_id: restaurant.id,
-          order_type: orderType,
-          payment_method: selectedPayment,
-          total_amount: totalAmount,
-          status: 'paid',
-          qr_code,
-          order_items: cart,
-        })
+        .insert(orderData)
         .select()
         .single();
 
@@ -103,6 +112,20 @@ const Payment = () => {
               <span className="text-muted-foreground">Order Type</span>
               <span className="font-medium capitalize">{orderType.replace('_', ' ')}</span>
             </div>
+            {orderType === 'dine_in' && partySize && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Party Size</span>
+                  <span className="font-medium">{partySize} {partySize === 1 ? 'person' : 'people'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Reservation</span>
+                  <span className="font-medium">
+                    {reservationDate === 'today' ? 'Today' : reservationDate === 'tomorrow' ? 'Tomorrow' : new Date(reservationDate).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })} at {reservationTime}
+                  </span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Items</span>
               <span className="font-medium">{cart.length} item(s)</span>

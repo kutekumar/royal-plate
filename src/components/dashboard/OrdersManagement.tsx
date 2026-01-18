@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, User, ShoppingBag, UtensilsCrossed, Loader2, XCircle } from 'lucide-react';
+import { Clock, User, ShoppingBag, UtensilsCrossed, Loader2, XCircle, Users, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +20,9 @@ interface Order {
   created_at: string;
   customer_name: string;
   customer_phone: string | null;
+  party_size?: number;
+  reservation_date?: string;
+  reservation_time?: string;
 }
 
 const OrdersManagement = () => {
@@ -404,6 +407,32 @@ const OrdersManagement = () => {
                        </div>
                      </div>
                    </div>
+
+                   {/* Dine-in Reservation Info */}
+                   {order.order_type === 'dine_in' && order.party_size && (
+                     <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 space-y-1">
+                       <div className="flex items-center gap-2 text-[10px]">
+                         <Users className="h-3.5 w-3.5 text-primary" />
+                         <span className="font-semibold text-foreground">
+                           Party of {order.party_size}
+                         </span>
+                       </div>
+                       <div className="flex items-center gap-2 text-[10px]">
+                         <Calendar className="h-3.5 w-3.5 text-primary" />
+                         <span className="text-foreground">
+                           {order.reservation_date === 'today' 
+                             ? 'Today' 
+                             : order.reservation_date === 'tomorrow' 
+                             ? 'Tomorrow' 
+                             : new Date(order.reservation_date || '').toLocaleDateString('en-US', { 
+                                 weekday: 'short', 
+                                 day: 'numeric', 
+                                 month: 'short' 
+                               })} at {order.reservation_time}
+                         </span>
+                       </div>
+                     </div>
+                   )}
 
                    {/* Items summary */}
                    <div className="space-y-0.5">

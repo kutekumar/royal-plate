@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 import gsap from 'gsap';
-import ALANLogo from '@/imgs/ALANLOGO.png';
+import RPLogo from '@/imgs/RPLogo.png';
 import OnIcon1 from '@/imgs/icons/onbarding1.png';
 import OnIcon2 from '@/imgs/icons/onbarding2.png';
 import OnIcon3 from '@/imgs/icons/onbarding3.png';
@@ -77,20 +77,31 @@ const Onboarding = () => {
   const step = onboardingSteps[currentStep];
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-8">
-          {/* Top Logo in luxury circle */}
+    <div ref={containerRef} className="h-screen bg-gradient-to-br from-background via-background to-secondary/10 flex flex-col relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 relative z-10 min-h-0">
+        <div className="w-full max-w-md space-y-6">
+          {/* Top Logo with elegant presentation */}
           <div className="flex justify-center" ref={headerRef}>
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full luxury-gradient flex items-center justify-center luxury-shadow overflow-hidden">
-              <img src={ALANLogo} alt="ALAN Logo" className="w-16 h-16 object-contain drop-shadow" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl"></div>
+              <div className="relative bg-card/80 backdrop-blur-sm p-5 rounded-2xl border border-primary/30 luxury-shadow">
+                <img src={RPLogo} alt="Royal Plate Logo" className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-2xl" />
+              </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="text-center space-y-4" ref={contentRef}>
-            <h1 className="text-3xl font-bold text-foreground">{step.title}</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+          <div className="text-center space-y-3" ref={contentRef}>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              {step.title}
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed font-light">
               {step.description}
             </p>
           </div>
@@ -101,20 +112,20 @@ const Onboarding = () => {
               <img
                 src={step.image}
                 alt="Onboarding illustration"
-                className="max-h-56 sm:max-h-64 object-contain"
+                className="max-h-40 sm:max-h-48 object-contain opacity-90"
               />
             </div>
           </div>
 
           {/* Progress indicators */}
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-2 pt-2">
             {onboardingSteps.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-1.5 rounded-full transition-all duration-300 ${
                   index === currentStep
-                    ? 'w-8 bg-primary'
-                    : 'w-2 bg-muted'
+                    ? 'w-8 bg-primary shadow-lg shadow-primary/50'
+                    : 'w-1.5 bg-muted/50'
                 }`}
               />
             ))}
@@ -122,11 +133,11 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* Footer buttons */}
-      <div className="p-6 space-y-3 max-w-md mx-auto w-full">
+      {/* Footer buttons - Fixed at bottom with proper height */}
+      <div className="p-6 pb-8 space-y-3 max-w-md mx-auto w-full relative z-10">
         <Button
           onClick={handleNext}
-          className="w-full h-12 text-base font-medium luxury-gradient"
+          className="w-full h-14 text-base font-semibold luxury-gradient hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 tracking-wide"
           size="lg"
         >
           {currentStep < onboardingSteps.length - 1 ? 'Next' : 'Get Started'}
@@ -137,7 +148,7 @@ const Onboarding = () => {
           <Button
             onClick={handleSkip}
             variant="ghost"
-            className="w-full h-12 text-base font-medium"
+            className="w-full h-12 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-card/50"
             size="lg"
           >
             Skip

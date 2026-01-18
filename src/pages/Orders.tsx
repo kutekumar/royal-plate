@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, MapPin, Users, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNav } from '@/components/BottomNav';
 import { QRCodeSVG } from 'qrcode.react';
@@ -193,6 +193,33 @@ const Orders = () => {
                     {selectedOrder.order_type?.replace('_', ' ')}
                   </span>
                 </div>
+                
+                {/* Dine-in Reservation Details */}
+                {selectedOrder.order_type === 'dine_in' && selectedOrder.party_size && (
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 space-y-2 my-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-foreground">
+                        Party of {selectedOrder.party_size} {selectedOrder.party_size === 1 ? 'person' : 'people'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-foreground">
+                        {selectedOrder.reservation_date === 'today' 
+                          ? 'Today' 
+                          : selectedOrder.reservation_date === 'tomorrow' 
+                          ? 'Tomorrow' 
+                          : new Date(selectedOrder.reservation_date || '').toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              day: 'numeric', 
+                              month: 'short' 
+                            })} at {selectedOrder.reservation_time}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Payment Method</span>
                   <span className="font-medium uppercase">{selectedOrder.payment_method}</span>

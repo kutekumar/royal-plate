@@ -17,7 +17,7 @@ import {
   LogOut,
   MessageCircle,
 } from 'lucide-react';
-import ALANLogo from '@/imgs/ALANLOGO.png';
+import RPLogo from '@/imgs/RPLogo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
@@ -361,16 +361,15 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Luxury top nav bar with logo, loyalty, and notifications */}
-      <div className="sticky top-0 z-40 py-2 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-md px-4">
-          <div className="luxury-gradient text-white rounded-xl shadow-md">
-            <div className="px-4 py-2 flex items-center justify-between gap-3">
-              <img
-                src={ALANLogo}
-                alt="ALAN Logo"
-                className="h-7 w-auto object-contain drop-shadow"
-              />
-              <div className="flex items-center gap-2 relative">
+      <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-xl border-b border-primary/20 shadow-xl">
+        <div className="mx-auto max-w-md px-6 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <img
+              src={RPLogo}
+              alt="Royal Plate Logo"
+              className="h-16 w-auto object-contain drop-shadow-2xl"
+            />
+            <div className="flex items-center gap-3 relative">
                 {/* Notification bell */}
                 {user && (
                   <div
@@ -382,10 +381,10 @@ const Home = () => {
                         setShowNotifications((prev) => !prev);
                         setShowProfileMenu(false);
                       }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-all"
+                      className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary/10 transition-all bg-muted/50"
                       aria-label="Notifications"
                     >
-                      <Bell className="h-4 w-4 text-white" />
+                      <Bell className="h-5 w-5 text-foreground" />
                       {unreadCount > 0 && (
                         <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-[3px] rounded-full bg-red-500 text-[9px] leading-[14px] text-white flex items-center justify-center">
                           {unreadCount > 9 ? '9+' : unreadCount}
@@ -503,11 +502,11 @@ const Home = () => {
                       setShowProfileMenu((prev) => !prev);
                       setShowNotifications(false);
                     }}
-                    className="relative w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/15 transition-all border border-white/20 shadow-sm"
+                    className="relative w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-primary/10 transition-all border border-border shadow-sm"
                     aria-label="Profile & loyalty menu"
                   >
-                    <UserIcon className="h-4 w-4 text-white" />
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-black/70 flex items-center justify-center border border-yellow-300/80 shadow-md">
+                    <UserIcon className="h-5 w-5 text-foreground" />
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card flex items-center justify-center border-2 border-primary shadow-md">
                       {getBadgeIconNode()}
                     </span>
                   </button>
@@ -577,12 +576,8 @@ const Home = () => {
                     </div>
                   )}
                 </div>
-              </div>
             </div>
           </div>
-          <p className="text-xs opacity-80 mt-2 text-center">
-            Discover Fine Dining with Ease and Comfort
-          </p>
         </div>
       </div>
 
@@ -840,9 +835,9 @@ const Home = () => {
       {/* Welcome + Search + Circular Gallery + Restaurant List */}
       <div className="max-w-md mx-auto px-6 py-6 space-y-4">
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold text-foreground">
             {getGreeting()},{' '}
-            <span className="font-bold text-yellow-500">{displayName}</span>
+            <span className="font-bold luxury-text-gradient">{displayName}</span>
           </h2>
           {/* Search */}
           <div className="relative">
@@ -882,7 +877,7 @@ const Home = () => {
           filteredRestaurants.map((restaurant) => (
             <Card
               key={restaurant.id}
-              className="overflow-hidden cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+              className="overflow-hidden cursor-pointer transition-all hover:scale-[1.02] luxury-shadow hover:shadow-2xl border-border/50"
               onClick={() => navigate(`/restaurant/${restaurant.id}`)}
             >
               <div className="relative h-48">
