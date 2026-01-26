@@ -1,16 +1,28 @@
 import { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogOut, User, Phone, Mail, Edit2, Sparkles, Compass, Star as StarIcon, Shield, Crown } from 'lucide-react';
+import { 
+  LogOut, 
+  User, 
+  Phone, 
+  Mail, 
+  Edit2, 
+  Sparkles, 
+  Compass, 
+  Star as StarIcon, 
+  Shield, 
+  Crown,
+  Check,
+  X,
+  ShoppingBag,
+  TrendingUp
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNav } from '@/components/BottomNav';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCustomerLoyalty } from '@/hooks/useCustomerLoyalty';
 
 const Profile = () => {
@@ -27,7 +39,7 @@ const Profile = () => {
   const { loading: loyaltyLoading, summary, badgeLabel, badgeDescription, badgeIcon } = useCustomerLoyalty();
 
   const getBadgeIconNode = () => {
-    const base = 'w-4 h-4';
+    const base = 'w-5 h-5';
     switch (badgeIcon) {
       case 'compass':
         return <Compass className={base} />;
@@ -75,8 +87,7 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select(
-          `
+        .select(`
           *,
           restaurants (
             name,
@@ -84,8 +95,7 @@ const Profile = () => {
             address
           ),
           order_items
-        `
-        )
+        `)
         .eq('customer_id', user.id)
         .eq('status', 'completed')
         .order('created_at', { ascending: false });
@@ -124,225 +134,221 @@ const Profile = () => {
     toast.success('Signed out successfully');
   };
 
-  return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="bg-card border-b border-border px-6 py-6">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Profile</h1>
-            <p className="text-muted-foreground">Manage your account settings</p>
-          </div>
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            size="icon"
-            className="shrink-0"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+  const totalSpent = orderHistory.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-      <div className="max-w-md mx-auto px-6 py-6 space-y-6">
-        {/* Profile + Loyalty Card */}
-        <Card className="p-6 space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full luxury-gradient flex items-center justify-center relative">
-              <User className="w-8 h-8 text-white" />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-background border border-yellow-400 flex items-center justify-center shadow-sm">
+  return (
+    <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto pb-20">
+      {/* Header with Gradient */}
+      <div className="relative bg-gradient-to-b from-[#caa157]/20 to-transparent px-6 pt-12 pb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-[#caa157] text-2xl font-bold tracking-wide">Profile</h1>
+          <button
+            onClick={handleSignOut}
+            className="bg-[#263569]/40 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-[#caa157]/20 hover:bg-[#263569]/60 transition-all"
+          >
+            <LogOut className="w-5 h-5 text-[#caa157]" />
+          </button>
+        </div>
+
+        {/* Profile Card */}
+        <div className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-6">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#caa157] to-[#8b7039] flex items-center justify-center">
+                <User className="w-10 h-10 text-[#1d2956]" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#1d2956] border-2 border-[#caa157] flex items-center justify-center">
                 {getBadgeIconNode()}
               </div>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-white text-xl font-bold mb-1">
                 {profile?.full_name || 'User'}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-slate-400 text-sm mb-3">
                 {user?.email}
               </p>
-              <div className="mt-1 flex items-center gap-2 flex-wrap">
-                <Badge
-                  className="px-2 py-0.5 text-[9px] rounded-full bg-primary/10 text-primary border-primary/20"
-                >
-                  {loyaltyLoading
-                    ? 'Calculating badge...'
-                    : badgeLabel || 'Newbie'}
-                </Badge>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#caa157]/10 border border-[#caa157]/30">
+                  {getBadgeIconNode()}
+                  <span className="text-[#caa157] text-xs font-semibold">
+                    {loyaltyLoading ? 'Loading...' : badgeLabel || 'Newbie'}
+                  </span>
+                </div>
                 {summary && (
-                  <>
-                    <span className="inline-flex items-baseline gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30">
-                      <span className="text-[11px] font-semibold text-primary">
-                        {summary.total_points}
-                      </span>
-                      <span className="text-[8px] uppercase tracking-wide text-primary/80">
-                        pts
-                      </span>
+                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#caa157]/10 border border-[#caa157]/30">
+                    <Sparkles className="w-3 h-3 text-[#caa157]" />
+                    <span className="text-[#caa157] text-xs font-semibold">
+                      {summary.total_points} pts
                     </span>
-                    <span className="text-[9px] text-muted-foreground/80">
-                      {summary.total_completed_orders} completed orders
-                    </span>
-                  </>
+                  </div>
                 )}
+              </div>
             </div>
-          </div>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={() => setIsEditing(!isEditing)}
+              className="text-[#caa157] hover:text-[#caa157]/80 transition-colors"
             >
-              <Edit2 className="h-4 w-4" />
-            </Button>
+              <Edit2 className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Minimal loyalty description */}
-          <div className="text-[10px] text-muted-foreground bg-muted/40 rounded-xl px-3 py-2">
-            {badgeDescription}
-          </div>
+          {badgeDescription && (
+            <div className="text-xs text-slate-400 bg-[#caa157]/5 rounded-lg px-3 py-2 mb-4">
+              {badgeDescription}
+            </div>
+          )}
 
           {isEditing ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
+                <Label htmlFor="full_name" className="text-[#caa157] text-xs uppercase tracking-wider">
+                  Full Name
+                </Label>
                 <Input
                   id="full_name"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  className="bg-[#263569]/30 border-[#caa157]/20 text-white focus:border-[#caa157]/60"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone" className="text-[#caa157] text-xs uppercase tracking-wider">
+                  Phone
+                </Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="bg-[#263569]/30 border-[#caa157]/20 text-white focus:border-[#caa157]/60"
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Button
+              <div className="flex gap-3 pt-2">
+                <button
                   onClick={handleUpdateProfile}
-                  className="flex-1 luxury-gradient"
+                  className="flex-1 bg-[#caa157] hover:bg-[#caa157]/90 text-[#1d2956] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
                 >
-                  Save Changes
-                </Button>
-                <Button
-                  variant="outline"
+                  <Check className="w-4 h-4" />
+                  Save
+                </button>
+                <button
                   onClick={() => setIsEditing(false)}
+                  className="flex-1 bg-[#263569]/40 border border-[#caa157]/40 hover:bg-[#263569]/60 text-[#caa157] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
                 >
+                  <X className="w-4 h-4" />
                   Cancel
-                </Button>
+                </button>
               </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Name:</span>
-                <span className="font-medium">{profile?.full_name || 'Not set'}</span>
+              <div className="flex items-center gap-3 text-sm bg-[#263569]/30 rounded-lg p-3">
+                <User className="h-4 w-4 text-[#caa157]" />
+                <span className="text-slate-400">Name:</span>
+                <span className="text-white font-medium">{profile?.full_name || 'Not set'}</span>
               </div>
 
-              <div className="flex items-center gap-3 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Email:</span>
-                <span className="font-medium">{user?.email}</span>
+              <div className="flex items-center gap-3 text-sm bg-[#263569]/30 rounded-lg p-3">
+                <Mail className="h-4 w-4 text-[#caa157]" />
+                <span className="text-slate-400">Email:</span>
+                <span className="text-white font-medium truncate">{user?.email}</span>
               </div>
 
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Phone:</span>
-                <span className="font-medium">{profile?.phone || 'Not set'}</span>
+              <div className="flex items-center gap-3 text-sm bg-[#263569]/30 rounded-lg p-3">
+                <Phone className="h-4 w-4 text-[#caa157]" />
+                <span className="text-slate-400">Phone:</span>
+                <span className="text-white font-medium">{profile?.phone || 'Not set'}</span>
               </div>
             </div>
           )}
-        </Card>
+        </div>
+      </div>
 
-        {/* Orders History Summary & List */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Orders History</h2>
-
-          {/* Highlight total spent */}
-          <Card className="p-4 luxury-gradient text-white flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-wide opacity-80">
+      {/* Stats Cards */}
+      <div className="px-6 py-6 space-y-4">
+        <div className="bg-gradient-to-br from-[#caa157] to-[#8b7039] rounded-2xl p-6 text-[#1d2956]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide font-semibold opacity-80 mb-1">
                 Total Spent
               </p>
-              <p className="text-2xl font-semibold">
-                {orderHistory.reduce(
-                  (sum, o) => sum + (o.total_amount || 0),
-                  0
-                ).toLocaleString()}{' '}
-                MMK
+              <p className="text-3xl font-bold">
+                ${totalSpent.toFixed(2)}
+              </p>
+              <p className="text-xs opacity-80 mt-1">
+                {orderHistory.length} completed orders
               </p>
             </div>
-            <div className="text-right text-[10px] opacity-80">
-              <p>Completed orders only</p>
-              <p>{orderHistory.length} orders</p>
-            </div>
-          </Card>
+            <TrendingUp className="w-12 h-12 opacity-40" />
+          </div>
+        </div>
+
+        {/* Order History */}
+        <div>
+          <h2 className="text-[#caa157] text-lg font-bold mb-4 flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5" />
+            Order History
+          </h2>
 
           {orderHistory.length === 0 ? (
-            <Card className="p-4 text-sm text-muted-foreground">
-              No completed orders yet. Once your orders are completed, they will appear here.
-            </Card>
+            <div className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-8 text-center">
+              <ShoppingBag className="w-12 h-12 text-[#caa157]/30 mx-auto mb-3" />
+              <p className="text-slate-400">No completed orders yet</p>
+              <p className="text-slate-500 text-sm mt-1">
+                Your order history will appear here
+              </p>
+            </div>
           ) : (
-            <Card className="p-0">
-              <ScrollArea className="max-h-72">
-                <div className="divide-y">
-                  {orderHistory.map((order) => (
-                    <div
-                      key={order.id}
-                      className="px-4 py-3 space-y-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={order.restaurants?.image_url}
-                          alt={order.restaurants?.name}
-                          className="w-10 h-10 rounded-md object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <div>
-                              <p className="text-sm font-medium">
-                                {order.restaurants?.name}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground capitalize">
-                                {order.order_type?.replace('_', ' ')} •{' '}
-                                {new Date(order.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs font-semibold text-primary">
-                                {order.total_amount?.toLocaleString()} MMK
-                              </p>
-                              <Badge className="mt-1 bg-gray-500 text-white border-0 text-[9px]">
-                                Completed
-                              </Badge>
-                            </div>
-                          </div>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {orderHistory.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-4 hover:border-[#caa157]/40 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={order.restaurants?.image_url}
+                      alt={order.restaurants?.name}
+                      className="w-14 h-14 rounded-lg object-cover border border-[#caa157]/20"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-white font-semibold">
+                            {order.restaurants?.name}
+                          </p>
+                          <p className="text-[#caa157]/70 text-xs capitalize">
+                            {order.order_type?.replace('_', ' ')} • {' '}
+                            {new Date(order.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[#caa157] font-bold">
+                            ${order.total_amount?.toFixed(2)}
+                          </p>
                         </div>
                       </div>
 
                       {/* Order items summary */}
                       {Array.isArray(order.order_items) && order.order_items.length > 0 && (
-                        <div className="pl-13 text-[10px] text-muted-foreground leading-snug">
+                        <div className="mt-2 text-xs text-slate-400 line-clamp-1">
                           {order.order_items
-                            .map(
-                              (item: any) =>
-                                `${item.name} x${item.quantity}`
-                            )
+                            .map((item: any) => `${item.name} x${item.quantity}`)
                             .join(' • ')}
                         </div>
                       )}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </ScrollArea>
-            </Card>
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Sign Out Button moved to header */}
       </div>
 
       <BottomNav />

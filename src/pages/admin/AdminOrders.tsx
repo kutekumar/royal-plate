@@ -384,10 +384,10 @@ const AdminOrders = () => {
               </p>
             )}
             {statusFilter !== 'all' && (
-              <p className="text-sm text-gray-600 mt-1">Status Filter: {statusFilter.toUpperCase()}</p>
+              <p className="text-sm text-muted-foreground mt-1">Status Filter: {statusFilter.toUpperCase()}</p>
             )}
             {dateFilter !== 'all' && (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Date Filter: {dateFilter === 'today' ? 'Today' : 
                            dateFilter === 'week' ? 'Last 7 Days' : 
                            dateFilter === 'month' ? 'Last 30 Days' : dateFilter}
@@ -508,15 +508,15 @@ const AdminOrders = () => {
                       <h3 className="font-semibold text-lg mb-2 text-blue-900">{restaurant.restaurant_name}</h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Total Orders:</span>
+                          <span className="text-muted-foreground">Total Orders:</span>
                           <span className="font-medium">{restaurant.total_orders}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Total Revenue:</span>
+                          <span className="text-muted-foreground">Total Revenue:</span>
                           <span className="font-bold text-green-600">{restaurant.total_revenue.toLocaleString()} MMK</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Avg Order Value:</span>
+                          <span className="text-muted-foreground">Avg Order Value:</span>
                           <span className="font-medium">{Math.round(restaurant.avg_order_value).toLocaleString()} MMK</span>
                         </div>
                       </div>

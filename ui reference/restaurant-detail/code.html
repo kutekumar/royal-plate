@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#caa157", // Specific Gold
+                        "navy-custom": "#1d2956", // Specific Navy Blue
+                        "navy-dark": "#162045",
+                        "navy-light": "#263569"
+                    },
+                    fontFamily: {
+                        "sans": ["Poppins", "sans-serif"],
+                        "display": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            color: #caa157;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+            background-color: #1d2956;
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-navy-custom font-sans text-white selection:bg-primary/30">
+<div class="relative flex min-h-screen w-full flex-col bg-navy-custom max-w-[430px] mx-auto overflow-x-hidden shadow-2xl">
+<div class="relative w-full h-80 overflow-hidden">
+<div class="absolute top-4 left-4 z-10">
+<button class="bg-navy-custom/60 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined !text-white">arrow_back_ios_new</span>
+</button>
+</div>
+<div class="w-full h-full bg-center bg-no-repeat bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBgIxWh1hl3ZW3L8ide0jrGVEXzfguP_geNxoqnXadzRwM6xtE0DwQ3LBAAvGX692XZvQZyj-eRBS2pxm4PBV12hfyYkgS6nrzNeLfPqj2VzvMFo__nt2j1YWsj0MfCRsMqVP_UdjgZy8KDXkgzvOVAb6pgL8L4HxtlJq2hJkdV5TQFPiQvWbp2mS4Co3TvkNQEAnSgPhmh9kv1WEgKwrym2u3zeiOIj0Vml605Zlg5eFeJFwrJWbngHD6mUes3aHSt_0g7OJH5R_k");'>
+<div class="absolute inset-0 bg-gradient-to-t from-navy-custom via-transparent to-transparent"></div>
+</div>
+</div>
+<div class="bg-navy-custom px-4 pb-6 -mt-4 relative z-10">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-primary tracking-tight text-[34px] font-bold leading-tight pt-6">The Royal Pavilion</h1>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined !text-primary !text-sm">star</span>
+<span class="material-symbols-outlined !text-primary !text-sm">star</span>
+<span class="material-symbols-outlined !text-primary !text-sm">star</span>
+<span class="material-symbols-outlined !text-primary !text-sm">star</span>
+<span class="material-symbols-outlined !text-primary !text-sm">star</span>
+<span class="text-sm text-slate-400 ml-2 font-light">(4.9 • 1.2k reviews)</span>
+</div>
+</div>
+</div>
+<p class="text-slate-300 text-sm mt-4 leading-relaxed font-light">Experience a culinary journey through imperial flavors in an atmosphere of unparalleled elegance and sophistication.</p>
+</div>
+<div class="py-4 space-y-1 bg-navy-custom">
+<div class="flex items-center gap-4 px-4 min-h-[64px]">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/5 shrink-0 size-11 border border-primary/20">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal">88 Imperial Way, Knightsbridge</p>
+<p class="text-slate-400 text-sm font-normal">London • 1.2 miles away</p>
+</div>
+<div class="ml-auto">
+<span class="material-symbols-outlined !text-primary/30">chevron_right</span>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 min-h-[64px]">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/5 shrink-0 size-11 border border-primary/20">
+<span class="material-symbols-outlined">call</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-white text-base font-medium leading-normal">+44 20 7946 0123</p>
+<p class="text-slate-400 text-sm font-normal">Available 11:00 AM - 11:00 PM</p>
+</div>
+<div class="ml-auto">
+<span class="material-symbols-outlined !text-primary/30">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="px-4 py-8 bg-navy-custom mb-32">
+<h3 class="text-primary text-xl font-bold leading-tight tracking-tight mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined">event_available</span>
+                Reserve Your Table
+            </h3>
+<div class="mb-10">
+<p class="text-primary/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">Select Date</p>
+<div class="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
+<div class="flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl bg-primary text-navy-custom font-bold shadow-[0_0_20px_rgba(202,161,87,0.3)]">
+<span class="text-[10px] uppercase opacity-80">Oct</span>
+<span class="text-2xl">14</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl bg-navy-light/30 border border-primary/40 text-primary">
+<span class="text-[10px] uppercase opacity-60">Oct</span>
+<span class="text-2xl font-bold">15</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl bg-navy-light/30 border border-primary/40 text-primary">
+<span class="text-[10px] uppercase opacity-60">Oct</span>
+<span class="text-2xl font-bold">16</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl bg-navy-light/30 border border-primary/40 text-primary">
+<span class="text-[10px] uppercase opacity-60">Oct</span>
+<span class="text-2xl font-bold">17</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl bg-navy-light/30 border border-primary/40 text-primary">
+<span class="text-[10px] uppercase opacity-60">Oct</span>
+<span class="text-2xl font-bold">18</span>
+</div>
+</div>
+</div>
+<div class="mb-10">
+<p class="text-primary/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">Available Time Slots</p>
+<div class="grid grid-cols-3 gap-3">
+<button class="py-4 rounded-xl bg-navy-light/30 border border-primary/40 text-primary text-sm font-bold hover:bg-primary/10 transition-colors">18:30</button>
+<button class="py-4 rounded-xl bg-navy-light/30 border border-primary/40 text-primary text-sm font-bold hover:bg-primary/10 transition-colors">19:00</button>
+<button class="py-4 rounded-xl bg-primary text-navy-custom font-bold shadow-[0_0_20px_rgba(202,161,87,0.3)]">19:30</button>
+<button class="py-4 rounded-xl bg-navy-light/30 border border-primary/40 text-primary text-sm font-bold hover:bg-primary/10 transition-colors">20:00</button>
+<button class="py-4 rounded-xl bg-navy-light/30 border border-primary/40 text-primary text-sm font-bold hover:bg-primary/10 transition-colors">20:30</button>
+<button class="py-4 rounded-xl bg-navy-light/30 border border-primary/40 text-primary text-sm font-bold hover:bg-primary/10 transition-colors">21:00</button>
+</div>
+</div>
+<div class="flex justify-between items-center bg-navy-light/40 p-5 rounded-2xl border border-primary/20">
+<div>
+<p class="text-primary text-[10px] font-bold uppercase tracking-[0.2em]">Party Size</p>
+<p class="text-slate-400 text-[10px] font-medium">Guests</p>
+</div>
+<div class="flex items-center gap-8">
+<button class="flex items-center justify-center outline-none">
+<span class="material-symbols-outlined !text-primary !text-3xl cursor-pointer hover:scale-110 transition-transform">remove_circle</span>
+</button>
+<span class="text-white text-2xl font-bold w-6 text-center">4</span>
+<button class="flex items-center justify-center outline-none">
+<span class="material-symbols-outlined !text-primary !text-3xl cursor-pointer hover:scale-110 transition-transform">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-navy-custom/80 backdrop-blur-xl border-t border-primary/20 z-50">
+<button class="w-full bg-primary hover:bg-primary/90 text-navy-custom font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(202,161,87,0.2)] uppercase tracking-widest text-sm">
+<span class="material-symbols-outlined !text-navy-custom !text-2xl">bookmark_check</span>
+                Confirm Reservation
+            </button>
+</div>
+</div>
+
+</body></html>

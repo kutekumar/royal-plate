@@ -340,7 +340,7 @@ const fetchPosts = async () => {
 
 
   const renderPostSkeleton = () => (
-    <Card className="p-4 space-y-3 bg-[#263569]/20 border border-[#caa157]/20 animate-pulse">
+    <Card className="p-4 space-y-3 bg-card/60 backdrop-blur-sm border-border/40 animate-pulse">
       <div className="flex items-center gap-3">
         <Skeleton className="w-10 h-10 rounded-full" />
         <div className="space-y-1 flex-1">
@@ -394,7 +394,7 @@ const fetchPosts = async () => {
                   placeholder="Search blog posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 border border-[#caa157]/20 rounded-xl bg-[#263569]/30 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#caa157]/60 transition-all"
+                  className="w-full px-3 py-2 text-sm bg-background/60 border border-border/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
 
@@ -403,7 +403,7 @@ const fetchPosts = async () => {
                 <select
                   value={selectedRestaurant}
                   onChange={(e) => setSelectedRestaurant(e.target.value)}
-                  className="w-full px-4 py-3 border border-[#caa157]/20 rounded-xl bg-[#263569]/30 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#caa157]/60 transition-all"
+                  className="w-full px-3 py-2 text-sm bg-background/60 border border-border/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="">All Restaurants</option>
                   {restaurants.map((restaurant) => (
@@ -419,7 +419,7 @@ const fetchPosts = async () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="flex-1 px-3 py-2 text-sm bg-background/60 border border-[#caa157]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="flex-1 px-3 py-2 text-sm bg-background/60 border border-border/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
@@ -429,10 +429,10 @@ const fetchPosts = async () => {
 
               {/* Filter Summary */}
               {(searchQuery.trim() || selectedRestaurant) && (
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>Showing {sortedPosts.length} posts</span>
                   {searchQuery.trim() && (
-                    <span className="px-2 py-1 bg-[#caa157]/10 text-[#caa157] rounded-full">
+                    <span className="px-2 py-1 bg-primary/10 text-primary rounded-full">
                       Search: "{searchQuery}"
                     </span>
                   )}
@@ -447,7 +447,7 @@ const fetchPosts = async () => {
                       setSelectedRestaurant('');
                       setSortBy('newest');
                     }}
-                    className="ml-1 text-[#caa157] hover:text-[#caa157]/80"
+                    className="ml-1 text-primary hover:text-primary/80"
                   >
                     Clear filters
                   </button>
@@ -471,7 +471,7 @@ const fetchPosts = async () => {
         {!loadingPosts && sortedPosts.length === 0 && (
           <Card className="p-6 text-center bg-card/60 backdrop-blur-sm border-dashed border-border/60">
             <div className="space-y-2">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 {posts.length === 0
                   ? "No blog posts yet. Restaurants will share their promotions and menu highlights here."
                   : "No blog posts match your current filters."
@@ -484,7 +484,7 @@ const fetchPosts = async () => {
                     setSelectedRestaurant('');
                     setSortBy('newest');
                   }}
-                  className="text-[#caa157] hover:text-[#caa157]/80 text-sm"
+                  className="text-primary hover:text-primary/80 text-sm"
                 >
                   Clear all filters
                 </button>
@@ -510,7 +510,7 @@ const fetchPosts = async () => {
                 key={post.id}
                 id={`blog-post-${post.id}`}
                 className={cn(
-                  'group relative overflow-hidden border-[#caa157]/20 bg-[#263569]/20 transition-all duration-300',
+                  'group relative overflow-hidden border-border/40 bg-card/90 backdrop-blur-md transition-all duration-300',
                   'hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]'
                 )}
               >
@@ -529,15 +529,15 @@ const fetchPosts = async () => {
                           alt={post.restaurants?.name || 'Restaurant'}
                         />
                       )}
-                      <AvatarFallback className="bg-[#caa157]/10 text-[9px] text-[#caa157]">
+                      <AvatarFallback className="bg-primary/10 text-[9px] text-primary">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-white truncate">
+                      <p className="text-[11px] font-semibold text-foreground truncate">
                         {post.restaurants?.name || 'Featured Restaurant'}
                       </p>
-                      <div className="flex items-center gap-2 text-[9px] text-slate-400">
+                      <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {new Date(post.created_at).toLocaleDateString()}
@@ -545,7 +545,7 @@ const fetchPosts = async () => {
                         {post.is_pinned && (
                           <Badge
                             variant="outline"
-                            className="h-4 px-1.5 text-[8px] border-[#caa157]/40 text-[#caa157] bg-[#caa157]/5"
+                            className="h-4 px-1.5 text-[8px] border-primary/40 text-primary bg-primary/5"
                           >
                             Highlight
                           </Badge>
@@ -557,7 +557,7 @@ const fetchPosts = async () => {
                   {/* Hero image */}
                   {post.hero_image_url && (
                     <div
-                      className="mt-1 overflow-hidden rounded-xl border border-[#caa157]/20 bg-muted/40 cursor-pointer"
+                      className="mt-1 overflow-hidden rounded-xl border border-border/40 bg-muted/40 cursor-pointer"
                       onClick={() => toggleContentExpand(post.id)}
                     >
                       <img
@@ -573,17 +573,17 @@ const fetchPosts = async () => {
                     className="space-y-1 cursor-pointer"
                     onClick={() => toggleContentExpand(post.id)}
                   >
-                    <h2 className="text-base font-semibold text-white leading-relaxed">
+                    <h2 className="text-base font-semibold text-foreground leading-relaxed">
                       {post.title}
                     </h2>
                     {expandedContentPostIds.has(post.id) ? (
                       <div
-                        className="text-[11px] text-slate-400 font-sans leading-loose"
+                        className="text-[11px] text-muted-foreground font-sans leading-loose"
                         dangerouslySetInnerHTML={{ __html: post.content }}
                       />
                     ) : (
                       <div
-                        className="text-[11px] text-slate-400 font-sans line-clamp-3 leading-loose"
+                        className="text-[11px] text-muted-foreground font-sans line-clamp-3 leading-loose"
                         dangerouslySetInnerHTML={{
                           __html: post.excerpt ||
                             (post.content.length > 180
@@ -600,7 +600,7 @@ const fetchPosts = async () => {
                       <button
                         type="button"
                         onClick={() => toggleContentExpand(post.id)}
-                        className="inline-flex items-center gap-1 text-[9px] text-[#caa157]/90 hover:text-[#caa157] underline-offset-2 hover:underline transition-colors"
+                        className="inline-flex items-center gap-1 text-[9px] text-primary/90 hover:text-primary underline-offset-2 hover:underline transition-colors"
                       >
                         {expandedContentPostIds.has(post.id)
                           ? 'Show less'
@@ -614,7 +614,7 @@ const fetchPosts = async () => {
                           )}
                         />
                       </button>
-                      <div className="flex items-center gap-1 text-[9px] text-slate-400">
+                      <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
                         <MessageCircle className="w-3 h-3" />
                         <span>
                           {(() => {
@@ -630,7 +630,7 @@ const fetchPosts = async () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-[9px] gap-1 text-[#caa157]/90 hover:bg-[#caa157]/5"
+                      className="h-7 px-2 text-[9px] gap-1 text-primary/90 hover:bg-primary/5"
                       onClick={() => toggleComments(post.id)}
                     >
                       {commentsExpanded ? 'Hide feedback' : 'View feedback'}
@@ -648,11 +648,11 @@ const fetchPosts = async () => {
                 {commentsExpanded && (
                   <div className="border-t border-border/30 bg-muted/30 px-3 pb-3 pt-2 space-y-2">
                     {loadingComments[post.id] && (
-                      <p className="text-[9px] text-slate-400">Loading comments…</p>
+                      <p className="text-[9px] text-muted-foreground">Loading comments…</p>
                     )}
 
                     {!loadingComments[post.id] && postComments.length === 0 && (
-                      <p className="text-[9px] text-slate-400">
+                      <p className="text-[9px] text-muted-foreground">
                         No comments yet. Be the first to share your thoughts.
                       </p>
                     )}
@@ -681,10 +681,10 @@ const fetchPosts = async () => {
                               </div>
                               <div className="flex-1 space-y-1">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[9px] text-white font-medium truncate max-w-[120px]">
+                                  <span className="text-[9px] text-foreground font-medium truncate max-w-[120px]">
                                     {displayName}
                                   </span>
-                                  <span className="text-[8px] text-slate-400 whitespace-nowrap">
+                                  <span className="text-[8px] text-muted-foreground whitespace-nowrap">
                                     {new Date(c.created_at).toLocaleDateString('en-US', {
                                       day: '2-digit',
                                       month: '2-digit',
@@ -696,7 +696,7 @@ const fetchPosts = async () => {
                                     })}
                                   </span>
                                 </div>
-                                <p className="text-[9px] text-white leading-snug">
+                                <p className="text-[9px] text-foreground leading-snug">
                                   {c.content}
                                 </p>
                                 
@@ -706,7 +706,7 @@ const fetchPosts = async () => {
                                   if (replies.length === 0) return null;
                                   
                                   return (
-                                    <div className="space-y-1 mt-2 border-l-2 border-[#caa157]/20 pl-2">
+                                    <div className="space-y-1 mt-2 border-l-2 border-border/40 pl-2">
                                       {replies.map((reply) => {
                                         const replyDisplayName =
                                           reply.display_name || `Guest ${reply.customer_id.slice(0, 6).toUpperCase()}`;
@@ -725,10 +725,10 @@ const fetchPosts = async () => {
                                             </div>
                                             <div className="flex-1 space-y-0.5">
                                               <div className="flex items-center justify-between">
-                                                <span className="text-[8px] text-white font-medium truncate max-w-[100px]">
+                                                <span className="text-[8px] text-foreground font-medium truncate max-w-[100px]">
                                                   {replyDisplayName} (Reply)
                                                 </span>
-                                                <span className="text-[7px] text-slate-400 whitespace-nowrap">
+                                                <span className="text-[7px] text-muted-foreground whitespace-nowrap">
                                                   {new Date(reply.created_at).toLocaleDateString('en-US', {
                                                     day: '2-digit',
                                                     month: '2-digit',
@@ -740,7 +740,7 @@ const fetchPosts = async () => {
                                                   })}
                                                 </span>
                                               </div>
-                                              <p className="text-[8px] text-white leading-snug">
+                                              <p className="text-[8px] text-foreground leading-snug">
                                                 {reply.content}
                                               </p>
                                             </div>
@@ -772,14 +772,14 @@ const fetchPosts = async () => {
                           }))
                         }
                         disabled={!currentUserId || !!submittingComment[post.id]}
-                        className="h-14 text-[9px] resize-none border-[#caa157]/20 bg-background/80 focus-visible:ring-primary/40"
+                        className="h-14 text-[9px] resize-none border-border/40 bg-background/80 focus-visible:ring-primary/40"
                       />
                       <div className="flex justify-end mt-1 gap-2">
                         {!currentUserId && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 px-2 text-[8px] text-slate-400"
+                            className="h-6 px-2 text-[8px] text-muted-foreground"
                             onClick={() => navigate('/auth')}
                           >
                             Sign in to comment
@@ -787,7 +787,7 @@ const fetchPosts = async () => {
                         )}
                         <Button
                           size="sm"
-                          className="h-6 px-3 text-[8px] rounded-full bg-[#caa157]/90 hover:bg-[#caa157] shadow-sm"
+                          className="h-6 px-3 text-[8px] rounded-full bg-primary/90 hover:bg-primary shadow-sm"
                           disabled={
                             !currentUserId ||
                             !newComment[post.id]?.trim() ||

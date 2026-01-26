@@ -1,571 +1,636 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Star, MapPin, Clock, Phone, Plus, Minus, ShoppingBag, UtensilsCrossed, Loader2, MessageCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Star,
+  Clock,
+  Users,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Search,
+  Calendar,
+  MessageCircle,
+  X,
+  Check,
+} from 'lucide-react';
 import RestaurantChatbot from '@/components/RestaurantChatbot';
 
-interface CartItem {
+interface MenuItem {
   id: string;
   name: string;
+  description: string;
   price: number;
-  quantity: number;
+  category: string;
+  image_url: string;
+  is_available: boolean;
 }
 
 interface Restaurant {
   id: string;
   name: string;
-  description: string | null;
-  cuisine_type: string | null;
+  description: string;
   address: string;
-  phone: string | null;
-  image_url: string | null;
-  rating: number | null;
-  distance: string | null;
-  open_hours: string | null;
+  phone: string;
+  opening_hours: string;
+  rating: number;
+  image_url: string;
+  cuisine_type: string;
 }
 
-interface MenuItem {
-  id: string;
-  restaurant_id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  image_url: string | null;
-  available: boolean;
+interface CartItem extends MenuItem {
+  quantity: number;
 }
 
 const RestaurantDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [orderType, setOrderType] = useState<'dine_in' | 'takeaway'>('dine_in');
-  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [isCartPreviewOpen, setIsCartPreviewOpen] = useState(false);
-  
-  // Dine-in specific states
-  const [partySize, setPartySize] = useState<number>(2);
-  const [selectedDate, setSelectedDate] = useState<string>('today');
-  const [selectedTime, setSelectedTime] = useState<string>('12:00 PM');
-  
-  // Chatbot state
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [partySize, setPartySize] = useState(2);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCart, setShowCart] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   useEffect(() => {
     if (id) {
-      fetchRestaurantAndMenu();
+      fetchRestaurantDetails();
+      fetchMenuItems();
     }
   }, [id]);
 
-  const fetchRestaurantAndMenu = async () => {
+  useEffect(() => {
+    // Generate available dates (next 7 days)
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    if (!selectedDate && dates.length > 0) {
+      setSelectedDate(dates[0]);
+    }
+  }, []);
+
+  const fetchRestaurantDetails = async () => {
     try {
-      const [restaurantRes, menuRes] = await Promise.all([
-        supabase.from('restaurants').select('*').eq('id', id).single(),
-        supabase.from('menu_items').select('*').eq('restaurant_id', id).eq('available', true)
-      ]);
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      if (restaurantRes.error) throw restaurantRes.error;
-      if (menuRes.error) throw menuRes.error;
-
-      setRestaurant(restaurantRes.data);
-      setMenuItems(menuRes.data || []);
+      if (error) throw error;
+      setRestaurant(data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching restaurant:', error);
       toast.error('Failed to load restaurant details');
+    }
+  };
+
+  const fetchMenuItems = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('restaurant_id', id);
+
+      if (error) throw error;
+      
+      // Filter available items
+      const availableItems = (data || []).filter(item => 
+        item.is_available !== false && item.available !== false
+      );
+      
+      setMenuItems(availableItems);
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      toast.error('Failed to load menu items');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!restaurant) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Restaurant not found</h2>
-          <Button onClick={() => navigate('/home')}>Back to Home</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const addToCart = (item: any) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => 
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+  const addToCart = (item: MenuItem) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
+      if (existingItem) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
         );
       }
-      return [...prev, { id: item.id, name: item.name, price: item.price, quantity: 1 }];
+      return [...prevCart, { ...item, quantity: 1 }];
     });
+    toast.success(`${item.name} added to cart`);
   };
 
   const removeFromCart = (itemId: string) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === itemId);
-      if (existing && existing.quantity > 1) {
-        return prev.map(i => 
-          i.id === itemId ? { ...i, quantity: i.quantity - 1 } : i
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.id === itemId);
+      if (existingItem && existingItem.quantity > 1) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === itemId
+            ? { ...cartItem, quantity: cartItem.quantity - 1 }
+            : cartItem
         );
       }
-      return prev.filter(i => i.id !== itemId);
+      return prevCart.filter((cartItem) => cartItem.id !== itemId);
     });
   };
 
-  const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
+  };
 
   const handleProceedToPayment = () => {
     if (cart.length === 0) {
-      toast.error('Please add items to your cart');
+      toast.error('Your cart is empty');
       return;
     }
-    
-    const orderDetails = {
-      cart,
+
+    if (orderType === 'dine_in' && (!selectedDate || !selectedTime)) {
+      toast.error('Please select date and time for your reservation');
+      return;
+    }
+
+    const orderData = {
       restaurant,
+      cart,
       orderType,
-      totalAmount,
-      ...(orderType === 'dine_in' && {
-        partySize,
-        reservationDate: selectedDate,
-        reservationTime: selectedTime
-      })
+      partySize: orderType === 'dine_in' ? partySize : 1,
+      reservationDate: orderType === 'dine_in' ? selectedDate : null,
+      reservationTime: orderType === 'dine_in' ? selectedTime : null,
+      totalAmount: getTotalPrice(),
     };
-    
-    navigate('/payment', { state: orderDetails });
+
+    navigate('/payment', { state: orderData });
   };
 
-  // Generate date options (Today, Tomorrow, and next 5 days)
-  const generateDateOptions = () => {
+  const filteredMenuItems = menuItems.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const timeSlots = [
+    '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'
+  ];
+
+  const getAvailableDates = () => {
     const dates = [];
-    const today = new Date();
-    
-    dates.push({ value: 'today', label: 'Today' });
-    
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    dates.push({ value: 'tomorrow', label: 'Tomorrow' });
-    
-    for (let i = 2; i <= 6; i++) {
-      const date = new Date(today);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
       date.setDate(date.getDate() + i);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-      const dateStr = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-      dates.push({ value: date.toISOString(), label: `${dayName}, ${dateStr}` });
+      dates.push(date);
     }
-    
     return dates;
   };
 
-  // Generate time options (11:00 AM to 10:00 PM)
-  const generateTimeOptions = () => {
-    const times = [];
-    for (let hour = 11; hour <= 22; hour++) {
-      for (let min = 0; min < 60; min += 30) {
-        const displayHour = hour > 12 ? hour - 12 : hour;
-        const period = hour >= 12 ? 'PM' : 'AM';
-        const displayMin = min === 0 ? '00' : min;
-        times.push(`${displayHour}:${displayMin} ${period}`);
-      }
-    }
-    return times;
+  const formatDate = (date: Date) => {
+    return {
+      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      day: date.getDate(),
+      fullDate: date.toISOString().split('T')[0],
+    };
   };
 
+  if (loading || !restaurant) {
+    return (
+      <div className="min-h-screen bg-[#1d2956] flex items-center justify-center">
+        <div className="text-[#caa157] text-lg">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header Image with View on Map overlay */}
-      <div className="relative h-64">
-        <img
-          src={restaurant.image_url}
-          alt={restaurant.name}
-          className="w-full h-full object-cover"
-        />
+    <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto overflow-x-hidden">
+      {/* Hero Image with Back Button and Chatbot */}
+      <div className="relative w-full h-80 overflow-hidden">
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-[#1d2956]/60 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-white/10 hover:bg-[#1d2956]/80 transition-all"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+        </div>
+        
+        {/* Chatbot Button on Hero Image */}
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={() => setShowChatbot(!showChatbot)}
+            className="bg-[#caa157] text-[#1d2956] p-3 rounded-full shadow-[0_0_30px_rgba(202,161,87,0.4)] hover:scale-110 transition-all"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </button>
+        </div>
 
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 left-4 bg-black/50 text-white hover:bg-black/70"
-          onClick={() => navigate(-1)}
+        <div
+          className="w-full h-full bg-center bg-no-repeat bg-cover"
+          style={{ backgroundImage: `url(${restaurant.image_url})` }}
         >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-
-        {/* View on Map: opens Google Maps search in new tab using address/name */}
-        <Button
-          variant="secondary"
-          size="sm"
-          className="absolute bottom-4 right-4 bg-black/65 text-white hover:bg-black/80 border-none px-3 py-1 text-xs rounded-full"
-          onClick={() => {
-            const query = encodeURIComponent(restaurant.address || restaurant.name);
-            const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
-            window.open(url, '_blank', 'noopener,noreferrer');
-          }}
-        >
-          View on Map
-        </Button>
-
-        {/* AI Chatbot Button */}
-        <Button
-          size="icon"
-          className="absolute bottom-4 left-4 w-14 h-14 rounded-full luxury-gradient shadow-2xl hover:scale-110 transition-all duration-300 group"
-          onClick={() => setIsChatbotOpen(true)}
-        >
-          <MessageCircle className="w-6 h-6 text-white group-hover:animate-pulse" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
-        </Button>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1d2956] via-transparent to-transparent"></div>
+        </div>
+        
+        {/* Chatbot Overlay */}
+        {showChatbot && (
+          <div className="absolute top-16 right-4 w-80 z-20 max-w-[calc(100vw-2rem)]">
+            <RestaurantChatbot restaurantId={id || ''} />
+          </div>
+        )}
       </div>
 
       {/* Restaurant Info */}
-      <div className="max-w-md mx-auto px-6 py-6 space-y-6">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">{restaurant.name}</h1>
-              <p className="text-muted-foreground">{restaurant.description}</p>
-            </div>
-            <Badge className="bg-primary text-primary-foreground border-0">
-              <Star className="h-3 w-3 mr-1 fill-current" />
-              {restaurant.rating}
-            </Badge>
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {restaurant.address}
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {restaurant.open_hours}
-            </div>
-            <div className="flex items-center gap-1">
-              <Phone className="h-4 w-4" />
-              {restaurant.phone}
+      <div className="bg-[#1d2956] px-4 pb-6 -mt-4 relative z-10">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-[#caa157] tracking-tight text-[34px] font-bold leading-tight pt-6">
+              {restaurant.name}
+            </h1>
+            <div className="flex items-center gap-1 mt-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-4 h-4 ${
+                    i < Math.floor(restaurant.rating)
+                      ? 'fill-[#caa157] text-[#caa157]'
+                      : 'text-[#caa157]/30'
+                  }`}
+                />
+              ))}
+              <span className="text-sm text-slate-400 ml-2 font-light">
+                ({restaurant.rating} • 1.2k reviews)
+              </span>
             </div>
           </div>
         </div>
+        <p className="text-slate-300 text-sm mt-4 leading-relaxed font-light">
+          {restaurant.description}
+        </p>
+      </div>
 
-        {/* Order Type Selection */}
-        <Card className="p-4 space-y-4">
-          <div>
-            <h3 className="font-semibold mb-3">Order Type</h3>
-            <Tabs value={orderType} onValueChange={(v) => setOrderType(v as any)}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="dine_in">
-                  <UtensilsCrossed className="h-4 w-4 mr-2" />
-                  Dine In
-                </TabsTrigger>
-                <TabsTrigger value="takeaway">
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Takeaway
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+      {/* Contact Info */}
+      <div className="py-4 space-y-1 bg-[#1d2956]">
+        <button 
+          onClick={() => {
+            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`;
+            window.open(mapUrl, '_blank');
+          }}
+          className="flex items-center gap-4 px-4 min-h-[64px] w-full hover:bg-[#263569]/20 transition-all rounded-xl"
+        >
+          <div className="text-[#caa157] flex items-center justify-center rounded-xl bg-[#caa157]/5 shrink-0 size-11 border border-[#caa157]/20">
+            <MapPin className="w-5 h-5" />
           </div>
-
-          {/* Dine-in specific options */}
-          {orderType === 'dine_in' && (
-            <div className="space-y-4 pt-2 border-t border-border">
-              {/* Party Size */}
-              <div>
-                <h3 className="font-semibold mb-3 text-sm">Party Size</h3>
-                <div className="flex gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  {Array.from({ length: 20 }, (_, i) => i + 1).map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setPartySize(size)}
-                      className={`flex-shrink-0 w-10 h-10 rounded-full font-semibold text-sm transition-all ${
-                        partySize === size
-                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/50'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted border border-border'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date and Time Selection */}
-              <div>
-                <h3 className="font-semibold mb-3 text-sm">Reservation Date & Time</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Date Picker - iOS Style */}
-                  <div className="relative">
-                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
-                    <select
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full px-3 py-3 rounded-lg bg-muted/50 border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 0.75rem center',
-                      }}
-                    >
-                      {generateDateOptions().map((date) => (
-                        <option key={date.value} value={date.value}>
-                          {date.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Time Picker - iOS Style */}
-                  <div className="relative">
-                    <label className="text-xs text-muted-foreground mb-1 block">Time</label>
-                    <select
-                      value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
-                      className="w-full px-3 py-3 rounded-lg bg-muted/50 border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 0.75rem center',
-                      }}
-                    >
-                      {generateTimeOptions().map((time) => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </Card>
-
-        {/* Menu */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Menu</h2>
-          {/* Search bar for filtering menu items */}
-          <div className="mt-2">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search menu items..."
-              className="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+          <div className="flex flex-col justify-center flex-1 text-left">
+            <p className="text-white text-base font-medium leading-normal">
+              {restaurant.address}
+            </p>
+            <p className="text-slate-400 text-sm font-normal">
+              {restaurant.cuisine_type} • Tap to view map
+            </p>
           </div>
-          {menuItems
-            .filter((item) => {
-              const value = searchTerm.toLowerCase().trim();
-              if (!value) return true;
-              return (
-                item.name.toLowerCase().includes(value) ||
-                (item.description || '').toLowerCase().includes(value)
-              );
-            })
-            .map((item) => {
-            const cartItem = cart.find(c => c.id === item.id);
-            return (
-              <Card key={item.id} className="overflow-hidden">
-                <div className="flex gap-4 p-4">
-                  <button
-                    type="button"
-                    className="focus:outline-none"
-                    onClick={() => setSelectedItem(item)}
-                  >
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="w-24 h-24 rounded-lg object-cover transition-transform duration-200 hover:scale-105"
-                    />
-                  </button>
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <h3 className="font-semibold">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-primary">
-                        {item.price.toLocaleString()} MMK
-                      </span>
-                      {cartItem ? (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-8 w-8"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="w-8 text-center font-medium">{cartItem.quantity}</span>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-8 w-8"
-                            onClick={() => addToCart(item)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => addToCart(item)}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+        </button>
+        <div className="flex items-center gap-4 px-4 min-h-[64px]">
+          <div className="text-[#caa157] flex items-center justify-center rounded-xl bg-[#caa157]/5 shrink-0 size-11 border border-[#caa157]/20">
+            <Phone className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <p className="text-white text-base font-medium leading-normal">
+              {restaurant.phone}
+            </p>
+            <p className="text-slate-400 text-sm font-normal">
+              {restaurant.opening_hours}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Menu Item Preview Modal */}
-      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <DialogContent className="max-w-sm p-0 border-0 bg-transparent shadow-none">
-          {selectedItem && (
-            <div className="relative rounded-2xl overflow-hidden bg-black">
-              <img
-                src={selectedItem.image_url}
-                alt={selectedItem.name}
-                className="w-full h-[360px] object-cover"
-              />
-              {/* Gradient overlay for contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-              {/* Content overlay */}
-              <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col gap-2 text-white">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="text-lg font-semibold leading-tight">
-                    {selectedItem.name}
-                  </h3>
-                  <span className="text-sm font-semibold px-2 py-1 rounded-full bg-white/12 backdrop-blur">
-                    {selectedItem.price.toLocaleString()} MMK
-                  </span>
-                </div>
-                {selectedItem.description && (
-                  <p className="text-xs text-white/80 line-clamp-2">
-                    {selectedItem.description}
-                  </p>
-                )}
-                <div className="mt-2 flex justify-end">
-                  <Button
-                    size="sm"
-                    className="luxury-gradient px-5 py-2 text-sm font-medium shadow-md hover:shadow-lg transition-all"
-                    onClick={() => {
-                      addToCart(selectedItem);
-                      setSelectedItem(null);
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add to Cart
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Order Type Selection */}
+      <div className="px-4 pt-6 pb-4 bg-[#1d2956]">
+        <p className="text-[#caa157]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+          Order Type
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setOrderType('dine_in')}
+            className={`flex-1 py-4 rounded-xl text-sm font-bold transition-all ${
+              orderType === 'dine_in'
+                ? 'bg-[#caa157] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157] hover:bg-[#caa157]/10'
+            }`}
+          >
+            DINE IN
+          </button>
+          <button
+            onClick={() => setOrderType('takeaway')}
+            className={`flex-1 py-4 rounded-xl text-sm font-bold transition-all ${
+              orderType === 'takeaway'
+                ? 'bg-[#caa157] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157] hover:bg-[#caa157]/10'
+            }`}
+          >
+            TAKE OUT
+          </button>
+        </div>
+      </div>
 
-      {/* Cart Summary Footer */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
-          <div className="max-w-md mx-auto flex items-center justify-between gap-4">
+      {/* Reservation Section - Only for Dine In */}
+      {orderType === 'dine_in' && (
+        <div className="px-4 py-8 bg-[#1d2956]">
+          <h3 className="text-[#caa157] text-xl font-bold leading-tight tracking-tight mb-8 flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Reserve Your Table
+          </h3>
+
+          {/* Party Size */}
+          <div className="flex justify-between items-center bg-[#263569]/40 p-5 rounded-2xl border border-[#caa157]/20 mb-6">
             <div>
-              <div className="text-sm text-muted-foreground">{totalItems} items</div>
-              <div className="text-lg font-bold">{totalAmount.toLocaleString()} MMK</div>
+              <p className="text-[#caa157] text-[10px] font-bold uppercase tracking-[0.2em]">
+                Party Size
+              </p>
+              <p className="text-slate-400 text-[10px] font-medium">Guests</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setIsCartPreviewOpen(true)}
+            <div className="flex items-center gap-8">
+              <button
+                onClick={() => setPartySize(Math.max(1, partySize - 1))}
+                className="flex items-center justify-center outline-none"
               >
-                View Orders
-              </Button>
-              <Button
-                onClick={handleProceedToPayment}
-                className="luxury-gradient"
-                size="lg"
+                <Minus className="w-8 h-8 text-[#caa157] cursor-pointer hover:scale-110 transition-transform" />
+              </button>
+              <span className="text-white text-2xl font-bold w-6 text-center">
+                {partySize}
+              </span>
+              <button
+                onClick={() => setPartySize(Math.min(20, partySize + 1))}
+                className="flex items-center justify-center outline-none"
               >
-                Pay
-              </Button>
+                <Plus className="w-8 h-8 text-[#caa157] cursor-pointer hover:scale-110 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* Date Selection */}
+          <div className="mb-10">
+            <p className="text-[#caa157]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+              Select Date
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
+              {getAvailableDates().map((date) => {
+                const formatted = formatDate(date);
+                const isSelected = selectedDate === formatted.fullDate;
+                return (
+                  <button
+                    key={formatted.fullDate}
+                    onClick={() => setSelectedDate(formatted.fullDate)}
+                    className={`flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl transition-all ${
+                      isSelected
+                        ? 'bg-[#caa157] text-[#1d2956] font-bold shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                        : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157]'
+                    }`}
+                  >
+                    <span className="text-[10px] uppercase opacity-80">
+                      {formatted.month}
+                    </span>
+                    <span className="text-2xl font-bold">{formatted.day}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Time Selection */}
+          <div className="mb-6">
+            <p className="text-[#caa157]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+              Available Time Slots
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {timeSlots.map((time) => {
+                const isSelected = selectedTime === time;
+                return (
+                  <button
+                    key={time}
+                    onClick={() => setSelectedTime(time)}
+                    className={`py-4 rounded-xl text-sm font-bold transition-all ${
+                      isSelected
+                        ? 'bg-[#caa157] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                        : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157] hover:bg-[#caa157]/10'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       )}
 
-      {/* Cart Preview Modal */}
-      <Dialog open={isCartPreviewOpen} onOpenChange={setIsCartPreviewOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Your Order Summary</DialogTitle>
-          </DialogHeader>
-          {cart.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No items in your cart.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                {cart.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-medium">{item.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {item.quantity} x {item.price.toLocaleString()} MMK
-                      </span>
-                    </div>
-                    <span className="font-semibold">
-                      {(item.price * item.quantity).toLocaleString()} MMK
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between pt-3 border-t">
-                <span className="text-sm text-muted-foreground">
-                  Total ({totalItems} items)
-                </span>
-                <span className="text-lg font-bold text-primary">
-                  {totalAmount.toLocaleString()} MMK
-                </span>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Menu Section */}
+      <div className="px-4 py-8 bg-[#1d2956] pb-32">
+        <h3 className="text-[#caa157] text-xl font-bold leading-tight tracking-tight mb-6 flex items-center gap-2">
+          <ShoppingCart className="w-5 h-5" />
+          Our Menu
+        </h3>
 
-      {/* AI Chatbot */}
-      <RestaurantChatbot
-        isOpen={isChatbotOpen}
-        onClose={() => setIsChatbotOpen(false)}
-        restaurantName={restaurant.name}
-        restaurantImage={restaurant.image}
-      />
+        {/* Search Bar */}
+        <div className="mb-6 relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#caa157]/60" />
+          <input
+            type="text"
+            placeholder="Search menu items..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-4 rounded-xl bg-[#263569]/30 border border-[#caa157]/20 text-white placeholder-slate-400 focus:outline-none focus:border-[#caa157]/60 transition-all"
+          />
+        </div>
+
+        {/* Menu Items */}
+        <div className="space-y-4">
+          {filteredMenuItems.length === 0 ? (
+            <p className="text-slate-400 text-center py-8">No menu items found</p>
+          ) : (
+            filteredMenuItems.map((item) => {
+              const cartItem = cart.find((c) => c.id === item.id);
+              const quantity = cartItem?.quantity || 0;
+
+              return (
+                <div
+                  key={item.id}
+                  className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-4 hover:border-[#caa157]/40 transition-all"
+                >
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-[#caa157]/20">
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-white font-semibold text-base mb-1">
+                        {item.name}
+                      </h4>
+                      <p className="text-slate-400 text-xs mb-2 line-clamp-2">
+                        {item.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[#caa157] font-bold text-lg">
+                          ${item.price.toFixed(2)}
+                        </p>
+                        {quantity > 0 ? (
+                          <div className="flex items-center gap-3 bg-[#caa157]/10 rounded-lg px-3 py-1 border border-[#caa157]/30">
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-[#caa157] hover:scale-110 transition-transform"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="text-white font-bold min-w-[20px] text-center">
+                              {quantity}
+                            </span>
+                            <button
+                              onClick={() => addToCart(item)}
+                              className="text-[#caa157] hover:scale-110 transition-transform"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="bg-[#caa157] text-[#1d2956] px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#caa157]/90 transition-all active:scale-95"
+                          >
+                            Add
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Cart Modal */}
+      {showCart && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-end justify-center">
+          <div className="bg-[#1d2956] w-full max-w-[430px] rounded-t-3xl border-t border-[#caa157]/20 max-h-[85vh] flex flex-col">
+            <div className="sticky top-0 bg-[#1d2956] border-b border-[#caa157]/20 p-6 flex items-center justify-between z-10">
+              <h3 className="text-[#caa157] text-xl font-bold">Your Cart</h3>
+              <button
+                onClick={() => setShowCart(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {cart.length === 0 ? (
+                <div className="text-center py-12">
+                  <ShoppingCart className="w-16 h-16 text-[#caa157]/30 mx-auto mb-4" />
+                  <p className="text-slate-400 text-lg">Your cart is empty</p>
+                </div>
+              ) : (
+                <>
+                  {cart.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-4 bg-[#263569]/20 p-4 rounded-xl border border-[#caa157]/20"
+                    >
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="w-16 h-16 rounded-lg object-cover border border-[#caa157]/20"
+                      />
+                      <div className="flex-1">
+                        <h4 className="text-white font-semibold">{item.name}</h4>
+                        <p className="text-[#caa157] font-bold">
+                          ${item.price.toFixed(2)} x {item.quantity}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-[#caa157] hover:scale-110 transition-transform"
+                        >
+                          <Minus className="w-5 h-5" />
+                        </button>
+                        <span className="text-white font-bold min-w-[24px] text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="text-[#caa157] hover:scale-110 transition-transform"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="border-t border-[#caa157]/20 pt-4 mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-slate-400 text-sm">Subtotal</span>
+                      <span className="text-white font-semibold">${getTotalPrice().toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#caa157] text-lg font-bold">Total</span>
+                      <span className="text-[#caa157] text-2xl font-bold">${getTotalPrice().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Fixed Bottom Checkout Button */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-[#1d2956]/90 backdrop-blur-xl border-t border-[#caa157]/20 z-50">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setShowCart(true)}
+              className="text-[#caa157] text-sm font-semibold flex items-center gap-2 hover:text-[#caa157]/80 transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {getTotalItems()} items
+            </button>
+            <p className="text-white text-xl font-bold">
+              ${getTotalPrice().toFixed(2)}
+            </p>
+          </div>
+          <button
+            onClick={handleProceedToPayment}
+            className="w-full bg-[#caa157] hover:bg-[#caa157]/90 text-[#1d2956] font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(202,161,87,0.2)] uppercase tracking-widest text-sm"
+          >
+            <Check className="w-5 h-5" />
+            Checkout
+          </button>
+        </div>
+      )}
     </div>
   );
 };

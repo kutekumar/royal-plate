@@ -1,160 +1,211 @@
-import { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
-import gsap from 'gsap';
-import RPLogo from '@/imgs/RPLogo.png';
-import OnIcon1 from '@/imgs/icons/onbarding1.png';
-import OnIcon2 from '@/imgs/icons/onbarding2.png';
-import OnIcon3 from '@/imgs/icons/onbarding3.png';
 import { useNavigate } from 'react-router-dom';
-
-const onboardingSteps = [
-  {
-    title: 'Discover Premium Dining',
-    description: 'Browse the finest restaurants in Yangon with detailed menus and exclusive offerings',
-    image: OnIcon1,
-  },
-  {
-    title: 'Prepay with Ease',
-    description: 'Secure your table and meals in advance with convenient payment options',
-    image: OnIcon2,
-  },
-  {
-    title: 'Skip the Wait',
-    description: 'Show your QR code and enjoy your meal immediately upon arrival',
-    image: OnIcon3,
-  },
-];
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import CrownIcon from '@/imgs/crown.png';
+import RPLogo from '@/imgs/logo.png';
+import OnIcon1 from '@/imgs/icons/onbarding1.png';
 
 const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const stepImageRef = useRef<HTMLDivElement>(null);
+  const crownRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const buttonsRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    const tl = gsap.timeline();
-    // Animate elements in on first mount and on step change
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    // Staggered entrance animations
     tl.fromTo(
-      headerRef.current,
-      { opacity: 0, y: 10, scale: 0.98 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: 'power2.out' },
+      crownRef.current,
+      { scale: 0, rotation: -180, opacity: 0 },
+      { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.7)' }
     )
-      .fromTo(
-        contentRef.current,
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' },
-        '-=0.15',
-      )
-      .fromTo(
-        stepImageRef.current,
-        { opacity: 0, y: 16, rotate: -2 },
-        { opacity: 1, y: 0, rotate: 0, duration: 0.5, ease: 'power2.out' },
-        '-=0.2',
-      );
+    .fromTo(
+      logoRef.current,
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6 },
+      '-=0.4'
+    )
+    .fromTo(
+      textRef.current,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5 },
+      '-=0.3'
+    )
+    .fromTo(
+      imageRef.current,
+      { y: 40, opacity: 0, scale: 0.95 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.6 },
+      '-=0.2'
+    )
+    .fromTo(
+      buttonsRef.current?.children || [],
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
+      '-=0.3'
+    )
+    .fromTo(
+      footerRef.current,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.4 },
+      '-=0.2'
+    );
 
-    return () => {
-      tl.kill();
-    };
-  }, [currentStep]);
+    // Floating animation for crown
+    gsap.to(crownRef.current, {
+      y: -10,
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
 
-  const handleNext = () => {
-    if (currentStep < onboardingSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      navigate('/auth');
-    }
+    // Subtle glow pulse for crown border
+    gsap.to(crownRef.current, {
+      boxShadow: '0 0 60px rgba(202,161,87,0.25)',
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+  }, []);
+
+  const handleGetStarted = () => {
+    const tl = gsap.timeline({
+      onComplete: () => navigate('/auth?mode=signup')
+    });
+    
+    tl.to([crownRef.current, logoRef.current, textRef.current, imageRef.current, buttonsRef.current, footerRef.current], {
+      opacity: 0,
+      y: -30,
+      duration: 0.4,
+      stagger: 0.05,
+      ease: 'power2.in'
+    });
   };
 
-  const handleSkip = () => {
-    navigate('/auth');
+  const handleSignIn = () => {
+    const tl = gsap.timeline({
+      onComplete: () => navigate('/auth?mode=signin')
+    });
+    
+    tl.to([crownRef.current, logoRef.current, textRef.current, imageRef.current, buttonsRef.current, footerRef.current], {
+      opacity: 0,
+      y: -30,
+      duration: 0.4,
+      stagger: 0.05,
+      ease: 'power2.in'
+    });
   };
 
-  const step = onboardingSteps[currentStep];
+  const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>) => {
+    gsap.to(e.currentTarget, {
+      scale: 1.02,
+      duration: 0.3,
+      ease: 'power2.out'
+    });
+  };
+
+  const handleButtonLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    gsap.to(e.currentTarget, {
+      scale: 1,
+      duration: 0.3,
+      ease: 'power2.out'
+    });
+  };
+
+  const handleButtonPress = (e: React.MouseEvent<HTMLButtonElement>) => {
+    gsap.to(e.currentTarget, {
+      scale: 0.96,
+      duration: 0.1,
+      ease: 'power2.out'
+    });
+  };
 
   return (
-    <div ref={containerRef} className="h-screen bg-gradient-to-br from-background via-background to-secondary/10 flex flex-col relative overflow-hidden">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
-      </div>
+    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#1d2956] font-poppins">
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 z-10">
+        {/* Crown Icon */}
+        <div 
+          ref={crownRef}
+          className="mb-8 flex items-center justify-center w-24 h-24 rounded-full border-2 border-[#caa157]/40 bg-[#1d2956] shadow-[0_0_50px_rgba(202,161,87,0.15)]"
+        >
+          <img src={CrownIcon} alt="Crown" className="w-12 h-12 object-contain" />
+        </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 relative z-10 min-h-0">
-        <div className="w-full max-w-md space-y-6">
-          {/* Top Logo with elegant presentation */}
-          <div className="flex justify-center" ref={headerRef}>
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl"></div>
-              <div className="relative bg-card/80 backdrop-blur-sm p-5 rounded-2xl border border-primary/30 luxury-shadow">
-                <img src={RPLogo} alt="Royal Plate Logo" className="w-24 h-24 sm:w-28 sm:h-28 object-contain drop-shadow-2xl" />
-              </div>
-            </div>
+        {/* Logo and Text */}
+        <div className="text-center mb-8">
+          <div ref={logoRef} className="flex justify-center mb-4">
+            <img src={RPLogo} alt="Royal Plate Logo" className="h-12 object-contain" />
           </div>
-
-          {/* Content */}
-          <div className="text-center space-y-3" ref={contentRef}>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              {step.title}
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed font-light">
-              {step.description}
+          <div ref={textRef}>
+            <div className="h-[1px] w-16 bg-[#caa157] mx-auto mb-4 opacity-60"></div>
+            <p className="text-[#caa157]/90 text-xs font-light tracking-[0.3em] leading-normal uppercase">
+              Reserve Your Regal Dining Experience
             </p>
-          </div>
-
-          {/* Step image placed between text and buttons */}
-          <div className="flex justify-center" ref={stepImageRef}>
-            <div className="w-full flex items-center justify-center">
-              <img
-                src={step.image}
-                alt="Onboarding illustration"
-                className="max-h-40 sm:max-h-48 object-contain opacity-90"
-              />
-            </div>
-          </div>
-
-          {/* Progress indicators */}
-          <div className="flex justify-center gap-2 pt-2">
-            {onboardingSteps.map((_, index) => (
-              <div
-                key={index}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  index === currentStep
-                    ? 'w-8 bg-primary shadow-lg shadow-primary/50'
-                    : 'w-1.5 bg-muted/50'
-                }`}
-              />
-            ))}
           </div>
         </div>
       </div>
 
-      {/* Footer buttons - Fixed at bottom with proper height */}
-      <div className="p-6 pb-8 space-y-3 max-w-md mx-auto w-full relative z-10">
-        <Button
-          onClick={handleNext}
-          className="w-full h-14 text-base font-semibold luxury-gradient hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 tracking-wide"
-          size="lg"
-        >
-          {currentStep < onboardingSteps.length - 1 ? 'Next' : 'Get Started'}
-          <ChevronRight className="ml-2 h-5 w-5" />
-        </Button>
-        
-        {currentStep < onboardingSteps.length - 1 && (
-          <Button
-            onClick={handleSkip}
-            variant="ghost"
-            className="w-full h-12 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-card/50"
-            size="lg"
+      {/* Image Section */}
+      <div className="px-8 pb-16 z-10">
+        <div ref={imageRef} className="mb-10 overflow-hidden rounded-xl border border-[#caa157]/20 shadow-2xl relative">
+          <div className="w-full h-32 relative">
+            {/* Background Image */}
+            <img 
+              src={OnIcon1} 
+              alt="Dining Experience" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Gradient Overlay */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to top, rgba(29,41,86,0.7) 0%, rgba(29,41,86,0.3) 50%, rgba(29,41,86,0.1) 100%)'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div ref={buttonsRef} className="flex flex-col gap-4">
+          <button 
+            onClick={handleGetStarted}
+            onMouseEnter={handleButtonHover}
+            onMouseLeave={handleButtonLeave}
+            onMouseDown={handleButtonPress}
+            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 bg-[#caa157] text-[#1d2956] text-lg font-bold leading-normal tracking-wider shadow-[0_8px_30px_rgba(202,161,87,0.3)] transition-all"
           >
-            Skip
-          </Button>
-        )}
+            <span className="truncate uppercase">Get Started</span>
+          </button>
+          <button 
+            onClick={handleSignIn}
+            onMouseEnter={handleButtonHover}
+            onMouseLeave={handleButtonLeave}
+            onMouseDown={handleButtonPress}
+            className="flex w-full cursor-pointer items-center justify-center rounded-lg h-14 px-5 border border-[#caa157]/30 text-[#caa157] text-sm font-semibold tracking-[0.15em] bg-transparent transition-all uppercase"
+          >
+            <span className="truncate">Sign In</span>
+          </button>
+        </div>
+
+        {/* Footer Text */}
+        <div ref={footerRef} className="mt-8 text-center">
+          <p className="text-[#caa157]/50 text-[10px] font-semibold tracking-[0.25em] uppercase">
+            By Invitation Only
+          </p>
+        </div>
       </div>
+
+      {/* Bottom Bar Indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1 bg-[#caa157]/20 rounded-full"></div>
+
+      {/* Radial Gradient Overlay */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]"></div>
     </div>
   );
 };

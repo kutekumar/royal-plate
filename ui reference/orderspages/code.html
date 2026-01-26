@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gilded Table - My Bookings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#caa157",
+                        "navy-sophisticated": "#1d2956",
+                    },
+                    fontFamily: {
+                        "display": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            min-height: 100dvh;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#1d2956] font-display antialiased text-primary">
+<div class="relative flex h-screen w-full flex-col overflow-hidden bg-[#1d2956]">
+<div class="flex items-center justify-between px-8 pt-12 pb-2 z-20">
+<div class="text-primary text-sm font-semibold">9:41</div>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-primary text-[18px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-primary text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-primary text-[18px]">battery_full</span>
+</div>
+</div>
+<header class="px-6 py-4 flex flex-col items-center border-b border-primary/10">
+<h1 class="text-primary text-xl font-semibold tracking-wide">My Bookings</h1>
+</header>
+<div class="px-6 py-6">
+<div class="flex p-1 bg-primary/5 rounded-full border border-primary/20">
+<button class="flex-1 py-2 text-sm font-medium rounded-full bg-primary text-[#1d2956] shadow-lg">
+                    Upcoming
+                </button>
+<button class="flex-1 py-2 text-sm font-medium rounded-full text-primary/60 hover:text-primary">
+                    Past
+                </button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-6 pb-24 space-y-4">
+<div class="rounded-2xl border border-primary/40 bg-white/5 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="text-primary text-lg font-bold leading-tight">L'Ambroisie Royale</h2>
+<div class="flex flex-col gap-1 mt-2">
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                                Friday, Oct 24
+                            </div>
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                8:30 PM
+                            </div>
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">group</span>
+                                2 Guests
+                            </div>
+</div>
+</div>
+<div class="h-16 w-16 rounded-lg overflow-hidden border border-primary/20">
+<img alt="Restaurant" class="h-full w-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEICPl1dkSzCUQgjhk1qV0ui43gbEVFB6j53zao8YG9oidrYsoSRJC-n4GJtD0Y_KbARCBKBbOw3-NGINmpSFZDuoZfougsrXoWk5reMGyw0-FbzneqFHVirnhWBkvTFeigOQz9AUnQDCS8QGAq5spDe224lIDVCmRGvez_IJIcleL83x4xssyOTvisNmVpxw38u-PfRUs1cwyAfUkYzsil3n8Jycmp8gkbE58XL3A5X8NjqfGTwM2AjqMauRbRjU1SROvvJ-geIk"/>
+</div>
+</div>
+<button class="w-full py-3 mt-2 rounded-lg border border-primary text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary/10 active:scale-[0.98] transition-all">
+                    View Details
+                </button>
+</div>
+<div class="rounded-2xl border border-primary/40 bg-white/5 p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="text-primary text-lg font-bold leading-tight">The Gilded Terrace</h2>
+<div class="flex flex-col gap-1 mt-2">
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                                Saturday, Nov 01
+                            </div>
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                7:00 PM
+                            </div>
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">group</span>
+                                4 Guests
+                            </div>
+</div>
+</div>
+<div class="h-16 w-16 rounded-lg overflow-hidden border border-primary/20">
+<img alt="Restaurant" class="h-full w-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT5boUzBdRxh_o_6IoO9LxHGeAznDAywxIn0cJicFkmJqrAYY4JLo4BktLuZx4IMan7fCS8ZbVH_0bXmwd3bE0OkqAYW08OVWKTAm2Jsl7bv7WcqZ6eHTbx30osmuBiJ4mBeNoeidjJcHNMLke2MFAPnjcKZFZyQagYVzpjdUt2fD2DNl_gg7S6zPCL4dlcrw1LHQKBibZvhU6dN2tGq-rsATHh8iA3xXvG4Fe0xq9wrCEQHb-Hv6A7XBDAiQLwIgtljOADXcdN4k"/>
+</div>
+</div>
+<button class="w-full py-3 mt-2 rounded-lg border border-primary text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary/10 active:scale-[0.98] transition-all">
+                    View Details
+                </button>
+</div>
+<div class="rounded-2xl border border-primary/20 bg-white/[0.02] p-5 flex flex-col gap-4 opacity-80">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="text-primary text-lg font-bold leading-tight">Saffron &amp; Gold</h2>
+<div class="flex flex-col gap-1 mt-2">
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                                Thursday, Nov 06
+                            </div>
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                                9:00 PM
+                            </div>
+<div class="flex items-center gap-2 text-primary/70 text-xs font-light tracking-wide">
+<span class="material-symbols-outlined text-[16px]">group</span>
+                                2 Guests
+                            </div>
+</div>
+</div>
+<div class="h-16 w-16 rounded-lg overflow-hidden border border-primary/20">
+<img alt="Restaurant" class="h-full w-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5hjpTQ481uixqRqoaQTWo06LzBUA0MRIBo6BlqdF8TCJ4p2MDNrgWlcjsFZuXTeKHEuloCHXdmnCOJRODtETyNVW2v659jcx1o4Exe-bakrJMi7WbOtENMsWmmDRUr_u98X8Vug-gaIFmECtLgZf1GSKmQgirx5xT3AkluUaG4Aa1CdP22aHc1UJmOFpbvhf4w9WC_rKuIXZSYJMeMpMyHaiaZbbSZRu2bUEBKc4eu8dX2QNypyqteQPTVaEAPR84wZGfqAhifQc"/>
+</div>
+</div>
+<button class="w-full py-3 mt-2 rounded-lg border border-primary text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary/10 active:scale-[0.98] transition-all">
+                    View Details
+                </button>
+</div>
+</div>
+<nav class="absolute bottom-0 w-full ios-blur bg-[#1d2956]/80 border-t border-primary/10 px-8 pt-4 pb-10 flex justify-between items-center z-20">
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined text-[26px]">home</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Explore</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[26px] fill-current">calendar_month</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Bookings</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined text-[26px]">favorite</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Saved</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined text-[26px]">person</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Profile</span>
+</div>
+</nav>
+<div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1 bg-primary/20 rounded-full z-30"></div>
+<div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(202,161,87,0.05)_0%,transparent_50%)]"></div>
+</div>
+
+</body></html>

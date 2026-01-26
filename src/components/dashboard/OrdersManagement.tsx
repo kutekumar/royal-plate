@@ -154,32 +154,32 @@ const OrdersManagement = () => {
       paid: {
         label: 'Paid',
         className:
-          'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/10'
+          'bg-purple-500/10 text-purple-700 border-purple-500/10'
       },
       preparing: {
         label: 'Preparing',
         className:
-          'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/10'
+          'bg-blue-500/10 text-blue-700 border-blue-500/10'
       },
       ready: {
         label: 'Ready',
         className:
-          'bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/10'
+          'bg-green-500/10 text-green-700 border-green-500/10'
       },
       completed: {
         label: 'Completed',
         className:
-          'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/10'
+          'bg-slate-500/10 text-slate-700 border-slate-500/10'
       },
       cancelled: {
         label: 'Cancelled',
         className:
-          'bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/10'
+          'bg-red-500/10 text-red-700 border-red-500/10'
       },
       served: {
         label: 'Served',
         className:
-          'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/10'
+          'bg-emerald-500/10 text-emerald-700 border-emerald-500/10'
       }
     };
     return badges[status] || badges.paid;
@@ -189,17 +189,17 @@ const OrdersManagement = () => {
     // subtle, low-saturation backgrounds for cards
     switch (status) {
       case 'paid':
-        return 'bg-purple-50/60 dark:bg-purple-500/5';
+        return 'bg-purple-50/60';
       case 'preparing':
-        return 'bg-blue-50/60 dark:bg-blue-500/5';
+        return 'bg-blue-50/60';
       case 'ready':
-        return 'bg-green-50/60 dark:bg-green-500/5';
+        return 'bg-green-50/60';
       case 'completed':
-        return 'bg-slate-50/60 dark:bg-slate-500/5';
+        return 'bg-slate-50/60';
       case 'served':
-        return 'bg-emerald-50/60 dark:bg-emerald-500/5';
+        return 'bg-emerald-50/60';
       case 'cancelled':
-        return 'bg-red-50/40 dark:bg-red-500/5';
+        return 'bg-red-50/40';
       default:
         return 'bg-card';
     }

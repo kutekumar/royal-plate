@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Discover Fine Dining</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#caa157", // Specific Gold
+                        "background-navy": "#1d2956", // Specific Navy Blue
+                        "surface-navy": "#253469", // Slightly lighter navy for components
+                    },
+                    fontFamily: {
+                        "sans": ["Poppins", "sans-serif"],
+                        "display": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+            background-color: #1d2956;
+            font-family: 'Poppins', sans-serif;
+        }
+        @layer base {
+            input[type="text"] {
+                @apply focus:ring-0;
+            }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-navy font-sans text-primary">
+<header class="sticky top-0 z-50 bg-background-navy px-4 pt-6 pb-2">
+<div class="flex items-center justify-between mb-4">
+<div class="text-primary flex size-10 items-center justify-center">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</div>
+<h1 class="text-primary text-xl font-bold tracking-tight">Discover</h1>
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+<span class="material-symbols-outlined text-2xl">account_circle</span>
+</div>
+</div>
+<div class="pb-4">
+<label class="flex flex-col w-full">
+<div class="flex w-full items-stretch rounded-xl h-12 border border-primary bg-background-navy">
+<div class="text-primary flex items-center justify-center pl-4">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full flex-1 border-none bg-transparent text-primary focus:ring-0 placeholder:text-primary/50 pl-3 text-base font-normal" placeholder="Find your table at the palace..." value=""/>
+</div>
+</label>
+</div>
+</header>
+<main class="pb-24">
+<section>
+<div class="flex items-center justify-between px-4 pt-6 pb-3">
+<h2 class="text-primary text-2xl font-bold tracking-tight">Featured Selections</h2>
+<span class="text-primary text-sm font-semibold">View All</span>
+</div>
+<div class="flex overflow-x-auto snap-x snap-mandatory [-ms-scrollbar-style:none] [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden">
+<div class="flex items-stretch px-4 gap-4">
+<div class="flex flex-col gap-3 snap-center min-w-[280px]">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-primary shadow-2xl">
+<div class="absolute inset-0 bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBOvuFcDMHbzpI2PNGmPyqAKcYVJVOsjiqmjW8WUfO_rHz1_oDNhEfHMNKQPV7e6jjo6Wu7uIV5WvctBp-uId3OiBwnffQkFzdwkCBjDl3C8d5qO5iaibFV8MwGdpmEEBbCm3CDG7bsvqbwdBZ3hCax1xMBFTVOwT-PRkgLzpPO9iJS_t41HgyxK4s3a2dhetJkmfHrXitycn5oUmzfhhahWtTd5ApuifeRxa-NOwPvb0i4FTwi6vAUBHC9F_j--sYJd9loA8JUJ9w");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-navy/90 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3">
+<span class="bg-primary text-background-navy px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Premium</span>
+</div>
+</div>
+<div>
+<p class="text-primary text-lg font-bold">The Sapphire Lounge</p>
+<p class="text-primary/70 text-sm font-medium">Authentic French • Upper East Side</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 snap-center min-w-[280px]">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-primary shadow-2xl">
+<div class="absolute inset-0 bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCcl3E7TOiknX3n5K7O9q3NIemGDVCb7MJ8gQDXE1qBMhH9tAot-7D0fUOaRCug3p58N_cD9CbTW6OAcn_W50w3QXb0WELhQkZMX4HiNTVNRsxGYZygM8O2iooMOYChv-nYO5lt9QYFW70I24L5f7SztXtCr6cfhjz9sMlcrXPzQt132CiAzvwM_Vew9aNh7UipyCaa7afNfEwOU25fOdFqhY5fVmucicrerY8x7CxhQfB80uBy9pA-mvRnByw6VbvJ_zFJo0d9COo");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-navy/90 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3">
+<span class="bg-primary text-background-navy px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Signature</span>
+</div>
+</div>
+<div>
+<p class="text-primary text-lg font-bold">Maritimus Elite</p>
+<p class="text-primary/70 text-sm font-medium">Exquisite Seafood • Harbor View</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 snap-center min-w-[280px]">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-primary shadow-2xl">
+<div class="absolute inset-0 bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDYpC-7mYU6NQgzCeDWV82XsSFfWML8pH6791kl24YseZjo8GQfChAkrinTzBc2MXd2MDNFbwx3JLdEl_kgAcFIohRpdDHFNcDjFBdvpd5CsHa2NtlbOMJ-AE6gM027gZWebkpZkuI0T2876CIZDqRj-MCN2R3_Q3uSdl-FnN1f1AQ7-940iqbFRKbY_CPnvs30ZcPE4tEY6ruj2yLYPii54qWxdxeEcQ3lD5XBjBjGftUw5w7B-szX2x6V8jHCKfzuGFISPJmKZkg");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-navy/90 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3">
+<span class="bg-primary text-background-navy px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Elite</span>
+</div>
+</div>
+<div>
+<p class="text-primary text-lg font-bold">The Gilded Fork</p>
+<p class="text-primary/70 text-sm font-medium">Modern Italian • Downtown</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4">
+<h2 class="text-primary text-2xl font-bold tracking-tight pt-8 pb-4">Top Rated</h2>
+<div class="flex flex-col gap-4">
+<div class="flex gap-4 p-3 rounded-xl bg-surface-navy border border-primary items-center">
+<div class="size-20 shrink-0 rounded-lg overflow-hidden border border-primary/20">
+<img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCydcioKX9GbLN0YVHgOwBwOsJwe-8IGWKvhoDaX_oeBj_c0XlCcDbUDi7eO--0KMPuvKBdzbC7w_8Jg_mPcL9sCkPZXHUYaCwHm1GFCCB4fUVWupyhTO6V_TSshE-cMR3jrdeFXnYY9FwA2LZeNhOIMB7WfSh6NEPw5NguGyKhcFQxNaktNneXDO2XNyToiyDNf8KX1TNL51gR12YsipD2YDRGK-KoRLXost1dcYo1XHgNpBw8LFDKoZdeWY1P1riqkSxrCaPM0zE"/>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<h3 class="text-primary font-bold text-base">Palais de Gourmet</h3>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-sm filled-icon">star</span>
+<span class="text-primary text-xs font-bold ml-1">4.9</span>
+</div>
+</div>
+<p class="text-primary/60 text-xs">Contemporary French Cuisine</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-primary font-bold text-xs tracking-widest">$$$$</span>
+<span class="text-primary/40 text-[10px]">•</span>
+<span class="text-primary/80 text-xs">3.2 miles away</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4 p-3 rounded-xl bg-surface-navy border border-primary items-center">
+<div class="size-20 shrink-0 rounded-lg overflow-hidden border border-primary/20">
+<img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1mUZkR7lJefFccPei11ff7EaQ7nnpdFdG5kAZ1oJrHHDcQNGN-tfMCjs8o3grAwkTwe3a-TrEyheCw6lhQD942wj4ztfJeoecRfA8XqSgW3uvdRl3dAJkt7TbbhB9q1ypQGm5OtaF8YL2R4gJdkAOmwjNGROmx26eQhAcN7pVMG8ozcbmDjMroPi_4Xhthutj-o3Ardrvn33euvQrQskXB-BO6AvfFZUQfTEJiSQkpMKPdq5d1NWLaO9avb5A2YF8qHJtRN1PyqM"/>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<h3 class="text-primary font-bold text-base">The Royal Grill</h3>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-sm filled-icon">star</span>
+<span class="text-primary text-xs font-bold ml-1">4.8</span>
+</div>
+</div>
+<p class="text-primary/60 text-xs">Steakhouse &amp; Artisanal Wines</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-primary font-bold text-xs tracking-widest">$$$</span>
+<span class="text-primary/40 text-[10px]">•</span>
+<span class="text-primary/80 text-xs">1.8 miles away</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4 p-3 rounded-xl bg-surface-navy border border-primary items-center">
+<div class="size-20 shrink-0 rounded-lg overflow-hidden border border-primary/20">
+<img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAniwCyXPQZKAamtRCgSOGMreI4wqFldaJQJjcEib17C_8XSdC_DNW1vopjCh6V2AZQSRaG7DLZK-FA20rSwvOY8q2Gz7GekrsY6kKn3RAkiepAh-ZJfgdVz76WFVzyzvtY9zHx9I0U-WO-iu4liS8hD-_w0yYsOc-zXwUwg9kZJITZV350fVVcko_whG2JmsxxKLUNtGMrToYPIMGjO3rwgLwEmjW9Zn7zjUwDM_HDhjzZPbCkuMQGfnL2pOL2CDrMEgXIvTKBiK8"/>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex justify-between items-start">
+<h3 class="text-primary font-bold text-base">Aurum Table</h3>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-sm filled-icon">star</span>
+<span class="text-primary text-xs font-bold ml-1">4.7</span>
+</div>
+</div>
+<p class="text-primary/60 text-xs">Japanese Fusion • Omakase</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-primary font-bold text-xs tracking-widest">$$$$</span>
+<span class="text-primary/40 text-[10px]">•</span>
+<span class="text-primary/80 text-xs">4.5 miles away</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 bg-background-navy/95 backdrop-blur-lg border-t border-primary/20 pb-8 pt-3 px-6">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined filled-icon">home</span>
+<span class="text-[10px] font-medium">Discover</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="text-[10px] font-medium">Bookings</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined">favorite</span>
+<span class="text-[10px] font-medium">Favorites</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary/40">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</div>
+</div>
+</nav>
+
+</body></html>
