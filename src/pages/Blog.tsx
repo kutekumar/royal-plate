@@ -340,7 +340,7 @@ const fetchPosts = async () => {
 
 
   const renderPostSkeleton = () => (
-    <Card className="p-4 space-y-3 bg-[#263569]/20 border border-[#caa157]/20 animate-pulse">
+    <Card className="p-4 space-y-3 bg-white border border-[#536DFE]/20 animate-pulse">
       <div className="flex items-center gap-3">
         <Skeleton className="w-10 h-10 rounded-full" />
         <div className="space-y-1 flex-1">
@@ -355,29 +355,29 @@ const fetchPosts = async () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#1d2956] pb-20 max-w-[430px] mx-auto">
+    <div className="min-h-screen bg-[#F5F5F7] pb-20 max-w-[430px] mx-auto">
       {/* Top header */}
-      <div className="bg-gradient-to-b from-[#caa157]/20 to-transparent border-b border-[#caa157]/10 sticky top-0 z-30 backdrop-blur-lg">
+      <div className="bg-white/95 border-b border-gray-200/80 sticky top-0 z-30 backdrop-blur-sm shadow-sm">
         <div className="px-6 py-6 flex items-center justify-between gap-3">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#caa157]" />
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#caa157]/80 font-semibold">
+              <Sparkles className="w-4 h-4 text-[#536DFE]" />
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#536DFE] font-semibold">
                 Stories from our restaurants
               </p>
             </div>
-            <h1 className="text-2xl font-bold text-[#caa157] leading-tight mt-1">
+            <h1 className="text-2xl font-bold text-[#1D2956] leading-tight mt-1">
               Food Journal
             </h1>
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-gray-400 mt-2">
               Discover promotions, new menus, and behind-the-scenes stories from all our partners.
             </p>
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="bg-[#263569]/40 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-[#caa157]/20 hover:bg-[#263569]/60 transition-all shrink-0"
+            className="bg-white/80 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-[#536DFE]/20 hover:bg-white/95 transition-all shrink-0"
           >
-            <svg className="w-5 h-5 text-[#caa157]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[#536DFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
@@ -385,7 +385,7 @@ const fetchPosts = async () => {
 
         {/* Search and Filter Section */}
         {showFilters && (
-          <div className="px-6 py-4 border-t border-[#caa157]/20">
+          <div className="px-6 py-4 border-t border-gray-100">
             <div className="space-y-3">
               {/* Search Input */}
               <div>
@@ -394,7 +394,7 @@ const fetchPosts = async () => {
                   placeholder="Search blog posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 border border-[#caa157]/20 rounded-xl bg-[#263569]/30 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#caa157]/60 transition-all"
+                  className="w-full px-4 py-3 border border-[#536DFE]/20 rounded-xl bg-gray-50 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#536DFE]/60 transition-all"
                 />
               </div>
 
@@ -403,7 +403,7 @@ const fetchPosts = async () => {
                 <select
                   value={selectedRestaurant}
                   onChange={(e) => setSelectedRestaurant(e.target.value)}
-                  className="w-full px-4 py-3 border border-[#caa157]/20 rounded-xl bg-[#263569]/30 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#caa157]/60 transition-all"
+                  className="w-full px-4 py-3 border border-[#536DFE]/20 rounded-xl bg-gray-50 text-white placeholder:text-slate-400 focus:outline-none focus:border-[#536DFE]/60 transition-all"
                 >
                   <option value="">All Restaurants</option>
                   {restaurants.map((restaurant) => (
@@ -419,7 +419,7 @@ const fetchPosts = async () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="flex-1 px-3 py-2 text-sm bg-background/60 border border-[#caa157]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#536DFE]/30 text-[#1D2956]"
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
@@ -429,15 +429,15 @@ const fetchPosts = async () => {
 
               {/* Filter Summary */}
               {(searchQuery.trim() || selectedRestaurant) && (
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-gray-400">
                   <span>Showing {sortedPosts.length} posts</span>
                   {searchQuery.trim() && (
-                    <span className="px-2 py-1 bg-[#caa157]/10 text-[#caa157] rounded-full">
+                    <span className="px-2 py-1 bg-[#536DFE]/10 text-[#536DFE] rounded-full font-medium">
                       Search: "{searchQuery}"
                     </span>
                   )}
                   {selectedRestaurant && (
-                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded-full">
+                    <span className="px-2 py-1 bg-[#1D2956]/10 text-[#1D2956] rounded-full font-medium">
                       {restaurants.find(r => r.id === selectedRestaurant)?.name}
                     </span>
                   )}
@@ -447,7 +447,7 @@ const fetchPosts = async () => {
                       setSelectedRestaurant('');
                       setSortBy('newest');
                     }}
-                    className="ml-1 text-[#caa157] hover:text-[#caa157]/80"
+                    className="ml-1 text-[#536DFE] hover:text-[#536DFE]/70 font-semibold"
                   >
                     Clear filters
                   </button>
@@ -469,9 +469,9 @@ const fetchPosts = async () => {
         )}
 
         {!loadingPosts && sortedPosts.length === 0 && (
-          <Card className="p-6 text-center bg-card/60 backdrop-blur-sm border-dashed border-border/60">
+          <Card className="p-6 text-center bg-white border border-dashed border-gray-200">
             <div className="space-y-2">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-gray-400">
                 {posts.length === 0
                   ? "No blog posts yet. Restaurants will share their promotions and menu highlights here."
                   : "No blog posts match your current filters."
@@ -484,7 +484,7 @@ const fetchPosts = async () => {
                     setSelectedRestaurant('');
                     setSortBy('newest');
                   }}
-                  className="text-[#caa157] hover:text-[#caa157]/80 text-sm"
+                  className="text-[#536DFE] hover:text-[#536DFE]/70 text-sm font-semibold"
                 >
                   Clear all filters
                 </button>
@@ -510,13 +510,13 @@ const fetchPosts = async () => {
                 key={post.id}
                 id={`blog-post-${post.id}`}
                 className={cn(
-                  'group relative overflow-hidden border-[#caa157]/20 bg-[#263569]/20 transition-all duration-300',
-                  'hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,23,42,0.12)]'
+                  'group relative overflow-hidden border-gray-200 bg-white transition-all duration-300 shadow-sm',
+                  'hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(83,109,254,0.12)] hover:border-[#536DFE]/30'
                 )}
               >
                 {/* Accent bar for pinned / promo */}
                 {post.is_pinned && (
-                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-primary via-primary/60 to-amber-400" />
+                  <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#536DFE] via-[#536DFE]/70 to-[#1D2956]" />
                 )}
 
                 <div className="p-4 space-y-3">
@@ -529,15 +529,15 @@ const fetchPosts = async () => {
                           alt={post.restaurants?.name || 'Restaurant'}
                         />
                       )}
-                      <AvatarFallback className="bg-[#caa157]/10 text-[9px] text-[#caa157]">
+                      <AvatarFallback className="bg-[#536DFE]/10 text-[9px] text-[#536DFE] font-bold">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-white truncate">
+                      <p className="text-[11px] font-semibold text-[#1D2956] truncate">
                         {post.restaurants?.name || 'Featured Restaurant'}
                       </p>
-                      <div className="flex items-center gap-2 text-[9px] text-slate-400">
+                      <div className="flex items-center gap-2 text-[9px] text-gray-400">
                         <span className="inline-flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {new Date(post.created_at).toLocaleDateString()}
@@ -545,7 +545,7 @@ const fetchPosts = async () => {
                         {post.is_pinned && (
                           <Badge
                             variant="outline"
-                            className="h-4 px-1.5 text-[8px] border-[#caa157]/40 text-[#caa157] bg-[#caa157]/5"
+                            className="h-4 px-1.5 text-[8px] border-[#536DFE]/30 text-[#536DFE] bg-[#536DFE]/8 font-semibold"
                           >
                             Highlight
                           </Badge>
@@ -557,7 +557,7 @@ const fetchPosts = async () => {
                   {/* Hero image */}
                   {post.hero_image_url && (
                     <div
-                      className="mt-1 overflow-hidden rounded-xl border border-[#caa157]/20 bg-muted/40 cursor-pointer"
+                      className="mt-1 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 cursor-pointer"
                       onClick={() => toggleContentExpand(post.id)}
                     >
                       <img
@@ -573,17 +573,17 @@ const fetchPosts = async () => {
                     className="space-y-1 cursor-pointer"
                     onClick={() => toggleContentExpand(post.id)}
                   >
-                    <h2 className="text-base font-semibold text-white leading-relaxed">
+                    <h2 className="text-base font-semibold text-[#1D2956] leading-relaxed">
                       {post.title}
                     </h2>
                     {expandedContentPostIds.has(post.id) ? (
                       <div
-                        className="text-[11px] text-slate-400 font-sans leading-loose"
+                        className="text-[11px] text-gray-500 font-sans leading-loose"
                         dangerouslySetInnerHTML={{ __html: post.content }}
                       />
                     ) : (
                       <div
-                        className="text-[11px] text-slate-400 font-sans line-clamp-3 leading-loose"
+                        className="text-[11px] text-gray-500 font-sans line-clamp-3 leading-loose"
                         dangerouslySetInnerHTML={{
                           __html: post.excerpt ||
                             (post.content.length > 180
@@ -600,7 +600,7 @@ const fetchPosts = async () => {
                       <button
                         type="button"
                         onClick={() => toggleContentExpand(post.id)}
-                        className="inline-flex items-center gap-1 text-[9px] text-[#caa157]/90 hover:text-[#caa157] underline-offset-2 hover:underline transition-colors"
+                        className="inline-flex items-center gap-1 text-[9px] text-[#536DFE] font-semibold hover:text-[#536DFE]/80 underline-offset-2 hover:underline transition-colors"
                       >
                         {expandedContentPostIds.has(post.id)
                           ? 'Show less'
@@ -614,7 +614,7 @@ const fetchPosts = async () => {
                           )}
                         />
                       </button>
-                      <div className="flex items-center gap-1 text-[9px] text-slate-400">
+                      <div className="flex items-center gap-1 text-[9px] text-gray-400">
                         <MessageCircle className="w-3 h-3" />
                         <span>
                           {(() => {
@@ -630,7 +630,7 @@ const fetchPosts = async () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-[9px] gap-1 text-[#caa157]/90 hover:bg-[#caa157]/5"
+                      className="h-7 px-3 text-[9px] gap-1 text-[#536DFE] font-semibold hover:bg-[#536DFE]/8 rounded-lg"
                       onClick={() => toggleComments(post.id)}
                     >
                       {commentsExpanded ? 'Hide feedback' : 'View feedback'}
@@ -646,9 +646,9 @@ const fetchPosts = async () => {
 
                 {/* Comments section */}
                 {commentsExpanded && (
-                  <div className="border-t border-border/30 bg-muted/30 px-3 pb-3 pt-2 space-y-2">
+                  <div className="border-t border-gray-100 bg-gray-50/80 px-3 pb-3 pt-2 space-y-2">
                     {loadingComments[post.id] && (
-                      <p className="text-[9px] text-slate-400">Loading comments…</p>
+                      <p className="text-[9px] text-gray-400">Loading comments…</p>
                     )}
 
                     {!loadingComments[post.id] && postComments.length === 0 && (
@@ -674,17 +674,17 @@ const fetchPosts = async () => {
                         return (
                           <div key={c.id} className="space-y-2">
                             {/* Main comment */}
-                            <div className="flex items-start gap-2 text-[9px] bg-background/60 border border-border/20 rounded-xl px-2 py-1.5">
+                            <div className="flex items-start gap-2 text-[9px] bg-white border border-gray-200 rounded-xl px-2 py-1.5 shadow-sm">
                               {/* Luxury-style circular initials badge */}
-                              <div className="mt-0.5 w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 text-[8px] flex items-center justify-center text-slate-900 font-semibold shadow-sm border border-amber-300/70">
+                              <div className="mt-0.5 w-6 h-6 rounded-full bg-gradient-to-br from-[#536DFE] to-[#1D2956] text-[8px] flex items-center justify-center text-white font-bold shadow-sm">
                                 {initials}
                               </div>
                               <div className="flex-1 space-y-1">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[9px] text-white font-medium truncate max-w-[120px]">
+                                  <span className="text-[9px] text-[#1D2956] font-semibold truncate max-w-[120px]">
                                     {displayName}
                                   </span>
-                                  <span className="text-[8px] text-slate-400 whitespace-nowrap">
+                                  <span className="text-[8px] text-gray-400 whitespace-nowrap">
                                     {new Date(c.created_at).toLocaleDateString('en-US', {
                                       day: '2-digit',
                                       month: '2-digit',
@@ -696,7 +696,7 @@ const fetchPosts = async () => {
                                     })}
                                   </span>
                                 </div>
-                                <p className="text-[9px] text-white leading-snug">
+                                <p className="text-[9px] text-gray-700 leading-snug">
                                   {c.content}
                                 </p>
                                 
@@ -706,7 +706,7 @@ const fetchPosts = async () => {
                                   if (replies.length === 0) return null;
                                   
                                   return (
-                                    <div className="space-y-1 mt-2 border-l-2 border-[#caa157]/20 pl-2">
+                                    <div className="space-y-1 mt-2 border-l-2 border-[#536DFE]/30 pl-2">
                                       {replies.map((reply) => {
                                         const replyDisplayName =
                                           reply.display_name || `Guest ${reply.customer_id.slice(0, 6).toUpperCase()}`;
@@ -720,15 +720,15 @@ const fetchPosts = async () => {
                                         
                                         return (
                                           <div key={reply.id} className="flex items-start gap-1 opacity-80">
-                                            <div className="mt-0.5 w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 via-emerald-300 to-emerald-500 text-[7px] flex items-center justify-center text-slate-900 font-semibold shadow-sm border border-emerald-300/70">
+                                            <div className="mt-0.5 w-5 h-5 rounded-full bg-gradient-to-br from-[#1D2956] to-[#536DFE]/70 text-[7px] flex items-center justify-center text-white font-bold shadow-sm">
                                               {replyInitials}
                                             </div>
                                             <div className="flex-1 space-y-0.5">
                                               <div className="flex items-center justify-between">
-                                                <span className="text-[8px] text-white font-medium truncate max-w-[100px]">
+                                                <span className="text-[8px] text-[#1D2956] font-semibold truncate max-w-[100px]">
                                                   {replyDisplayName} (Reply)
                                                 </span>
-                                                <span className="text-[7px] text-slate-400 whitespace-nowrap">
+                                                <span className="text-[7px] text-gray-400 whitespace-nowrap">
                                                   {new Date(reply.created_at).toLocaleDateString('en-US', {
                                                     day: '2-digit',
                                                     month: '2-digit',
@@ -740,7 +740,7 @@ const fetchPosts = async () => {
                                                   })}
                                                 </span>
                                               </div>
-                                              <p className="text-[8px] text-white leading-snug">
+                                              <p className="text-[8px] text-gray-700 leading-snug">
                                                 {reply.content}
                                               </p>
                                             </div>
@@ -772,14 +772,14 @@ const fetchPosts = async () => {
                           }))
                         }
                         disabled={!currentUserId || !!submittingComment[post.id]}
-                        className="h-14 text-[9px] resize-none border-[#caa157]/20 bg-background/80 focus-visible:ring-primary/40"
+                        className="h-14 text-[9px] resize-none border-gray-200 bg-white text-[#1D2956] placeholder:text-gray-400 focus-visible:ring-[#536DFE]/40 rounded-xl"
                       />
                       <div className="flex justify-end mt-1 gap-2">
                         {!currentUserId && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 px-2 text-[8px] text-slate-400"
+                            className="h-6 px-2 text-[8px] text-gray-400"
                             onClick={() => navigate('/auth')}
                           >
                             Sign in to comment
@@ -787,7 +787,7 @@ const fetchPosts = async () => {
                         )}
                         <Button
                           size="sm"
-                          className="h-6 px-3 text-[8px] rounded-full bg-[#caa157]/90 hover:bg-[#caa157] shadow-sm"
+                          className="h-6 px-3 text-[8px] rounded-full bg-[#536DFE] hover:bg-[#536DFE]/90 text-white shadow-sm font-semibold"
                           disabled={
                             !currentUserId ||
                             !newComment[post.id]?.trim() ||

@@ -52,47 +52,47 @@ All colors MUST be HSL.
   }
 
   :root {
-    /* Modern Design System - Enhanced color palette */
-    --background: 0 0% 98%;
-    --foreground: 220 13% 18%;
+    /* Apple-style white/silver theme — primary gold #536DFE, title navy #1D2956 */
+    --background: 0 0% 96%;
+    --foreground: 224 52% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
+    --card-foreground: 224 52% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
+    --popover-foreground: 224 52% 25%;
 
-    --primary: 38 92% 50%;
+    --primary: 232 98% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 13% 18%;
+    --secondary: 220 14% 95%;
+    --secondary-foreground: 224 52% 25%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 220 14% 93%;
+    --muted-foreground: 220 9% 50%;
 
-    --accent: 38 92% 50%;
+    --accent: 232 98% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 38 92% 50%;
+    --border: 220 13% 88%;
+    --input: 220 13% 92%;
+    --ring: 40 62% 56%;
 
     --radius: 0.875rem;
 
-    /* Enhanced color palette */
-    --gold: 38 92% 50%;
-    --gold-light: 38 92% 65%;
-    --gold-dark: 38 92% 40%;
-    --gold-muted: 38 92% 15%;
-    
-    --royal-blue: 215 79% 35%;
-    --royal-blue-light: 215 79% 50%;
-    --royal-blue-dark: 215 79% 25%;
-    --royal-blue-muted: 215 79% 10%;
+    /* Brand colors — #536DFE indigo-blue primary, #1D2956 navy */
+    --brand-blue: 232 98% 65%;
+    --brand-blue-light: 232 98% 75%;
+    --brand-blue-dark: 232 98% 55%;
+    --brand-blue-muted: 232 98% 96%;
+
+    --royal-blue: 224 52% 25%;
+    --royal-blue-light: 224 52% 38%;
+    --royal-blue-dark: 224 52% 16%;
+    --royal-blue-muted: 224 52% 95%;
     
     --success: 142 76% 36%;
     --success-light: 142 76% 50%;

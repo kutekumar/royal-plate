@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  LogOut, 
-  User, 
-  Phone, 
-  Mail, 
-  Edit2, 
-  Sparkles, 
-  Compass, 
-  Star as StarIcon, 
-  Shield, 
+import {
+  LogOut,
+  User,
+  Phone,
+  Mail,
+  Edit2,
+  Sparkles,
+  Compass,
+  Star as StarIcon,
+  Shield,
   Crown,
   Check,
   X,
   ShoppingBag,
-  TrendingUp
+  TrendingUp,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,55 +31,31 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    full_name: '',
-    phone: ''
-  });
+  const [formData, setFormData] = useState({ full_name: '', phone: '' });
 
   const { loading: loyaltyLoading, summary, badgeLabel, badgeDescription, badgeIcon } = useCustomerLoyalty();
 
-  const getBadgeIconNode = () => {
-    const base = 'w-5 h-5';
+  const getBadgeIconNode = (size = 'w-4 h-4') => {
     switch (badgeIcon) {
-      case 'compass':
-        return <Compass className={base} />;
-      case 'star':
-        return <StarIcon className={base} />;
-      case 'shield':
-        return <Shield className={base} />;
-      case 'crown':
-        return <Crown className={base} />;
-      case 'sparkles':
-      default:
-        return <Sparkles className={base} />;
+      case 'compass': return <Compass className={size} />;
+      case 'star': return <StarIcon className={size} />;
+      case 'shield': return <Shield className={size} />;
+      case 'crown': return <Crown className={size} />;
+      default: return <Sparkles className={size} />;
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
-      fetchOrderHistory();
-    }
+    if (user) { fetchProfile(); fetchOrderHistory(); }
   }, [user]);
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
       if (error) throw error;
-      
       setProfile(data);
-      setFormData({
-        full_name: data.full_name || '',
-        phone: data.phone || ''
-      });
-    } catch (error: any) {
-      console.error('Error fetching profile:', error);
-    }
+      setFormData({ full_name: data.full_name || '', phone: data.phone || '' });
+    } catch (e) { console.error(e); }
   };
 
   const fetchOrderHistory = async () => {
@@ -87,45 +63,23 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          restaurants (
-            name,
-            image_url,
-            address
-          ),
-          order_items
-        `)
+        .select('*, restaurants(name, image_url, address), order_items')
         .eq('customer_id', user.id)
         .eq('status', 'completed')
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       setOrderHistory(data || []);
-    } catch (error: any) {
-      console.error('Error fetching order history:', error);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const handleUpdateProfile = async () => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: formData.full_name,
-          phone: formData.phone
-        })
-        .eq('id', user?.id);
-
+      const { error } = await supabase.from('profiles').update({ full_name: formData.full_name, phone: formData.phone }).eq('id', user?.id);
       if (error) throw error;
-
       toast.success('Profile updated successfully');
       setIsEditing(false);
       fetchProfile();
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    }
+    } catch (e) { toast.error('Failed to update profile'); }
   };
 
   const handleSignOut = async () => {
@@ -135,220 +89,209 @@ const Profile = () => {
   };
 
   const totalSpent = orderHistory.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const initials = (profile?.full_name || user?.email || 'U').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto pb-20">
-      {/* Header with Gradient */}
-      <div className="relative bg-gradient-to-b from-[#caa157]/20 to-transparent px-6 pt-12 pb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-[#caa157] text-2xl font-bold tracking-wide">Profile</h1>
+    <div className="relative flex min-h-screen w-full flex-col bg-[#F5F5F7] max-w-[430px] mx-auto pb-24 font-poppins">
+
+      {/* ── Top Navy Header Banner ── */}
+      <div className="bg-[#1D2956] px-6 pt-12 pb-20">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-white text-2xl font-bold tracking-wide">My Profile</h1>
           <button
             onClick={handleSignOut}
-            className="bg-[#263569]/40 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-[#caa157]/20 hover:bg-[#263569]/60 transition-all"
+            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full px-4 py-2 transition-all"
           >
-            <LogOut className="w-5 h-5 text-[#caa157]" />
+            <LogOut className="w-4 h-4 text-white" />
+            <span className="text-white text-xs font-semibold">Sign Out</span>
           </button>
         </div>
+        <p className="text-white/50 text-sm">Manage your account and preferences</p>
+      </div>
 
-        {/* Profile Card */}
-        <div className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-6">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#caa157] to-[#8b7039] flex items-center justify-center">
-                <User className="w-10 h-10 text-[#1d2956]" />
+      {/* ── Profile Card (floats over header) ── */}
+      <div className="px-6 -mt-12 mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              <div className="w-20 h-20 rounded-2xl bg-[#1D2956] flex items-center justify-center shadow-lg">
+                <span className="text-white text-2xl font-bold">{initials}</span>
               </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#1d2956] border-2 border-[#caa157] flex items-center justify-center">
-                {getBadgeIconNode()}
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-[#536DFE] flex items-center justify-center shadow-md text-white">
+                {getBadgeIconNode('w-4 h-4')}
               </div>
             </div>
-            <div className="flex-1">
-              <h2 className="text-white text-xl font-bold mb-1">
-                {profile?.full_name || 'User'}
-              </h2>
-              <p className="text-slate-400 text-sm mb-3">
-                {user?.email}
-              </p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#caa157]/10 border border-[#caa157]/30">
-                  {getBadgeIconNode()}
-                  <span className="text-[#caa157] text-xs font-semibold">
-                    {loyaltyLoading ? 'Loading...' : badgeLabel || 'Newbie'}
-                  </span>
+
+            {/* Name & badge */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-[#1D2956] text-xl font-bold leading-tight">
+                    {profile?.full_name || 'User'}
+                  </h2>
+                  <p className="text-gray-400 text-xs mt-0.5 truncate">{user?.email}</p>
                 </div>
+                <button onClick={() => setIsEditing(!isEditing)} className="text-[#536DFE] hover:text-[#536DFE]/70 transition-colors ml-2 mt-0.5">
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 bg-[#1D2956] text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
+                  {getBadgeIconNode('w-3 h-3')}
+                  {loyaltyLoading ? 'Loading...' : badgeLabel || 'Newbie'}
+                </span>
                 {summary && (
-                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#caa157]/10 border border-[#caa157]/30">
-                    <Sparkles className="w-3 h-3 text-[#caa157]" />
-                    <span className="text-[#caa157] text-xs font-semibold">
-                      {summary.total_points} pts
-                    </span>
-                  </div>
+                  <span className="inline-flex items-center gap-1.5 bg-[#536DFE]/10 text-[#536DFE] text-[11px] font-bold px-3 py-1.5 rounded-full border border-[#536DFE]/20">
+                    <Sparkles className="w-3 h-3" />
+                    {summary.total_points} pts
+                  </span>
                 )}
               </div>
             </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="text-[#caa157] hover:text-[#caa157]/80 transition-colors"
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
           </div>
 
           {badgeDescription && (
-            <div className="text-xs text-slate-400 bg-[#caa157]/5 rounded-lg px-3 py-2 mb-4">
+            <p className="text-gray-400 text-xs mt-4 bg-gray-50 rounded-xl px-4 py-3 leading-relaxed">
               {badgeDescription}
-            </div>
-          )}
-
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-[#caa157] text-xs uppercase tracking-wider">
-                  Full Name
-                </Label>
-                <Input
-                  id="full_name"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="bg-[#263569]/30 border-[#caa157]/20 text-white focus:border-[#caa157]/60"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-[#caa157] text-xs uppercase tracking-wider">
-                  Phone
-                </Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="bg-[#263569]/30 border-[#caa157]/20 text-white focus:border-[#caa157]/60"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleUpdateProfile}
-                  className="flex-1 bg-[#caa157] hover:bg-[#caa157]/90 text-[#1d2956] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
-                >
-                  <Check className="w-4 h-4" />
-                  Save
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1 bg-[#263569]/40 border border-[#caa157]/40 hover:bg-[#263569]/60 text-[#caa157] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
-                >
-                  <X className="w-4 h-4" />
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm bg-[#263569]/30 rounded-lg p-3">
-                <User className="h-4 w-4 text-[#caa157]" />
-                <span className="text-slate-400">Name:</span>
-                <span className="text-white font-medium">{profile?.full_name || 'Not set'}</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm bg-[#263569]/30 rounded-lg p-3">
-                <Mail className="h-4 w-4 text-[#caa157]" />
-                <span className="text-slate-400">Email:</span>
-                <span className="text-white font-medium truncate">{user?.email}</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm bg-[#263569]/30 rounded-lg p-3">
-                <Phone className="h-4 w-4 text-[#caa157]" />
-                <span className="text-slate-400">Phone:</span>
-                <span className="text-white font-medium">{profile?.phone || 'Not set'}</span>
-              </div>
-            </div>
+            </p>
           )}
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="px-6 py-6 space-y-4">
-        <div className="bg-gradient-to-br from-[#caa157] to-[#8b7039] rounded-2xl p-6 text-[#1d2956]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide font-semibold opacity-80 mb-1">
-                Total Spent
-              </p>
-              <p className="text-3xl font-bold">
-                ${totalSpent.toFixed(2)}
-              </p>
-              <p className="text-xs opacity-80 mt-1">
-                {orderHistory.length} completed orders
-              </p>
+      {/* ── Stats Row ── */}
+      <div className="px-6 mb-4 grid grid-cols-2 gap-3">
+        <div className="bg-[#1D2956] rounded-2xl p-4 flex flex-col justify-between">
+          <TrendingUp className="w-6 h-6 text-white/40 mb-3" />
+          <p className="text-white/60 text-[10px] uppercase tracking-widest font-semibold mb-0.5">Total Spent</p>
+          <p className="text-white text-2xl font-bold">${totalSpent.toFixed(2)}</p>
+        </div>
+        <div className="bg-[#536DFE] rounded-2xl p-4 flex flex-col justify-between">
+          <ShoppingBag className="w-6 h-6 text-white/40 mb-3" />
+          <p className="text-white/70 text-[10px] uppercase tracking-widest font-semibold mb-0.5">Orders</p>
+          <p className="text-white text-2xl font-bold">{orderHistory.length}</p>
+        </div>
+      </div>
+
+      {/* ── Edit Form ── */}
+      {isEditing && (
+        <div className="px-6 mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
+            <h3 className="text-[#1D2956] font-bold text-sm uppercase tracking-wider">Edit Profile</h3>
+            <div className="space-y-2">
+              <Label className="text-gray-500 text-xs uppercase tracking-wider">Full Name</Label>
+              <Input
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                className="border-gray-200 text-[#1D2956] focus:border-[#536DFE] focus:ring-[#536DFE]/20 rounded-xl"
+                placeholder="Your name"
+              />
             </div>
-            <TrendingUp className="w-12 h-12 opacity-40" />
+            <div className="space-y-2">
+              <Label className="text-gray-500 text-xs uppercase tracking-wider">Phone</Label>
+              <Input
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="border-gray-200 text-[#1D2956] focus:border-[#536DFE] focus:ring-[#536DFE]/20 rounded-xl"
+                placeholder="+1 234 567 890"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={handleUpdateProfile}
+                className="flex-1 bg-[#1D2956] hover:bg-[#1D2956]/90 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
+              >
+                <Check className="w-4 h-4" /> Save
+              </button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
+              >
+                <X className="w-4 h-4" /> Cancel
+              </button>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Order History */}
-        <div>
-          <h2 className="text-[#caa157] text-lg font-bold mb-4 flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
+      {/* ── Account Info ── */}
+      {!isEditing && (
+        <div className="px-6 mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100">
+              <h3 className="text-[#1D2956] font-bold text-sm uppercase tracking-wider">Account Info</h3>
+            </div>
+            {[
+              { icon: User, label: 'Name', value: profile?.full_name || 'Not set' },
+              { icon: Mail, label: 'Email', value: user?.email || '' },
+              { icon: Phone, label: 'Phone', value: profile?.phone || 'Not set' },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50 last:border-0">
+                <div className="w-9 h-9 rounded-xl bg-[#1D2956]/8 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-[#1D2956]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold">{label}</p>
+                  <p className="text-[#1D2956] text-sm font-semibold truncate">{value}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Order History ── */}
+      <div className="px-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[#1D2956] text-base font-bold flex items-center gap-2">
+            <ShoppingBag className="w-4 h-4 text-[#536DFE]" />
             Order History
           </h2>
+          <span className="text-gray-400 text-xs">{orderHistory.length} orders</span>
+        </div>
 
-          {orderHistory.length === 0 ? (
-            <div className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-8 text-center">
-              <ShoppingBag className="w-12 h-12 text-[#caa157]/30 mx-auto mb-3" />
-              <p className="text-slate-400">No completed orders yet</p>
-              <p className="text-slate-500 text-sm mt-1">
-                Your order history will appear here
-              </p>
+        {orderHistory.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-[#1D2956]/5 flex items-center justify-center mx-auto mb-3">
+              <ShoppingBag className="w-7 h-7 text-[#1D2956]/30" />
             </div>
-          ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {orderHistory.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-4 hover:border-[#caa157]/40 transition-all"
-                >
-                  <div className="flex items-center gap-3">
+            <p className="text-[#1D2956] font-semibold text-sm">No completed orders yet</p>
+            <p className="text-gray-400 text-xs mt-1">Your order history will appear here</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {orderHistory.map((order) => (
+              <div key={order.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-[#536DFE]/20">
+                <div className="flex items-center gap-4 p-4">
+                  <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
                     <img
                       src={order.restaurants?.image_url}
                       alt={order.restaurants?.name}
-                      className="w-14 h-14 rounded-lg object-cover border border-[#caa157]/20"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-white font-semibold">
-                            {order.restaurants?.name}
-                          </p>
-                          <p className="text-[#caa157]/70 text-xs capitalize">
-                            {order.order_type?.replace('_', ' ')} • {' '}
-                            {new Date(order.created_at).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[#caa157] font-bold">
-                            ${order.total_amount?.toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Order items summary */}
-                      {Array.isArray(order.order_items) && order.order_items.length > 0 && (
-                        <div className="mt-2 text-xs text-slate-400 line-clamp-1">
-                          {order.order_items
-                            .map((item: any) => `${item.name} x${item.quantity}`)
-                            .join(' • ')}
-                        </div>
-                      )}
-                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#1D2956] font-bold text-sm truncate">{order.restaurants?.name}</p>
+                    <p className="text-gray-400 text-[11px] mt-0.5 capitalize">
+                      {order.order_type?.replace('_', ' ')} • {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                    {Array.isArray(order.order_items) && order.order_items.length > 0 && (
+                      <p className="text-gray-400 text-[10px] mt-1 line-clamp-1">
+                        {order.order_items.map((i: any) => `${i.name} ×${i.quantity}`).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-[#536DFE] font-bold text-sm">${order.total_amount?.toFixed(2)}</p>
+                    <span className="inline-block bg-green-100 text-green-600 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full mt-1">Done</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNav />
