@@ -158,7 +158,7 @@ const Home = () => {
         </div>
 
         {/* Title - Center */}
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-[#caa157] text-2xl tracking-wider" style={{ fontWeight: 700 }}>
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-[#D28D1F] text-2xl tracking-wider" style={{ fontWeight: 700 }}>
           Discover
         </h1>
 
@@ -167,9 +167,9 @@ const Home = () => {
           {/* Notification Bell */}
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative flex items-center justify-center w-11 h-11 rounded-full border-2 border-[#caa157]/30 bg-[#1d2956] hover:border-[#caa157]/60 transition-all"
+            className="relative flex items-center justify-center w-11 h-11 rounded-full border-2 border-[#D28D1F]/30 bg-[#1d2956] hover:border-[#D28D1F]/60 transition-all"
           >
-            <Bell className="w-5 h-5 text-[#caa157]" />
+            <Bell className="w-5 h-5 text-[#D28D1F]" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full">
                 {unreadCount}
@@ -180,29 +180,29 @@ const Home = () => {
           {/* User Icon */}
           <button
             onClick={() => navigate('/profile')}
-            className="flex items-center justify-center w-11 h-11 rounded-full border-2 border-[#caa157]/30 bg-[#1d2956] hover:border-[#caa157]/60 transition-all"
+            className="flex items-center justify-center w-11 h-11 rounded-full border-2 border-[#D28D1F]/30 bg-[#1d2956] hover:border-[#D28D1F]/60 transition-all"
           >
-            <User className="w-5 h-5 text-[#caa157]" />
+            <User className="w-5 h-5 text-[#D28D1F]" />
           </button>
         </div>
       </div>
 
       {/* Notification Dropdown */}
       {showNotifications && (
-        <div className="absolute top-20 right-6 w-80 max-h-96 bg-[#2a3f6e] border-2 border-[#caa157]/30 rounded-xl shadow-2xl overflow-y-auto z-50">
-          <div className="sticky top-0 bg-[#2a3f6e] border-b border-[#caa157]/20 px-4 py-3 flex items-center justify-between">
-            <h3 className="text-[#caa157] font-semibold">Notifications</h3>
+        <div className="absolute top-20 right-6 w-80 max-h-96 bg-[#2a3f6e] border-2 border-[#D28D1F]/30 rounded-xl shadow-2xl overflow-y-auto z-50">
+          <div className="sticky top-0 bg-[#2a3f6e] border-b border-[#D28D1F]/20 px-4 py-3 flex items-center justify-between">
+            <h3 className="text-[#D28D1F] font-semibold">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-xs text-[#caa157]/70 hover:text-[#caa157]"
+                className="text-xs text-[#D28D1F]/70 hover:text-[#D28D1F]"
               >
                 Mark all read
               </button>
             )}
           </div>
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-[#caa157]/60 text-sm">
+            <div className="p-4 text-center text-[#D28D1F]/60 text-sm">
               No notifications
             </div>
           ) : (
@@ -210,13 +210,13 @@ const Home = () => {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`p-4 border-b border-[#caa157]/10 cursor-pointer hover:bg-[#caa157]/5 transition-colors ${
-                  !notification.is_read ? 'bg-[#caa157]/10' : ''
+                className={`p-4 border-b border-[#D28D1F]/10 cursor-pointer hover:bg-[#D28D1F]/5 transition-colors ${
+                  !notification.is_read ? 'bg-[#D28D1F]/10' : ''
                 }`}
               >
-                <p className="text-[#caa157] text-sm font-medium">{notification.title}</p>
-                <p className="text-[#caa157]/70 text-xs mt-1">{notification.message}</p>
-                <p className="text-[#caa157]/50 text-xs mt-2">
+                <p className="text-[#D28D1F] text-sm font-medium">{notification.title}</p>
+                <p className="text-[#D28D1F]/70 text-xs mt-1">{notification.message}</p>
+                <p className="text-[#D28D1F]/50 text-xs mt-2">
                   {new Date(notification.created_at).toLocaleDateString()}
                 </p>
               </div>
@@ -228,13 +228,13 @@ const Home = () => {
       {/* Search Box */}
       <div ref={searchRef} className="px-6 pb-6 z-10">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#caa157]/60" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D28D1F]/60" />
           <Input
             type="text"
             placeholder="Find your table at the palace..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 bg-transparent border-2 border-[#caa157]/40 rounded-xl text-[#caa157] placeholder-[#caa157]/50 focus:border-[#caa157] focus:ring-2 focus:ring-[#caa157]/20 transition-all"
+            className="w-full h-12 pl-12 pr-4 bg-transparent border-2 border-[#D28D1F]/40 rounded-xl text-[#D28D1F] placeholder-[#D28D1F]/50 focus:border-[#D28D1F] focus:ring-2 focus:ring-[#D28D1F]/20 transition-all"
           />
         </div>
       </div>
@@ -245,8 +245,8 @@ const Home = () => {
         {featuredRestaurants.length > 0 && (
           <div ref={featuredRef} className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[#caa157] text-lg font-bold" style={{ fontWeight: 700 }}>Featured Selections</h2>
-              <button className="text-[#caa157]/70 text-sm hover:text-[#caa157] transition-colors" style={{ fontWeight: 500 }}>
+              <h2 className="text-[#D28D1F] text-lg font-bold" style={{ fontWeight: 700 }}>Featured Selections</h2>
+              <button className="text-[#D28D1F]/70 text-sm hover:text-[#D28D1F] transition-colors" style={{ fontWeight: 500 }}>
                 View All
               </button>
             </div>
@@ -262,19 +262,19 @@ const Home = () => {
                 onClick={() => navigate(`/restaurant/${restaurant.id}`)}
                 className="flex-shrink-0 w-72 cursor-pointer group"
               >
-                <div className="relative overflow-hidden rounded-xl border-2 border-[#caa157]/30 h-40">
+                <div className="relative overflow-hidden rounded-xl border-2 border-[#D28D1F]/30 h-40">
                   <img
                     src={restaurant.image_url || '/placeholder.svg'}
                     alt={restaurant.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1d2956] via-[#1d2956]/40 to-transparent" />
-                  <Badge className="absolute top-3 left-3 bg-[#caa157] text-[#1d2956] border-0 uppercase text-xs px-3" style={{ fontWeight: 700 }}>
+                  <Badge className="absolute top-3 left-3 bg-[#D28D1F] text-[#1d2956] border-0 uppercase text-xs px-3" style={{ fontWeight: 700 }}>
                     {restaurant.cuisine_type || 'Fine Dining'}
                   </Badge>
                   <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-[#caa157] text-lg" style={{ fontWeight: 700 }}>{restaurant.name}</h3>
-                    <p className="text-[#caa157]/70 text-xs" style={{ fontWeight: 400 }}>
+                    <h3 className="text-[#D28D1F] text-lg" style={{ fontWeight: 700 }}>{restaurant.name}</h3>
+                    <p className="text-[#D28D1F]/70 text-xs" style={{ fontWeight: 400 }}>
                       {restaurant.cuisine_type || 'Fine Dining'} • {restaurant.township}
                     </p>
                   </div>
@@ -287,17 +287,17 @@ const Home = () => {
 
         {/* Top Rated */}
         <div>
-          <h2 className="text-[#caa157] text-lg mb-4" style={{ fontWeight: 700 }}>Top Rated</h2>
+          <h2 className="text-[#D28D1F] text-lg mb-4" style={{ fontWeight: 700 }}>Top Rated</h2>
           
           <div ref={listRef} className="space-y-4">
             {filteredRestaurants.map((restaurant) => (
               <div
                 key={restaurant.id}
                 onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                className="flex items-center gap-4 p-4 bg-[#2a3f6e]/30 border-2 border-[#caa157]/30 rounded-xl cursor-pointer hover:border-[#caa157]/60 hover:bg-[#2a3f6e]/50 transition-all group"
+                className="flex items-center gap-4 p-4 bg-[#2a3f6e]/30 border-2 border-[#D28D1F]/30 rounded-xl cursor-pointer hover:border-[#D28D1F]/60 hover:bg-[#2a3f6e]/50 transition-all group"
               >
                 {/* Restaurant Image */}
-                <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-[#caa157]/20">
+                <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-[#D28D1F]/20">
                   <img
                     src={restaurant.image_url || '/placeholder.svg'}
                     alt={restaurant.name}
@@ -308,22 +308,22 @@ const Home = () => {
                 {/* Restaurant Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="text-[#caa157] text-base truncate" style={{ fontWeight: 700 }}>
+                    <h3 className="text-[#D28D1F] text-base truncate" style={{ fontWeight: 700 }}>
                       {restaurant.name}
                     </h3>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <Star className="w-4 h-4 text-[#caa157] fill-[#caa157]" />
-                      <span className="text-[#caa157] text-sm" style={{ fontWeight: 600 }}>
+                      <Star className="w-4 h-4 text-[#D28D1F] fill-[#D28D1F]" />
+                      <span className="text-[#D28D1F] text-sm" style={{ fontWeight: 600 }}>
                         {restaurant.rating.toFixed(1)}
                       </span>
                     </div>
                   </div>
                   
-                  <p className="text-[#caa157]/70 text-xs mb-2" style={{ fontWeight: 400 }}>
+                  <p className="text-[#D28D1F]/70 text-xs mb-2" style={{ fontWeight: 400 }}>
                     {restaurant.cuisine_type || 'International'}
                   </p>
                   
-                  <div className="flex items-center gap-3 text-[#caa157]/60 text-xs" style={{ fontWeight: 400 }}>
+                  <div className="flex items-center gap-3 text-[#D28D1F]/60 text-xs" style={{ fontWeight: 400 }}>
                     <span style={{ fontWeight: 600 }}>{restaurant.price_range || '$$$'}</span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
@@ -332,7 +332,7 @@ const Home = () => {
                     </span>
                   </div>
                   
-                  <p className="text-[#caa157]/50 text-xs mt-1" style={{ fontWeight: 300 }}>
+                  <p className="text-[#D28D1F]/50 text-xs mt-1" style={{ fontWeight: 300 }}>
                     {restaurant.township}
                   </p>
                 </div>
@@ -342,13 +342,13 @@ const Home = () => {
 
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-[#caa157]/30 border-t-[#caa157] rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-[#D28D1F]/30 border-t-[#D28D1F] rounded-full animate-spin"></div>
             </div>
           )}
 
           {!isLoading && filteredRestaurants.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-[#caa157]/60">No restaurants found</p>
+              <p className="text-[#D28D1F]/60">No restaurants found</p>
             </div>
           )}
         </div>

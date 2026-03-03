@@ -13,6 +13,7 @@ import Confirmation from "./pages/Confirmation";
 import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
 import Blog from "./pages/Blog";
+import Food from "./pages/Food";
 import RestaurantDashboard from "./pages/dashboard/RestaurantDashboard";
 import BlogEditor from "./pages/dashboard/BlogEditor";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/home" element={<Home />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/food" element={<Food />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/restaurant/:id" element={<RestaurantDetails />} />
             <Route path="/payment" element={<Payment />} />

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Plate - Premium Restaurant Experience | Mingalar Mon</title>
+    <meta name="description" content="Royal Plate - Myanmar's premier restaurant booking and pre-ordering platform. Discover, order, and experience fine dining like never before. Join our VIP waitlist for exclusive early access.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../public/crown.ico">
+    
+    <!-- Poppins Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            DEFAULT: 'hsl(38, 92%, 50%)',
+                            light: 'hsl(38, 92%, 65%)',
+                            dark: 'hsl(38, 92%, 40%)',
+                            muted: 'hsl(38, 92%, 15%)'
+                        },
+                        'royal-blue': {
+                            DEFAULT: 'hsl(215, 79%, 35%)',
+                            light: 'hsl(215, 79%, 50%)',
+                            dark: 'hsl(215, 79%, 25%)',
+                            muted: 'hsl(215, 79%, 10%)'
+                        }
+                    },
+                    fontFamily: {
+                        poppins: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- GSAP Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- Anime.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-poppins bg-gray-50">
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-royal-blue-dark to-royal-blue backdrop-blur-md shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="imgs/logo.png" alt="Royal Plate" class="h-10 w-auto object-contain">
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-white hover:text-gold transition-colors font-medium">Features</a>
+                    <a href="#screenshots" class="text-white hover:text-gold transition-colors font-medium">Gallery</a>
+                    <a href="#how-it-works" class="text-white hover:text-gold transition-colors font-medium">How It Works</a>
+                    <a href="#vip-waitlist" class="bg-gold hover:bg-gold-dark text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg">Join VIP Waitlist</a>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-royal-blue-dark border-t border-royal-blue">
+            <div class="px-6 py-4 space-y-3">
+                <a href="#features" class="block text-white hover:text-gold transition-colors font-medium">Features</a>
+                <a href="#screenshots" class="block text-white hover:text-gold transition-colors font-medium">Gallery</a>
+                <a href="#how-it-works" class="block text-white hover:text-gold transition-colors font-medium">How It Works</a>
+                <a href="#vip-waitlist" class="block bg-gold hover:bg-gold-dark text-white px-6 py-2 rounded-full font-semibold text-center transition-all shadow-lg">Join VIP Waitlist</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div class="absolute inset-0 z-0">
+            <div class="hero-bg-slider absolute inset-0"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-royal-blue-muted/90 via-royal-blue-dark/80 to-gold-muted/70"></div>
+        </div>
+        
+        <!-- Animated Background Pattern -->
+        <div class="absolute inset-0 z-0 opacity-10">
+            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+            </svg>
+        </div>
+        
+        <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
+            <div class="hero-content">
+                <img src="imgs/crown.png" alt="Crown" class="h-24 w-auto mx-auto mb-6 animate-float object-contain">
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight hero-title">
+                    <span class="hero-title-line">Experience Dining</span> <br>
+                    <span class="text-gold hero-title-line">Royalty</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto font-light">
+                    Discover Myanmar's premier restaurant booking and pre-ordering platform. Reserve tables, order ahead, and earn rewards at your favorite restaurants.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="#vip-waitlist" class="bg-gold hover:bg-gold-dark text-white px-8 py-4 rounded-full font-semibold text-lg transition-all transform hover:scale-105 shadow-2xl">
+                        Join VIP Waitlist
+                    </a>
+                    <a href="#features" class="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all border-2 border-white/30">
+                        Learn More
+                    </a>
+                </div>
+                
+                <!-- Features Highlight -->
+                <div class="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
+                    <div class="stat-item">
+                        <div class="text-4xl md:text-5xl font-bold text-gold mb-2">⚡</div>
+                        <div class="text-gray-300 font-medium">Instant Booking</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="text-4xl md:text-5xl font-bold text-gold mb-2">🎁</div>
+                        <div class="text-gray-300 font-medium">Loyalty Rewards</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="text-4xl md:text-5xl font-bold text-gold mb-2">🍽️</div>
+                        <div class="text-gray-300 font-medium">Pre-Order Meals</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
+            <div class="scroll-indicator animate-bounce">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-royal-blue mb-4">Why Choose Royal Plate?</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Experience the future of dining with our comprehensive platform designed for modern food lovers</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-gray-100">
+                    <div class="bg-gold/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-royal-blue mb-3">Easy Booking</h3>
+                    <p class="text-gray-600 leading-relaxed">Reserve your table instantly at top restaurants. No more waiting or calling ahead.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="feature-card bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-gray-100">
+                    <div class="bg-gold/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-royal-blue mb-3">Pre-Order Meals</h3>
+                    <p class="text-gray-600 leading-relaxed">Order your favorite dishes in advance and skip the wait when you arrive.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="feature-card bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-gray-100">
+                    <div class="bg-gold/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-royal-blue mb-3">Loyalty Rewards</h3>
+                    <p class="text-gray-600 leading-relaxed">Earn points with every order and unlock exclusive discounts and perks.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="feature-card bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-gray-100">
+                    <div class="bg-gold/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-royal-blue mb-3">Real Reviews</h3>
+                    <p class="text-gray-600 leading-relaxed">Read authentic reviews from verified diners to make informed choices.</p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="feature-card bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-gray-100">
+                    <div class="bg-gold/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-royal-blue mb-3">Digital Menu</h3>
+                    <p class="text-gray-600 leading-relaxed">Browse complete menus with photos, prices, and nutritional information.</p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="feature-card bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 border border-gray-100">
+                    <div class="bg-gold/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-royal-blue mb-3">Group Dining</h3>
+                    <p class="text-gray-600 leading-relaxed">Coordinate group bookings and split bills seamlessly with friends.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Gallery -->
+    <section id="screenshots" class="py-20 bg-gradient-to-br from-royal-blue-muted to-royal-blue-dark relative overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Experience the App</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">Take a peek at our beautifully designed interface that makes dining effortless</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Screenshot 1 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/onboarding.png" data-title="Welcome Experience" data-description="Beautiful onboarding flow">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/onboarding.png" alt="Onboarding Screen" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">Welcome Experience</h4>
+                                <p class="text-gray-300 text-sm">Beautiful onboarding flow</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screenshot 2 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/discover.png" data-title="Discover" data-description="Find top restaurants">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/discover.png" alt="Discover Restaurants" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">Discover</h4>
+                                <p class="text-gray-300 text-sm">Find top restaurants</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screenshot 3 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/orders.png" data-title="Track Orders" data-description="Monitor your bookings">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/orders.png" alt="Orders Screen" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">Track Orders</h4>
+                                <p class="text-gray-300 text-sm">Monitor your bookings</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screenshot 4 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/profile.png" data-title="Your Profile" data-description="Manage preferences">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/profile.png" alt="Profile Screen" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">Your Profile</h4>
+                                <p class="text-gray-300 text-sm">Manage preferences</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Screenshots Row -->
+            <div class="grid md:grid-cols-3 gap-8 mt-8 max-w-5xl mx-auto">
+                <!-- Screenshot 5 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/blog.png" data-title="Food Stories" data-description="Read culinary insights">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/blog.png" alt="Blog Screen" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">Food Stories</h4>
+                                <p class="text-gray-300 text-sm">Read culinary insights</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screenshot 6 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/restaurant-owner-dashboard.png" data-title="For Restaurants" data-description="Powerful dashboard">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/restaurant-owner-dashboard.png" alt="Restaurant Dashboard" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">For Restaurants</h4>
+                                <p class="text-gray-300 text-sm">Powerful dashboard</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screenshot 7 -->
+                <div class="screenshot-card group cursor-pointer" data-image="imgs/screenshots/auth.png" data-title="Secure Login" data-description="Safe & simple access">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+                        <img src="imgs/screenshots/auth.png" alt="Authentication" class="w-full h-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-royal-blue-dark/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <div>
+                                <h4 class="text-white font-bold text-lg mb-1">Secure Login</h4>
+                                <p class="text-gray-300 text-sm">Safe & simple access</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 bg-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-5">
+            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1" fill="currentColor" class="text-gold"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#dots)" />
+            </svg>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-royal-blue mb-4">How It Works</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Get started in just 3 simple steps and enjoy seamless dining experiences</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+                <!-- Step 1 -->
+                <div class="step-card text-center relative">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gold text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg z-10">1</div>
+                    <div class="bg-gradient-to-br from-gold/5 to-gold/10 p-8 pt-12 rounded-2xl border-2 border-gold/20 hover:border-gold/40 transition-all">
+                        <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg">
+                            <svg class="w-10 h-10 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-royal-blue mb-3">Discover</h3>
+                        <p class="text-gray-600 leading-relaxed">Browse through curated restaurants and explore their menus, reviews, and ambiance</p>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="step-card text-center relative">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gold text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg z-10">2</div>
+                    <div class="bg-gradient-to-br from-gold/5 to-gold/10 p-8 pt-12 rounded-2xl border-2 border-gold/20 hover:border-gold/40 transition-all">
+                        <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg">
+                            <svg class="w-10 h-10 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-royal-blue mb-3">Book & Order</h3>
+                        <p class="text-gray-600 leading-relaxed">Reserve your table and pre-order your favorite dishes with just a few taps</p>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="step-card text-center relative">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gold text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg z-10">3</div>
+                    <div class="bg-gradient-to-br from-gold/5 to-gold/10 p-8 pt-12 rounded-2xl border-2 border-gold/20 hover:border-gold/40 transition-all">
+                        <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg">
+                            <svg class="w-10 h-10 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-royal-blue mb-3">Enjoy & Earn</h3>
+                        <p class="text-gray-600 leading-relaxed">Arrive and enjoy your meal. Earn loyalty points and rewards with every visit</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIP Waitlist Section -->
+    <section id="vip-waitlist" class="py-20 bg-gradient-to-br from-royal-blue via-royal-blue-dark to-royal-blue-muted relative overflow-hidden">
+        <!-- Background with scene images -->
+        <div class="absolute inset-0 z-0 opacity-20">
+            <div id="waitlist-bg" class="w-full h-full bg-cover bg-center"></div>
+        </div>
+        
+        <div class="absolute inset-0 bg-gradient-to-br from-royal-blue/80 via-royal-blue-dark/90 to-gold-muted/80 z-0"></div>
+        
+        <!-- Animated circles -->
+        <div class="absolute top-10 left-10 w-64 h-64 bg-gold/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-gold/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        
+        <div class="max-w-4xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-12">
+                <div class="inline-block bg-gold/20 backdrop-blur-sm px-6 py-2 rounded-full mb-6">
+                    <span class="text-gold font-semibold">🎉 Limited Access</span>
+                </div>
+                <h2 class="text-4xl md:text-6xl font-bold text-white mb-6">Join Our VIP Waitlist</h2>
+                <p class="text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
+                    Be among the first to experience Royal Plate. Get exclusive early access, special discounts, and VIP perks when we launch!
+                </p>
+            </div>
+            
+            <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 md:p-12">
+                <form id="waitlist-form" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="firstName" class="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none transition-colors text-gray-800">
+                        </div>
+                        <div>
+                            <label for="lastName" class="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none transition-colors text-gray-800">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                        <input type="email" id="email" name="email" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none transition-colors text-gray-800">
+                    </div>
+                    
+                    <div>
+                        <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number (Optional)</label>
+                        <input type="tel" id="phone" name="phone" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-gold focus:outline-none transition-colors text-gray-800">
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" id="terms" name="terms" required class="mt-1 w-5 h-5 text-gold border-gray-300 rounded focus:ring-gold">
+                        <label for="terms" class="ml-3 text-sm text-gray-600">
+                            I agree to receive updates about Royal Plate and understand I can unsubscribe at any time. By joining, I accept the terms of service.
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-r from-gold to-gold-dark hover:from-gold-dark hover:to-gold text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-lg text-lg">
+                        Join VIP Waitlist Now
+                    </button>
+                    
+                    <div id="form-message" class="hidden text-center p-4 rounded-xl"></div>
+                </form>
+                
+                <div class="mt-8 pt-8 border-t border-gray-200">
+                    <h4 class="text-xl font-bold text-royal-blue mb-4 text-center">VIP Members Get:</h4>
+                    <div class="grid md:grid-cols-3 gap-4 text-center">
+                        <div class="p-4">
+                            <div class="text-3xl mb-2">🎁</div>
+                            <p class="text-sm font-semibold text-gray-700">Exclusive Launch Offers</p>
+                        </div>
+                        <div class="p-4">
+                            <div class="text-3xl mb-2">⚡</div>
+                            <p class="text-sm font-semibold text-gray-700">Priority Access</p>
+                        </div>
+                        <div class="p-4">
+                            <div class="text-3xl mb-2">💎</div>
+                            <p class="text-sm font-semibold text-gray-700">Bonus Loyalty Points</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <!-- Brand Column -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <img src="imgs/crown.png" alt="Royal Plate" class="h-10 w-auto object-contain">
+                        <img src="imgs/logo.png" alt="Royal Plate" class="h-8 w-auto object-contain">
+                    </div>
+                    <p class="text-gray-400 mb-4 leading-relaxed">
+                        Myanmar's premier restaurant booking and pre-ordering platform. Experience dining royalty with seamless reservations and rewards.
+                    </p>
+                    <div class="flex items-center space-x-2 text-sm">
+                        <span class="text-gray-400">Powered by</span>
+                        <a href="https://www.mingalarmon.com" target="_blank" class="text-gold hover:text-gold-light transition-colors font-semibold">
+                            Mingalar Mon
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-white font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="hover:text-gold transition-colors">Features</a></li>
+                        <li><a href="#screenshots" class="hover:text-gold transition-colors">Gallery</a></li>
+                        <li><a href="#how-it-works" class="hover:text-gold transition-colors">How It Works</a></li>
+                        <li><a href="#vip-waitlist" class="hover:text-gold transition-colors">Join Waitlist</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Company -->
+                <div>
+                    <h4 class="text-white font-bold mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://www.mingalarmon.com" target="_blank" class="hover:text-gold transition-colors">About Mingalar Mon</a></li>
+                        <li><a href="https://www.mingalarmon.com" target="_blank" class="hover:text-gold transition-colors">Our Products</a></li>
+                        <li><a href="https://www.mingalarmon.com" target="_blank" class="hover:text-gold transition-colors">Contact Us</a></li>
+                        <li><a href="https://www.mingalarmon.com" target="_blank" class="hover:text-gold transition-colors">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-500 text-sm mb-4 md:mb-0">
+                        &copy; 2026 Royal Plate by <a href="https://www.mingalarmon.com" target="_blank" class="text-gold hover:text-gold-light">Mingalar Mon</a>. All rights reserved.
+                    </p>
+                    <div class="flex space-x-6">
+                        <a href="#" class="text-gray-500 hover:text-gold transition-colors">Privacy Policy</a>
+                        <a href="#" class="text-gray-500 hover:text-gold transition-colors">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/95 backdrop-blur-sm">
+        <button id="modal-close" class="absolute top-6 right-6 text-white hover:text-gold transition-colors z-10">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <div class="relative max-w-7xl max-h-[90vh] mx-auto px-4">
+            <img id="modal-image" src="" alt="" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl">
+            <div class="text-center mt-6">
+                <h3 id="modal-title" class="text-2xl font-bold text-white mb-2"></h3>
+                <p id="modal-description" class="text-gray-300"></p>
+            </div>
+        </div>
+        
+        <!-- Navigation arrows -->
+        <button id="modal-prev" class="absolute left-6 top-1/2 transform -translate-y-1/2 text-white hover:text-gold transition-colors">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </button>
+        <button id="modal-next" class="absolute right-6 top-1/2 transform -translate-y-1/2 text-white hover:text-gold transition-colors">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>

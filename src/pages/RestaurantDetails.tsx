@@ -1,17 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
   MapPin,
   Phone,
   Star,
-  Clock,
-  Users,
   ShoppingCart,
   Plus,
   Minus,
@@ -20,6 +15,8 @@ import {
   MessageCircle,
   X,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import RestaurantChatbot from '@/components/RestaurantChatbot';
 
@@ -64,6 +61,10 @@ const RestaurantDetails = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCart, setShowCart] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+
+  const menuSectionRef = useRef<HTMLDivElement>(null);
+  const menuItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (id) {
@@ -84,6 +85,26 @@ const RestaurantDetails = () => {
       setSelectedDate(dates[0]);
     }
   }, []);
+
+  // Scroll to a specific menu item when navigated from Food page
+  useEffect(() => {
+    const scrollToId = location.state?.scrollToMenuItemId;
+    if (!scrollToId || menuItems.length === 0) return;
+
+    // Small delay to ensure DOM is rendered
+    const timer = setTimeout(() => {
+      const el = menuItemRefs.current[scrollToId];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Highlight briefly
+        el.classList.add('ring-2', 'ring-[#D28D1F]', 'ring-offset-2', 'ring-offset-[#1d2956]');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-[#D28D1F]', 'ring-offset-2', 'ring-offset-[#1d2956]');
+        }, 2000);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [menuItems, location.state]);
 
   const fetchRestaurantDetails = async () => {
     try {
@@ -217,7 +238,7 @@ const RestaurantDetails = () => {
   if (loading || !restaurant) {
     return (
       <div className="min-h-screen bg-[#1d2956] flex items-center justify-center">
-        <div className="text-[#caa157] text-lg">Loading...</div>
+        <div className="text-[#D28D1F] text-lg">Loading...</div>
       </div>
     );
   }
@@ -239,7 +260,7 @@ const RestaurantDetails = () => {
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={() => setShowChatbot(!showChatbot)}
-            className="bg-[#caa157] text-[#1d2956] p-3 rounded-full shadow-[0_0_30px_rgba(202,161,87,0.4)] hover:scale-110 transition-all"
+            className="bg-[#D28D1F] text-[#1d2956] p-3 rounded-full shadow-[0_0_30px_rgba(202,161,87,0.4)] hover:scale-110 transition-all"
           >
             <MessageCircle className="w-5 h-5" />
           </button>
@@ -264,7 +285,7 @@ const RestaurantDetails = () => {
       <div className="bg-[#1d2956] px-4 pb-6 -mt-4 relative z-10">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-[#caa157] tracking-tight text-[34px] font-bold leading-tight pt-6">
+            <h1 className="text-[#D28D1F] tracking-tight text-[34px] font-bold leading-tight pt-6">
               {restaurant.name}
             </h1>
             <div className="flex items-center gap-1 mt-1">
@@ -273,8 +294,8 @@ const RestaurantDetails = () => {
                   key={i}
                   className={`w-4 h-4 ${
                     i < Math.floor(restaurant.rating)
-                      ? 'fill-[#caa157] text-[#caa157]'
-                      : 'text-[#caa157]/30'
+                      ? 'fill-[#D28D1F] text-[#D28D1F]'
+                      : 'text-[#D28D1F]/30'
                   }`}
                 />
               ))}
@@ -298,7 +319,7 @@ const RestaurantDetails = () => {
           }}
           className="flex items-center gap-4 px-4 min-h-[64px] w-full hover:bg-[#263569]/20 transition-all rounded-xl"
         >
-          <div className="text-[#caa157] flex items-center justify-center rounded-xl bg-[#caa157]/5 shrink-0 size-11 border border-[#caa157]/20">
+          <div className="text-[#D28D1F] flex items-center justify-center rounded-xl bg-[#D28D1F]/5 shrink-0 size-11 border border-[#D28D1F]/20">
             <MapPin className="w-5 h-5" />
           </div>
           <div className="flex flex-col justify-center flex-1 text-left">
@@ -311,7 +332,7 @@ const RestaurantDetails = () => {
           </div>
         </button>
         <div className="flex items-center gap-4 px-4 min-h-[64px]">
-          <div className="text-[#caa157] flex items-center justify-center rounded-xl bg-[#caa157]/5 shrink-0 size-11 border border-[#caa157]/20">
+          <div className="text-[#D28D1F] flex items-center justify-center rounded-xl bg-[#D28D1F]/5 shrink-0 size-11 border border-[#D28D1F]/20">
             <Phone className="w-5 h-5" />
           </div>
           <div className="flex flex-col justify-center">
@@ -327,7 +348,7 @@ const RestaurantDetails = () => {
 
       {/* Order Type Selection */}
       <div className="px-4 pt-6 pb-4 bg-[#1d2956]">
-        <p className="text-[#caa157]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+        <p className="text-[#D28D1F]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
           Order Type
         </p>
         <div className="flex gap-3">
@@ -335,8 +356,8 @@ const RestaurantDetails = () => {
             onClick={() => setOrderType('dine_in')}
             className={`flex-1 py-4 rounded-xl text-sm font-bold transition-all ${
               orderType === 'dine_in'
-                ? 'bg-[#caa157] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157] hover:bg-[#caa157]/10'
+                ? 'bg-[#D28D1F] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                : 'bg-[#263569]/30 border border-[#D28D1F]/40 text-[#D28D1F] hover:bg-[#D28D1F]/10'
             }`}
           >
             DINE IN
@@ -345,8 +366,8 @@ const RestaurantDetails = () => {
             onClick={() => setOrderType('takeaway')}
             className={`flex-1 py-4 rounded-xl text-sm font-bold transition-all ${
               orderType === 'takeaway'
-                ? 'bg-[#caa157] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157] hover:bg-[#caa157]/10'
+                ? 'bg-[#D28D1F] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                : 'bg-[#263569]/30 border border-[#D28D1F]/40 text-[#D28D1F] hover:bg-[#D28D1F]/10'
             }`}
           >
             TAKE OUT
@@ -357,15 +378,15 @@ const RestaurantDetails = () => {
       {/* Reservation Section - Only for Dine In */}
       {orderType === 'dine_in' && (
         <div className="px-4 py-8 bg-[#1d2956]">
-          <h3 className="text-[#caa157] text-xl font-bold leading-tight tracking-tight mb-8 flex items-center gap-2">
+          <h3 className="text-[#D28D1F] text-xl font-bold leading-tight tracking-tight mb-8 flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Reserve Your Table
           </h3>
 
           {/* Party Size */}
-          <div className="flex justify-between items-center bg-[#263569]/40 p-5 rounded-2xl border border-[#caa157]/20 mb-6">
+          <div className="flex justify-between items-center bg-[#263569]/40 p-5 rounded-2xl border border-[#D28D1F]/20 mb-6">
             <div>
-              <p className="text-[#caa157] text-[10px] font-bold uppercase tracking-[0.2em]">
+              <p className="text-[#D28D1F] text-[10px] font-bold uppercase tracking-[0.2em]">
                 Party Size
               </p>
               <p className="text-slate-400 text-[10px] font-medium">Guests</p>
@@ -375,7 +396,7 @@ const RestaurantDetails = () => {
                 onClick={() => setPartySize(Math.max(1, partySize - 1))}
                 className="flex items-center justify-center outline-none"
               >
-                <Minus className="w-8 h-8 text-[#caa157] cursor-pointer hover:scale-110 transition-transform" />
+                <Minus className="w-8 h-8 text-[#D28D1F] cursor-pointer hover:scale-110 transition-transform" />
               </button>
               <span className="text-white text-2xl font-bold w-6 text-center">
                 {partySize}
@@ -384,14 +405,14 @@ const RestaurantDetails = () => {
                 onClick={() => setPartySize(Math.min(20, partySize + 1))}
                 className="flex items-center justify-center outline-none"
               >
-                <Plus className="w-8 h-8 text-[#caa157] cursor-pointer hover:scale-110 transition-transform" />
+                <Plus className="w-8 h-8 text-[#D28D1F] cursor-pointer hover:scale-110 transition-transform" />
               </button>
             </div>
           </div>
 
           {/* Date Selection */}
           <div className="mb-10">
-            <p className="text-[#caa157]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+            <p className="text-[#D28D1F]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
               Select Date
             </p>
             <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
@@ -404,8 +425,8 @@ const RestaurantDetails = () => {
                     onClick={() => setSelectedDate(formatted.fullDate)}
                     className={`flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl transition-all ${
                       isSelected
-                        ? 'bg-[#caa157] text-[#1d2956] font-bold shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                        : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157]'
+                        ? 'bg-[#D28D1F] text-[#1d2956] font-bold shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                        : 'bg-[#263569]/30 border border-[#D28D1F]/40 text-[#D28D1F]'
                     }`}
                   >
                     <span className="text-[10px] uppercase opacity-80">
@@ -420,7 +441,7 @@ const RestaurantDetails = () => {
 
           {/* Time Selection */}
           <div className="mb-6">
-            <p className="text-[#caa157]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+            <p className="text-[#D28D1F]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
               Available Time Slots
             </p>
             <div className="grid grid-cols-3 gap-3">
@@ -432,8 +453,8 @@ const RestaurantDetails = () => {
                     onClick={() => setSelectedTime(time)}
                     className={`py-4 rounded-xl text-sm font-bold transition-all ${
                       isSelected
-                        ? 'bg-[#caa157] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                        : 'bg-[#263569]/30 border border-[#caa157]/40 text-[#caa157] hover:bg-[#caa157]/10'
+                        ? 'bg-[#D28D1F] text-[#1d2956] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
+                        : 'bg-[#263569]/30 border border-[#D28D1F]/40 text-[#D28D1F] hover:bg-[#D28D1F]/10'
                     }`}
                   >
                     {time}
@@ -447,20 +468,20 @@ const RestaurantDetails = () => {
 
       {/* Menu Section */}
       <div className="px-4 py-8 bg-[#1d2956] pb-32">
-        <h3 className="text-[#caa157] text-xl font-bold leading-tight tracking-tight mb-6 flex items-center gap-2">
+        <h3 className="text-[#D28D1F] text-xl font-bold leading-tight tracking-tight mb-6 flex items-center gap-2">
           <ShoppingCart className="w-5 h-5" />
           Our Menu
         </h3>
 
         {/* Search Bar */}
         <div className="mb-6 relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#caa157]/60" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#D28D1F]/60" />
           <input
             type="text"
             placeholder="Search menu items..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-xl bg-[#263569]/30 border border-[#caa157]/20 text-white placeholder-slate-400 focus:outline-none focus:border-[#caa157]/60 transition-all"
+            className="w-full pl-12 pr-4 py-4 rounded-xl bg-[#263569]/30 border border-[#D28D1F]/20 text-white placeholder-slate-400 focus:outline-none focus:border-[#D28D1F]/60 transition-all"
           />
         </div>
 
@@ -476,14 +497,16 @@ const RestaurantDetails = () => {
               return (
                 <div
                   key={item.id}
-                  className="bg-[#263569]/20 border border-[#caa157]/20 rounded-2xl p-4 hover:border-[#caa157]/40 transition-all"
+                  ref={(el) => { menuItemRefs.current[item.id] = el; }}
+                  className="bg-[#263569]/20 border border-[#D28D1F]/20 rounded-2xl p-4 hover:border-[#D28D1F]/50 transition-all cursor-pointer group"
+                  onClick={() => setSelectedMenuItem(item)}
                 >
                   <div className="flex gap-4">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-[#caa157]/20">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-[#D28D1F]/20">
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <div className="flex-1">
@@ -494,14 +517,17 @@ const RestaurantDetails = () => {
                         {item.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <p className="text-[#caa157] font-bold text-lg">
+                        <p className="text-[#D28D1F] font-bold text-lg">
                           ${item.price.toFixed(2)}
                         </p>
                         {quantity > 0 ? (
-                          <div className="flex items-center gap-3 bg-[#caa157]/10 rounded-lg px-3 py-1 border border-[#caa157]/30">
+                          <div
+                            className="flex items-center gap-3 bg-[#D28D1F]/10 rounded-lg px-3 py-1 border border-[#D28D1F]/30"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <button
-                              onClick={() => removeFromCart(item.id)}
-                              className="text-[#caa157] hover:scale-110 transition-transform"
+                              onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
+                              className="text-[#D28D1F] hover:scale-110 transition-transform"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
@@ -509,16 +535,16 @@ const RestaurantDetails = () => {
                               {quantity}
                             </span>
                             <button
-                              onClick={() => addToCart(item)}
-                              className="text-[#caa157] hover:scale-110 transition-transform"
+                              onClick={(e) => { e.stopPropagation(); addToCart(item); }}
+                              className="text-[#D28D1F] hover:scale-110 transition-transform"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
                           </div>
                         ) : (
                           <button
-                            onClick={() => addToCart(item)}
-                            className="bg-[#caa157] text-[#1d2956] px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#caa157]/90 transition-all active:scale-95"
+                            onClick={(e) => { e.stopPropagation(); addToCart(item); }}
+                            className="bg-[#D28D1F] text-[#1d2956] px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#D28D1F]/90 transition-all active:scale-95"
                           >
                             Add
                           </button>
@@ -533,12 +559,112 @@ const RestaurantDetails = () => {
         </div>
       </div>
 
+      {/* Menu Item Detail Modal */}
+      {selectedMenuItem && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-end justify-center"
+          onClick={() => setSelectedMenuItem(null)}
+        >
+          <div
+            className="bg-[#1d2956] w-full max-w-[430px] rounded-t-3xl border-t border-[#D28D1F]/30 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxHeight: '88vh' }}
+          >
+            {/* Full image at top */}
+            <div className="relative w-full h-64 overflow-hidden">
+              <img
+                src={selectedMenuItem.image_url}
+                alt={selectedMenuItem.name}
+                className="w-full h-full object-cover"
+              />
+              {/* Gradient overlay — dark at bottom for text contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1d2956] via-[#1d2956]/40 to-transparent" />
+
+              {/* Close button */}
+              <button
+                onClick={() => setSelectedMenuItem(null)}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-[#1d2956]/70 backdrop-blur-md border border-[#D28D1F]/30 flex items-center justify-center hover:bg-[#1d2956] transition-all"
+              >
+                <X className="w-4 h-4 text-[#D28D1F]" />
+              </button>
+
+              {/* Category badge */}
+              {selectedMenuItem.category && (
+                <div className="absolute top-4 left-4">
+                  <span className="bg-[#D28D1F] text-[#1d2956] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                    {selectedMenuItem.category}
+                  </span>
+                </div>
+              )}
+
+              {/* Name & price overlaid on image bottom */}
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-4">
+                <h2 className="text-white text-2xl font-bold leading-tight drop-shadow-lg">
+                  {selectedMenuItem.name}
+                </h2>
+                <p className="text-[#D28D1F] text-xl font-bold mt-1 drop-shadow-lg">
+                  ${selectedMenuItem.price.toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="px-6 pt-4 pb-2">
+              <p className="text-slate-300 text-sm leading-relaxed">
+                {selectedMenuItem.description || 'A delicious dish prepared with the finest ingredients.'}
+              </p>
+            </div>
+
+            {/* Cart controls */}
+            <div className="px-6 pt-4 pb-8">
+              {(() => {
+                const cartItem = cart.find((c) => c.id === selectedMenuItem.id);
+                const qty = cartItem?.quantity || 0;
+                return qty > 0 ? (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 bg-[#D28D1F]/10 border border-[#D28D1F]/30 rounded-2xl px-6 py-4 flex-1 justify-between">
+                      <button
+                        onClick={() => removeFromCart(selectedMenuItem.id)}
+                        className="text-[#D28D1F] hover:scale-110 transition-transform"
+                      >
+                        <Minus className="w-5 h-5" />
+                      </button>
+                      <span className="text-white font-bold text-xl">{qty}</span>
+                      <button
+                        onClick={() => addToCart(selectedMenuItem)}
+                        className="text-[#D28D1F] hover:scale-110 transition-transform"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setSelectedMenuItem(null)}
+                      className="bg-[#D28D1F] text-[#1d2956] font-bold px-6 py-4 rounded-2xl text-sm uppercase tracking-wider hover:bg-[#D28D1F]/90 transition-all active:scale-95 shadow-[0_0_20px_rgba(210,141,31,0.3)]"
+                    >
+                      Done
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { addToCart(selectedMenuItem); setSelectedMenuItem(null); }}
+                    className="w-full bg-[#D28D1F] text-[#1d2956] font-bold py-5 rounded-2xl text-sm uppercase tracking-widest hover:bg-[#D28D1F]/90 transition-all active:scale-[0.98] shadow-[0_0_24px_rgba(210,141,31,0.35)] flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Add to Cart — ${selectedMenuItem.price.toFixed(2)}
+                  </button>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cart Modal */}
       {showCart && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-end justify-center">
-          <div className="bg-[#1d2956] w-full max-w-[430px] rounded-t-3xl border-t border-[#caa157]/20 max-h-[85vh] flex flex-col">
-            <div className="sticky top-0 bg-[#1d2956] border-b border-[#caa157]/20 p-6 flex items-center justify-between z-10">
-              <h3 className="text-[#caa157] text-xl font-bold">Your Cart</h3>
+          <div className="bg-[#1d2956] w-full max-w-[430px] rounded-t-3xl border-t border-[#D28D1F]/20 max-h-[85vh] flex flex-col">
+            <div className="sticky top-0 bg-[#1d2956] border-b border-[#D28D1F]/20 p-6 flex items-center justify-between z-10">
+              <h3 className="text-[#D28D1F] text-xl font-bold">Your Cart</h3>
               <button
                 onClick={() => setShowCart(false)}
                 className="text-slate-400 hover:text-white transition-colors"
@@ -549,7 +675,7 @@ const RestaurantDetails = () => {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {cart.length === 0 ? (
                 <div className="text-center py-12">
-                  <ShoppingCart className="w-16 h-16 text-[#caa157]/30 mx-auto mb-4" />
+                  <ShoppingCart className="w-16 h-16 text-[#D28D1F]/30 mx-auto mb-4" />
                   <p className="text-slate-400 text-lg">Your cart is empty</p>
                 </div>
               ) : (
@@ -557,23 +683,23 @@ const RestaurantDetails = () => {
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-4 bg-[#263569]/20 p-4 rounded-xl border border-[#caa157]/20"
+                      className="flex items-center gap-4 bg-[#263569]/20 p-4 rounded-xl border border-[#D28D1F]/20"
                     >
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-16 h-16 rounded-lg object-cover border border-[#caa157]/20"
+                        className="w-16 h-16 rounded-lg object-cover border border-[#D28D1F]/20"
                       />
                       <div className="flex-1">
                         <h4 className="text-white font-semibold">{item.name}</h4>
-                        <p className="text-[#caa157] font-bold">
+                        <p className="text-[#D28D1F] font-bold">
                           ${item.price.toFixed(2)} x {item.quantity}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="text-[#caa157] hover:scale-110 transition-transform"
+                          className="text-[#D28D1F] hover:scale-110 transition-transform"
                         >
                           <Minus className="w-5 h-5" />
                         </button>
@@ -582,21 +708,21 @@ const RestaurantDetails = () => {
                         </span>
                         <button
                           onClick={() => addToCart(item)}
-                          className="text-[#caa157] hover:scale-110 transition-transform"
+                          className="text-[#D28D1F] hover:scale-110 transition-transform"
                         >
                           <Plus className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
                   ))}
-                  <div className="border-t border-[#caa157]/20 pt-4 mt-4">
+                  <div className="border-t border-[#D28D1F]/20 pt-4 mt-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-slate-400 text-sm">Subtotal</span>
                       <span className="text-white font-semibold">${getTotalPrice().toFixed(2)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#caa157] text-lg font-bold">Total</span>
-                      <span className="text-[#caa157] text-2xl font-bold">${getTotalPrice().toFixed(2)}</span>
+                      <span className="text-[#D28D1F] text-lg font-bold">Total</span>
+                      <span className="text-[#D28D1F] text-2xl font-bold">${getTotalPrice().toFixed(2)}</span>
                     </div>
                   </div>
                 </>
@@ -609,11 +735,11 @@ const RestaurantDetails = () => {
 
       {/* Fixed Bottom Checkout Button */}
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-[#1d2956]/90 backdrop-blur-xl border-t border-[#caa157]/20 z-50">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-[#1d2956]/90 backdrop-blur-xl border-t border-[#D28D1F]/20 z-50">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => setShowCart(true)}
-              className="text-[#caa157] text-sm font-semibold flex items-center gap-2 hover:text-[#caa157]/80 transition-colors"
+              className="text-[#D28D1F] text-sm font-semibold flex items-center gap-2 hover:text-[#D28D1F]/80 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
               {getTotalItems()} items
@@ -624,7 +750,7 @@ const RestaurantDetails = () => {
           </div>
           <button
             onClick={handleProceedToPayment}
-            className="w-full bg-[#caa157] hover:bg-[#caa157]/90 text-[#1d2956] font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(202,161,87,0.2)] uppercase tracking-widest text-sm"
+            className="w-full bg-[#D28D1F] hover:bg-[#D28D1F]/90 text-[#1d2956] font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(202,161,87,0.2)] uppercase tracking-widest text-sm"
           >
             <Check className="w-5 h-5" />
             Checkout

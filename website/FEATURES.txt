@@ -1,0 +1,172 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                    ROYAL PLATE WEBSITE - FEATURES                         ║
+║                        Created for Mingalar Mon                           ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+🎨 DESIGN & STYLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Color Scheme: Gold (HSL 38, 92%, 50%) & Royal Blue (HSL 215, 79%, 35%)
+✓ Typography: Poppins font family (weights: 300-900)
+✓ Fully responsive design (mobile, tablet, desktop)
+✓ Glassmorphism effects with backdrop blur
+✓ Custom scrollbar matching brand colors
+✓ Gradient overlays on background images
+
+🎬 ANIMATIONS & INTERACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ GSAP ScrollTrigger for scroll-based animations
+✓ Anime.js for smooth element transitions
+✓ Floating crown logo animation
+✓ Hero content entrance sequences
+✓ Stats counter with number animations
+✓ Feature cards with staggered entrance
+✓ Screenshot cards with rotation effects
+✓ Icon animations on hover
+✓ Background image transitions (5 scenes)
+✓ Parallax effects on hero background
+✓ Scroll progress indicator
+✓ Form success animations
+
+📱 SECTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. NAVIGATION BAR
+   • Fixed navbar with backdrop blur
+   • Mobile hamburger menu
+   • Smooth scroll to sections
+   • Links to Mingalar Mon brand site
+
+2. HERO SECTION
+   • Rotating background images (scene1-5.jpeg)
+   • Animated headline and CTA buttons
+   • Stats display (50+ restaurants, 1000+ diners, 4.9★)
+   • Floating crown animation
+   • Scroll indicator
+
+3. FEATURES SECTION
+   • 6 feature cards with icons
+   • Easy Booking, Pre-Order Meals, Loyalty Rewards
+   • Real Reviews, Digital Menu, Group Dining
+   • Hover effects with icon rotation
+   • Shadow and transform animations
+
+4. SCREENSHOTS GALLERY
+   • 7 app screenshots with overlays
+   • Onboarding, Discover, Orders, Profile
+   • Blog, Restaurant Dashboard, Authentication
+   • Hover reveals descriptions
+   • Staggered entrance animations
+
+5. HOW IT WORKS
+   • 3-step process visualization
+   • Numbered badges (1, 2, 3)
+   • Discover → Book & Order → Enjoy & Earn
+   • Interactive hover effects
+
+6. VIP WAITLIST
+   • Beautiful form with validation
+   • First Name, Last Name, Email, Phone
+   • Terms & conditions checkbox
+   • Rotating background images
+   • Success message with animation
+   • VIP benefits showcase (3 perks)
+   • LocalStorage integration
+
+7. FOOTER
+   • Brand information with logo
+   • Quick navigation links
+   • Company links to Mingalar Mon
+   • Copyright and legal links
+   • "Powered by Mingalar Mon" branding
+
+🖼️ IMAGE RESOURCES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Background Images (imgs/bg/):
+  • scene1.jpeg - Used in hero rotation
+  • scene2.jpeg - Used in hero rotation
+  • scene3.jpeg - Used in hero rotation
+  • scene4.jpeg - Used in hero rotation
+  • scene5.jpeg - Used in hero & waitlist
+
+Screenshots (imgs/screenshots/):
+  • onboarding.png - Welcome experience
+  • discover.png - Restaurant discovery
+  • orders.png - Order tracking
+  • profile.png - User profile
+  • blog.png - Food stories
+  • restaurant-owner-dashboard.png - Restaurant dashboard
+  • auth.png - Secure login
+
+🛠️ TECHNOLOGIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• HTML5 - Semantic markup
+• CSS3 - Custom animations & transitions
+• Tailwind CSS 3.x - Via CDN for utility classes
+• Vanilla JavaScript - No frameworks
+• GSAP 3.12.5 - Professional animations
+• Anime.js 3.2.2 - Lightweight animations
+• Google Fonts - Poppins font family
+
+🎯 USER EXPERIENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Smooth scroll navigation
+✓ Mobile-first responsive design
+✓ Fast loading (CDN resources)
+✓ Accessible keyboard navigation
+✓ Form validation with visual feedback
+✓ Loading states and transitions
+✓ Console welcome message
+✓ Touch-friendly interactions
+
+🔗 INTEGRATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Links to www.mingalarmon.com throughout
+• "Powered by Mingalar Mon" branding
+• Consistent with brand ecosystem
+• Ready for backend API integration
+• LocalStorage for form data
+
+📊 PERFORMANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Optimized animations with requestAnimationFrame
+• Lazy loading ready
+• Minimal dependencies (all via CDN)
+• No build process required
+• Browser caching enabled
+
+📁 FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+website/
+├── index.html (36KB) - Main HTML with all sections
+├── styles.css (4.3KB) - Custom CSS & animations
+├── script.js (13KB) - JavaScript with GSAP & Anime.js
+├── README.md (4.9KB) - Complete documentation
+├── FEATURES.txt - This file
+├── .gitignore - Git ignore rules
+└── imgs/
+    ├── bg/ - 5 background images (scene1-5.jpeg)
+    └── screenshots/ - 7 app screenshots
+
+🚀 DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ready for deployment on:
+• Vercel
+• Netlify
+• GitHub Pages
+• Any static hosting service
+
+No build process needed - just upload and go!
+
+💡 NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• All libraries loaded via CDN (no npm install needed)
+• Form submission stores to localStorage (can integrate with backend)
+• Images paths are relative to website folder
+• Crown logo sourced from ../public/crown.png
+• Fully compatible with modern browsers
+• Mobile menu tested and working
+• All animations optimized for performance
+
+═══════════════════════════════════════════════════════════════════════════
+Built with ❤️ for Royal Plate by Mingalar Mon
+www.mingalarmon.com
+═══════════════════════════════════════════════════════════════════════════
