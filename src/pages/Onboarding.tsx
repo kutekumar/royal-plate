@@ -54,6 +54,18 @@ const Onboarding = () => {
       yoyo: true,
       ease: 'sine.inOut'
     });
+
+    // Subtle pulsing left-right animation for mascot image
+    const mascotImg = imageRef.current?.querySelector('img');
+    if (mascotImg) {
+      gsap.to(mascotImg, {
+        x: 8,
+        duration: 2.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+    }
   }, []);
 
   const handleGetStarted = () => {
@@ -142,24 +154,13 @@ const Onboarding = () => {
 
         {/* ZONE 2 — Middle: Image + Buttons */}
         <div className="w-full flex flex-col gap-5">
-          {/* Image card */}
-          <div ref={imageRef} className="w-full overflow-hidden rounded-3xl shadow-2xl relative">
-            <div className="w-full h-44 relative">
-              <img
-                src={MascotImg}
-                alt="Royal Plate Mascot"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: 'linear-gradient(to top, rgba(29,41,86,0.65) 0%, rgba(29,41,86,0.25) 55%, rgba(29,41,86,0.05) 100%)'
-                }}
-              />
-              <div className="absolute bottom-4 left-5">
-                <p className="text-white/90 text-xs font-semibold tracking-[0.2em] uppercase">Fine Dining · Curated</p>
-              </div>
-            </div>
+          {/* Image - plain mascot without frame or overlay */}
+          <div ref={imageRef} className="w-full flex items-center justify-center">
+            <img
+              src={MascotImg}
+              alt="Royal Plate Mascot"
+              className="w-full h-auto object-contain"
+            />
           </div>
 
           {/* Buttons */}
