@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import LogoImg from '@/imgs/logo.png';
-import OnIcon1 from '@/imgs/icons/onbarding1.png';
+import MascotImg from '@/imgs/mascot.png';
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -146,8 +146,8 @@ const Onboarding = () => {
           <div ref={imageRef} className="w-full overflow-hidden rounded-3xl shadow-2xl relative">
             <div className="w-full h-44 relative">
               <img
-                src={OnIcon1}
-                alt="Dining Experience"
+                src={MascotImg}
+                alt="Royal Plate Mascot"
                 className="absolute inset-0 w-full h-full object-cover"
               />
               <div
