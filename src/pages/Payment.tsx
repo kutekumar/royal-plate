@@ -13,6 +13,7 @@ import {
   Users,
   Clock,
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/currency';
 
 interface CartItem {
   id: string;
@@ -230,7 +231,7 @@ const Payment = () => {
                   <p className="text-slate-400 text-sm">Qty: {item.quantity}</p>
                 </div>
                 <p className="text-[#caa157] font-bold">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  {formatCurrency(item.price * item.quantity)}
                 </p>
               </div>
             ))}
@@ -238,7 +239,7 @@ const Payment = () => {
               <div className="flex items-center justify-between">
                 <span className="text-[#caa157] text-lg font-bold">Total</span>
                 <span className="text-[#caa157] text-2xl font-bold">
-                  ${orderData.totalAmount.toFixed(2)}
+                  {formatCurrency(orderData.totalAmount)}
                 </span>
               </div>
             </div>
@@ -300,7 +301,7 @@ const Payment = () => {
           ) : (
             <>
               <Check className="w-5 h-5" />
-              Confirm Payment - ${orderData.totalAmount.toFixed(2)}
+              Confirm Payment - {formatCurrency(orderData.totalAmount)}
             </>
           )}
         </button>

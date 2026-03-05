@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Calendar, Clock, Users, X, Sparkles, ShoppingBag, MapPin, UtensilsCrossed } from 'lucide-react';
+import { Calendar, Clock, Users, X, Sparkles, ShoppingBag, MapPin, UtensilsCrossed, ChefHat, CheckCircle, XCircle, Timer, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { BottomNav } from '@/components/BottomNav';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
+import gsap from 'gsap';
+import { formatCurrency } from '@/utils/currency';
 
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  pending:    { label: 'Pending',    color: 'text-amber-600',  bg: 'bg-amber-50 border-amber-200' },
-  confirmed:  { label: 'Confirmed',  color: 'text-blue-600',   bg: 'bg-blue-50 border-blue-200' },
-  preparing:  { label: 'Preparing',  color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200' },
-  ready:      { label: 'Ready',      color: 'text-green-600',  bg: 'bg-green-50 border-green-200' },
-  completed:  { label: 'Completed',  color: 'text-gray-500',   bg: 'bg-gray-50 border-gray-200' },
-  cancelled:  { label: 'Cancelled',  color: 'text-red-500',    bg: 'bg-red-50 border-red-200' },
+const statusConfig: Record<string, { label: string; color: string; bg: string; icon: any; gradient: string }> = {
+  pending:    { label: 'Pending',    color: 'text-amber-600',  bg: 'bg-amber-50 border-amber-200', icon: Timer, gradient: 'from-amber-400 to-amber-500' },
+  confirmed:  { label: 'Confirmed',  color: 'text-blue-600',   bg: 'bg-blue-50 border-blue-200', icon: CheckCircle, gradient: 'from-blue-400 to-blue-500' },
+  preparing:  { label: 'Preparing',  color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200', icon: ChefHat, gradient: 'from-purple-400 to-purple-500' },
+  ready:      { label: 'Ready',      color: 'text-green-600',  bg: 'bg-green-50 border-green-200', icon: Package, gradient: 'from-green-400 to-green-500' },
+  completed:  { label: 'Completed',  color: 'text-gray-500',   bg: 'bg-gray-50 border-gray-200', icon: CheckCircle, gradient: 'from-gray-400 to-gray-500' },
+  cancelled:  { label: 'Cancelled',  color: 'text-red-500',    bg: 'bg-red-50 border-red-200', icon: XCircle, gradient: 'from-red-400 to-red-500' },
 };
 
 const Orders = () => {
@@ -22,7 +24,41 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
 
+  const headerRef = useRef<HTMLDivElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => { fetchOrders(); }, []);
+
+  // Entrance animations
+  useEffect(() => {
+    if (orders.length === 0 && !loading) return;
+    
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    tl.fromTo(
+      headerRef.current,
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5 }
+    )
+    .fromTo(
+      filterRef.current,
+      { y: 15, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4 },
+      '-=0.2'
+    );
+  }, []);
+
+  // List animation
+  useEffect(() => {
+    if (listRef.current && !loading) {
+      gsap.fromTo(
+        listRef.current.children,
+        { y: 25, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power3.out' }
+      );
+    }
+  }, [orders, filter, loading]);
 
   const fetchOrders = async () => {
     try {
@@ -51,148 +87,170 @@ const Orders = () => {
       : o.status === 'completed' || o.status === 'cancelled'
   );
 
+  const upcomingCount = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length;
+  const pastCount = orders.filter(o => o.status === 'completed' || o.status === 'cancelled').length;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#536DFE]/30 border-t-[#536DFE] rounded-full animate-spin" />
+      <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#536DFE]/20 border-t-[#536DFE] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#F5F5F7] max-w-[430px] mx-auto font-poppins">
+    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
 
       {/* ── Header ── */}
-      <div className="bg-[#1D2956] px-6 pt-12 pb-6">
-        <h1 className="text-white text-2xl font-bold tracking-wide">My Orders</h1>
-        <p className="text-white/50 text-sm mt-1">Track and manage your reservations</p>
+      <div ref={headerRef} className="flex items-center justify-between px-5 pt-6 pb-3 z-10 bg-[#F5F5F7]">
+        <div>
+          <h1 className="text-[#1D2956] text-xl font-bold tracking-tight leading-none">My Orders</h1>
+          <p className="text-gray-400 text-[10px] uppercase tracking-[0.25em] mt-0.5">Track your reservations</p>
+        </div>
+        <div className="flex items-center gap-2 bg-[#536DFE]/10 rounded-2xl px-3 py-2">
+          <ShoppingBag className="w-4 h-4 text-[#536DFE]" />
+          <span className="text-[#536DFE] text-xs font-bold">{orders.length}</span>
+        </div>
+      </div>
 
-        {/* Filter Tabs */}
-        <div className="flex mt-5 p-1 bg-white/10 rounded-2xl border border-white/10">
+      {/* ── Filter Tabs ── */}
+      <div ref={filterRef} className="px-5 pb-4 z-10">
+        <div className="flex p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-sm">
           {(['upcoming', 'past'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all capitalize ${
+              className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${
                 filter === tab
-                  ? 'bg-white text-[#1D2956] shadow-sm'
-                  : 'text-white/60 hover:text-white'
+                  ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
+                  : 'text-gray-500 hover:text-[#1D2956]'
               }`}
             >
-              {tab}
+              <span className="flex items-center justify-center gap-2">
+                {tab === 'upcoming' ? 'Active' : 'History'}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  filter === tab
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {tab === 'upcoming' ? upcomingCount : pastCount}
+                </span>
+              </span>
             </button>
           ))}
         </div>
       </div>
 
       {/* ── Orders List ── */}
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide">
         {filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-[#1D2956]/8 flex items-center justify-center mb-4">
-              <ShoppingBag className="w-10 h-10 text-[#1D2956]/25" />
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#1D2956]/10 flex items-center justify-center mb-5 shadow-inner">
+              <ShoppingBag className="w-10 h-10 text-[#536DFE]/40" />
             </div>
-            <p className="text-[#1D2956] font-semibold text-base">
-              {filter === 'upcoming' ? 'No upcoming orders' : 'No past orders'}
+            <p className="text-[#1D2956] font-bold text-base mb-1">
+              {filter === 'upcoming' ? 'No active orders' : 'No order history'}
             </p>
-            <p className="text-gray-400 text-sm mt-1">
-              {filter === 'upcoming' ? 'Your active orders will appear here' : 'Completed orders will appear here'}
+            <p className="text-gray-400 text-sm max-w-[200px]">
+              {filter === 'upcoming' 
+                ? 'Your upcoming reservations will appear here' 
+                : 'Completed orders will show up here'}
             </p>
           </div>
         ) : (
-          filteredOrders.map((order) => {
-            const status = statusConfig[order.status] || statusConfig.pending;
-            const isDineIn = order.order_type === 'dine_in';
+          <div ref={listRef} className="space-y-3">
+            {filteredOrders.map((order) => {
+              const status = statusConfig[order.status] || statusConfig.pending;
+              const isDineIn = order.order_type === 'dine_in';
+              const StatusIcon = status.icon;
 
-            return (
-              <div
-                key={order.id}
-                onClick={() => setSelectedOrder(order)}
-                className="relative rounded-3xl overflow-hidden cursor-pointer group shadow-md hover:shadow-xl transition-all duration-300 active:scale-[0.98]"
-                style={{ minHeight: 180 }}
-              >
-                {/* ── Full-color restaurant image as background ── */}
-                {order.restaurants?.image_url ? (
-                  <img
-                    src={order.restaurants.image_url}
-                    alt={order.restaurants?.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-[#1D2956]" />
-                )}
+              return (
+                <div
+                  key={order.id}
+                  onClick={() => setSelectedOrder(order)}
+                  className="relative rounded-3xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300 active:scale-[0.98] border border-gray-100/80"
+                >
+                  {/* ── Background Image ── */}
+                  <div className="relative h-44">
+                    {order.restaurants?.image_url ? (
+                      <img
+                        src={order.restaurants.image_url}
+                        alt={order.restaurants?.name}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#1D2956] to-[#536DFE]/80" />
+                    )}
+                    
+                    {/* ── Gradient Overlay ── */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1D2956]/95 via-[#1D2956]/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#536DFE]/10 to-transparent" />
 
-                {/* ── Dark overlay for contrast ── */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1D2956]/90 via-[#1D2956]/50 to-[#1D2956]/20" />
-
-                {/* ── Content ── */}
-                <div className="relative z-10 p-5 flex flex-col h-full" style={{ minHeight: 180 }}>
-                  {/* Top row: status + type */}
-                  <div className="flex items-center justify-between mb-auto">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border backdrop-blur-sm ${status.bg} ${status.color}`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {status.label}
-                    </span>
-                    <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border border-white/20">
-                      {isDineIn ? <UtensilsCrossed className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
-                      {isDineIn ? 'Dine In' : 'Take Out'}
-                    </span>
-                  </div>
-
-                  {/* Restaurant name */}
-                  <div className="mt-8">
-                    <h2 className="text-white text-xl font-bold leading-tight drop-shadow-md">
-                      {order.restaurants?.name}
-                    </h2>
-
-                    {/* Order meta */}
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
-                      {isDineIn && order.reservation_date ? (
-                        <>
-                          <div className="flex items-center gap-1.5 text-white/75 text-xs">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {formatDate(order.reservation_date)}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-white/75 text-xs">
-                            <Clock className="w-3.5 h-3.5" />
-                            {order.reservation_time}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-white/75 text-xs">
-                            <Users className="w-3.5 h-3.5" />
-                            {order.party_size} {order.party_size === 1 ? 'Guest' : 'Guests'}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-center gap-1.5 text-white/75 text-xs">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {formatDate(order.created_at)}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-white/75 text-xs">
-                            <Clock className="w-3.5 h-3.5" />
-                            {formatTime(order.created_at)}
-                          </div>
-                        </>
-                      )}
+                    {/* ── Top Row: Status + Type ── */}
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${status.gradient} text-white text-[10px] font-bold uppercase tracking-wider shadow-lg`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {status.label}
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border border-white/20">
+                        {isDineIn ? <UtensilsCrossed className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
+                        {isDineIn ? 'Dine In' : 'Take Out'}
+                      </div>
                     </div>
 
-                    {/* Bottom: total + view details */}
-                    <div className="flex items-center justify-between mt-4">
-                      <p className="text-white font-bold text-lg drop-shadow">
-                        ${order.total_amount?.toFixed(2)}
-                      </p>
-                      <button
-                        className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-white/30 transition-all"
-                        onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
-                      >
-                        View Details
-                      </button>
+                    {/* ── Bottom Content ── */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-white text-lg font-bold leading-tight drop-shadow mb-1.5">
+                        {order.restaurants?.name}
+                      </h3>
+                      
+                      <div className="flex flex-wrap items-center gap-3 text-white/70 text-xs mb-3">
+                        {isDineIn && order.reservation_date ? (
+                          <>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(order.reservation_date)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {order.reservation_time}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              {order.party_size} {order.party_size === 1 ? 'guest' : 'guests'}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(order.created_at)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatTime(order.created_at)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <p className="text-white font-bold text-xl drop-shadow">
+                          {formatCurrency(order.total_amount)}
+                        </p>
+                        <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/20 group-hover:bg-white/30 transition-colors">
+                          <span className="text-white text-xs font-bold uppercase tracking-wider">View Details</span>
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -202,11 +260,11 @@ const Orders = () => {
           {selectedOrder && (
             <>
               {/* Dialog hero image */}
-              <div className="relative h-36 flex-shrink-0 overflow-hidden">
+              <div className="relative h-40 flex-shrink-0 overflow-hidden">
                 {selectedOrder.restaurants?.image_url ? (
                   <img src={selectedOrder.restaurants.image_url} alt={selectedOrder.restaurants?.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-[#1D2956]" />
+                  <div className="w-full h-full bg-gradient-to-br from-[#1D2956] to-[#536DFE]" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1D2956]/80 to-transparent" />
                 <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
@@ -274,9 +332,9 @@ const Orders = () => {
                       <span className="text-gray-400 font-medium">Payment</span>
                       <span className="text-[#1D2956] font-semibold uppercase">{selectedOrder.payment_method}</span>
                     </div>
-                    <div className="flex items-center justify-between px-4 py-4 bg-[#1D2956]/5">
+                    <div className="flex items-center justify-between px-4 py-4 bg-[#536DFE]/5">
                       <span className="text-[#1D2956] font-bold">Total</span>
-                      <span className="text-[#536DFE] text-xl font-bold">${selectedOrder.total_amount?.toFixed(2)}</span>
+                      <span className="text-[#536DFE] text-xl font-bold">{formatCurrency(selectedOrder.total_amount)}</span>
                     </div>
                   </div>
 
@@ -291,7 +349,7 @@ const Orders = () => {
                               <p className="text-[#1D2956] font-semibold">{item.name}</p>
                               <p className="text-gray-400 text-xs">Qty: {item.quantity}</p>
                             </div>
-                            <p className="text-[#536DFE] font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-[#536DFE] font-bold">{formatCurrency(item.price * item.quantity)}</p>
                           </div>
                         ))}
                       </div>
@@ -323,7 +381,7 @@ const Orders = () => {
               </div>
               <button
                 onClick={() => setFullscreenQR(false)}
-                className="w-full bg-[#1D2956] hover:bg-[#1D2956]/90 text-white font-bold py-4 rounded-2xl uppercase tracking-widest text-sm transition-all"
+                className="w-full bg-[#536DFE] hover:bg-[#536DFE]/90 text-white font-bold py-4 rounded-2xl uppercase tracking-widest text-sm transition-all shadow-md shadow-[#536DFE]/30"
               >
                 Close
               </button>

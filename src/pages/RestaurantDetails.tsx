@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import RestaurantChatbot from '@/components/RestaurantChatbot';
+import { formatCurrency } from '@/utils/currency';
 
 interface MenuItem {
   id: string;
@@ -341,13 +342,13 @@ const RestaurantDetails = () => {
       <div className="px-4 pb-4">
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4">
           <p className="text-[#1D2956] text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Order Type</p>
-          <div className="flex gap-2 p-1 bg-gray-50 rounded-2xl">
+          <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl border border-gray-200">
             <button
               onClick={() => setOrderType('dine_in')}
               className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                 orderType === 'dine_in'
                   ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                  : 'text-gray-400 hover:text-[#1D2956]'
+                  : 'text-gray-500 hover:text-[#1D2956]'
               }`}
             >
               Dine In
@@ -357,7 +358,7 @@ const RestaurantDetails = () => {
               className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
                 orderType === 'takeaway'
                   ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                  : 'text-gray-400 hover:text-[#1D2956]'
+                  : 'text-gray-500 hover:text-[#1D2956]'
               }`}
             >
               Take Out
@@ -498,7 +499,7 @@ const RestaurantDetails = () => {
                       <h4 className="text-[#1D2956] font-bold text-sm mb-0.5 truncate">{item.name}</h4>
                       <p className="text-gray-400 text-[11px] line-clamp-2 mb-2">{item.description}</p>
                       <div className="flex items-center justify-between">
-                        <p className="text-[#536DFE] font-bold text-sm">${item.price.toFixed(2)}</p>
+                        <p className="text-[#536DFE] font-bold text-sm">{formatCurrency(item.price)}</p>
                         {quantity > 0 ? (
                           <div className="flex items-center gap-2 bg-white rounded-xl px-2.5 py-1 border border-[#536DFE]/20 shadow-sm" onClick={(e) => e.stopPropagation()}>
                             <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} className="text-[#536DFE] hover:scale-110 transition-transform">
@@ -571,7 +572,7 @@ const RestaurantDetails = () => {
                   {selectedMenuItem.name}
                 </h2>
                 <p className="text-[#536DFE] text-xl font-bold mt-1 drop-shadow-lg">
-                  ${selectedMenuItem.price.toFixed(2)}
+                  {formatCurrency(selectedMenuItem.price)}
                 </p>
               </div>
             </div>
@@ -618,7 +619,7 @@ const RestaurantDetails = () => {
                     className="w-full bg-[#536DFE] text-[#F5F5F7] font-bold py-5 rounded-2xl text-sm uppercase tracking-widest hover:bg-[#536DFE]/90 transition-all active:scale-[0.98] shadow-[0_0_24px_rgba(210,141,31,0.35)] flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    Add to Cart — ${selectedMenuItem.price.toFixed(2)}
+                    Add to Cart — {formatCurrency(selectedMenuItem.price)}
                   </button>
                 );
               })()}
@@ -661,7 +662,7 @@ const RestaurantDetails = () => {
                       <div className="flex-1">
                         <h4 className="text-[#1D2956] font-semibold">{item.name}</h4>
                         <p className="text-[#536DFE] font-bold">
-                          ${item.price.toFixed(2)} x {item.quantity}
+                          {formatCurrency(item.price)} x {item.quantity}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -686,11 +687,11 @@ const RestaurantDetails = () => {
                   <div className="border-t border-[#536DFE]/20 pt-4 mt-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-gray-400 text-sm">Subtotal</span>
-                      <span className="text-[#1D2956] font-semibold">${getTotalPrice().toFixed(2)}</span>
+                      <span className="text-[#1D2956] font-semibold">{formatCurrency(getTotalPrice())}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#536DFE] text-lg font-bold">Total</span>
-                      <span className="text-[#536DFE] text-2xl font-bold">${getTotalPrice().toFixed(2)}</span>
+                      <span className="text-[#536DFE] text-2xl font-bold">{formatCurrency(getTotalPrice())}</span>
                     </div>
                   </div>
                 </>
@@ -713,7 +714,7 @@ const RestaurantDetails = () => {
               {getTotalItems()} items
             </button>
             <p className="text-[#1D2956] text-xl font-bold">
-              ${getTotalPrice().toFixed(2)}
+              {formatCurrency(getTotalPrice())}
             </p>
           </div>
           <button

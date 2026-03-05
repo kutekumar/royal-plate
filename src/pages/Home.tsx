@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useCustomerNotifications } from '@/hooks/useCustomerNotifications';
 import gsap from 'gsap';
 import LogoImg from '@/imgs/logo.png';
+import { formatCurrency } from '@/utils/currency';
 
 interface Restaurant {
   id: string;
@@ -148,7 +149,7 @@ const Home = () => {
     setShowNotifications(false);
   };
 
-  const firstName = profile?.full_name?.split(' ')[0] || 'Guest';
+  const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
 
   return (
     <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
@@ -160,7 +161,7 @@ const Home = () => {
           <img src={LogoImg} alt="Royal Plate" className="w-10 h-10 object-contain" />
           <div>
             <p className="text-[10px] text-gray-400 font-medium tracking-[0.2em] uppercase leading-none">Good day,</p>
-            <p className="text-[#1D2956] text-sm font-bold leading-tight">{firstName} 👋</p>
+            <p className="text-[#1D2956] text-sm font-bold leading-tight">{firstName}</p>
           </div>
         </div>
 
@@ -317,15 +318,15 @@ const Home = () => {
               <p className="text-gray-300 text-sm mt-1">Try a different search</p>
             </div>
           ) : (
-            <div ref={listRef} className="space-y-3">
+            <div ref={listRef} className="grid grid-cols-2 gap-3">
               {filteredRestaurants.map((restaurant) => (
                 <div
                   key={restaurant.id}
                   onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                  className="flex items-center gap-4 p-3 bg-white rounded-3xl cursor-pointer hover:shadow-lg transition-all duration-300 group shadow-sm border border-gray-100/80 active:scale-[0.98]"
+                  className="flex flex-col rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group shadow-sm border border-gray-100/80 active:scale-[0.98] bg-white"
                 >
                   {/* Image */}
-                  <div className="flex-shrink-0 w-[72px] h-[72px] rounded-2xl overflow-hidden">
+                  <div className="w-full h-32 overflow-hidden">
                     <img
                       src={restaurant.image_url || '/placeholder.svg'}
                       alt={restaurant.name}
@@ -334,31 +335,21 @@ const Home = () => {
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-0.5">
-                      <h3 className="text-[#1D2956] text-sm font-bold truncate leading-snug">{restaurant.name}</h3>
-                      <div className="flex items-center gap-1 bg-[#536DFE]/8 rounded-full px-2 py-0.5 flex-shrink-0">
-                        <Star className="w-3 h-3 text-[#536DFE] fill-[#536DFE]" />
-                        <span className="text-[#536DFE] text-[10px] font-bold">{restaurant.rating.toFixed(1)}</span>
+                  <div className="flex-1 flex flex-col p-2.5">
+                    <div className="flex items-start justify-between gap-1 mb-1">
+                      <h3 className="text-[#1D2956] text-xs font-bold truncate leading-snug flex-1">{restaurant.name}</h3>
+                      <div className="flex items-center gap-0.5 bg-[#536DFE]/8 rounded-full px-1.5 py-0.5 flex-shrink-0">
+                        <Star className="w-2.5 h-2.5 text-[#536DFE] fill-[#536DFE]" />
+                        <span className="text-[#536DFE] text-[9px] font-bold">{restaurant.rating.toFixed(1)}</span>
                       </div>
                     </div>
-                    <p className="text-gray-400 text-[11px] mb-1.5">{restaurant.cuisine_type || 'International'}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#536DFE] text-[11px] font-bold bg-[#536DFE]/8 rounded-full px-2 py-0.5">{restaurant.price_range || '$$$'}</span>
-                      <span className="text-gray-300 text-[10px]">·</span>
-                      <span className="flex items-center gap-0.5 text-gray-400 text-[11px]">
-                        <MapPin className="w-2.5 h-2.5" />{restaurant.distance} mi
-                      </span>
-                      <span className="text-gray-300 text-[10px]">·</span>
-                      <span className="text-gray-400 text-[11px] truncate">{restaurant.township}</span>
+                    <p className="text-gray-400 text-[9px] mb-1 truncate">{restaurant.cuisine_type || 'International'}</p>
+                    <div className="flex items-center gap-1 text-gray-400 text-[9px] truncate">
+                      <MapPin className="w-2 h-2 flex-shrink-0" />
+                      <span className="truncate">{restaurant.township}</span>
+                      <span className="text-gray-300">·</span>
+                      <span className="flex-shrink-0">{restaurant.distance} mi</span>
                     </div>
-                  </div>
-
-                  {/* Right arrow accent */}
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:bg-[#536DFE] group-hover:border-[#536DFE] transition-all duration-300">
-                    <svg className="w-3 h-3 text-gray-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
                   </div>
                 </div>
               ))}

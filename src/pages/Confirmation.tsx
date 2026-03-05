@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Sparkles,
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/currency';
 
 interface ConfirmationData {
   orderId: string;
@@ -192,7 +193,7 @@ const Confirmation = () => {
                     <p className="text-slate-400 text-xs">Qty: {item.quantity}</p>
                   </div>
                   <p className="text-[#caa157] font-semibold text-sm">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatCurrency(item.price * item.quantity)}
                   </p>
                 </div>
               ))}
@@ -202,7 +203,7 @@ const Confirmation = () => {
             <div className="flex items-center justify-between pt-4 border-t border-[#caa157]/20">
               <span className="text-[#caa157] text-lg font-bold">Total Amount</span>
               <span className="text-[#caa157] text-2xl font-bold">
-                ${confirmationData.totalAmount.toFixed(2)}
+                {formatCurrency(confirmationData.totalAmount)}
               </span>
             </div>
           </div>
