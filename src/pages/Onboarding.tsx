@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import LogoImg from '@/imgs/Logo.png';
+import LogoImg from '@/imgs/logo.png';
 import OnIcon1 from '@/imgs/icons/onbarding1.png';
 
 const Onboarding = () => {

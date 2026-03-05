@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import gsap from 'gsap';
-import LogoImg from '@/imgs/Logo.png';
+import LogoImg from '@/imgs/logo.png';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);

@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCustomerNotifications } from '@/hooks/useCustomerNotifications';
 import gsap from 'gsap';
-import LogoImg from '@/imgs/Logo.png';
+import LogoImg from '@/imgs/logo.png';
 
 interface Restaurant {
   id: string;
