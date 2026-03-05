@@ -244,307 +244,275 @@ const RestaurantDetails = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#F5F5F7] max-w-[430px] mx-auto overflow-x-hidden">
-      {/* Hero Image with Back Button and Chatbot */}
-      <div className="relative w-full h-80 overflow-hidden">
-        <div className="absolute top-4 left-4 z-10">
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-[#F5F5F7]/60 backdrop-blur-md rounded-full p-2 flex items-center justify-center border border-gray-200 hover:bg-[#F5F5F7]/80 transition-all"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-        </div>
-        
-        {/* Chatbot Button on Hero Image */}
-        <div className="absolute top-4 right-4 z-10">
-          <button
-            onClick={() => setShowChatbot(!showChatbot)}
-            className="bg-[#536DFE] text-[#F5F5F7] p-3 rounded-full shadow-[0_0_30px_rgba(202,161,87,0.4)] hover:scale-110 transition-all"
-          >
-            <MessageCircle className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="relative flex min-h-screen w-full flex-col bg-[#F5F5F7] max-w-[430px] mx-auto overflow-x-hidden font-poppins">
 
-        <div
-          className="w-full h-full bg-center bg-no-repeat bg-cover"
-          style={{ backgroundImage: `url(${restaurant.image_url})` }}
+      {/* ── Hero Image ── */}
+      <div className="relative w-full h-72 overflow-hidden">
+        <img
+          src={restaurant.image_url}
+          alt={restaurant.name}
+          className="w-full h-full object-cover"
+        />
+        {/* Gradient layers */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
+
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-5 left-4 z-10 w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/40 transition-all"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-transparent to-transparent"></div>
-        </div>
-        
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+
+        {/* Chatbot button */}
+        <button
+          onClick={() => setShowChatbot(!showChatbot)}
+          className="absolute top-5 right-4 z-10 flex items-center gap-2 bg-[#536DFE] text-white px-4 py-2.5 rounded-2xl shadow-lg shadow-[#536DFE]/40 hover:scale-105 transition-all"
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span className="text-xs font-bold">AI Chat</span>
+        </button>
+
         {/* Chatbot Overlay */}
         {showChatbot && (
           <div className="absolute top-16 right-4 w-80 z-20 max-w-[calc(100vw-2rem)]">
             <RestaurantChatbot restaurantId={id || ''} />
           </div>
         )}
+
+        {/* Rating badge on hero */}
+        <div className="absolute bottom-16 left-4 flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/30">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(restaurant.rating) ? 'fill-white text-white' : 'text-white/30'}`} />
+          ))}
+          <span className="text-white text-xs font-bold ml-1">{restaurant.rating}</span>
+          <span className="text-white/60 text-xs">• 1.2k reviews</span>
+        </div>
       </div>
 
-      {/* Restaurant Info */}
-      <div className="bg-[#F5F5F7] px-4 pb-6 -mt-4 relative z-10">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-[#536DFE] tracking-tight text-[34px] font-bold leading-tight pt-6">
-              {restaurant.name}
-            </h1>
-            <div className="flex items-center gap-1 mt-1">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${
-                    i < Math.floor(restaurant.rating)
-                      ? 'fill-[#536DFE] text-[#536DFE]'
-                      : 'text-[#536DFE]/30'
-                  }`}
-                />
-              ))}
-              <span className="text-sm text-gray-400 ml-2 font-light">
-                ({restaurant.rating} • 1.2k reviews)
-              </span>
+      {/* ── Restaurant Info Card ── */}
+      <div className="bg-white mx-4 -mt-6 relative z-10 rounded-3xl shadow-xl border border-gray-100 p-5 mb-4">
+        <h1 className="text-[#1D2956] text-2xl font-bold leading-tight tracking-tight mb-1">
+          {restaurant.name}
+        </h1>
+        <div className="flex items-center gap-2 mb-3">
+          {restaurant.cuisine_type && (
+            <span className="bg-[#536DFE]/10 text-[#536DFE] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+              {restaurant.cuisine_type}
+            </span>
+          )}
+        </div>
+        <p className="text-gray-500 text-sm leading-relaxed">{restaurant.description}</p>
+
+        {/* Contact row */}
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+          <button
+            onClick={() => {
+              const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`;
+              window.open(mapUrl, '_blank');
+            }}
+            className="flex items-center gap-3 w-full text-left group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-[#536DFE]/10 flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-4 h-4 text-[#536DFE]" />
             </div>
-          </div>
-        </div>
-        <p className="text-gray-500 text-sm mt-4 leading-relaxed font-light">
-          {restaurant.description}
-        </p>
-      </div>
-
-      {/* Contact Info */}
-      <div className="py-4 space-y-1 bg-[#F5F5F7]">
-        <button 
-          onClick={() => {
-            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`;
-            window.open(mapUrl, '_blank');
-          }}
-          className="flex items-center gap-4 px-4 min-h-[64px] w-full hover:bg-white/20 transition-all rounded-xl"
-        >
-          <div className="text-[#536DFE] flex items-center justify-center rounded-xl bg-[#536DFE]/5 shrink-0 size-11 border border-[#536DFE]/20">
-            <MapPin className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col justify-center flex-1 text-left">
-            <p className="text-[#1D2956] text-base font-medium leading-normal">
-              {restaurant.address}
-            </p>
-            <p className="text-gray-400 text-sm font-normal">
-              {restaurant.cuisine_type} • Tap to view map
-            </p>
-          </div>
-        </button>
-        <div className="flex items-center gap-4 px-4 min-h-[64px]">
-          <div className="text-[#536DFE] flex items-center justify-center rounded-xl bg-[#536DFE]/5 shrink-0 size-11 border border-[#536DFE]/20">
-            <Phone className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col justify-center">
-            <p className="text-[#1D2956] text-base font-medium leading-normal">
-              {restaurant.phone}
-            </p>
-            <p className="text-gray-400 text-sm font-normal">
-              {restaurant.opening_hours}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Order Type Selection */}
-      <div className="px-4 pt-6 pb-4 bg-[#F5F5F7]">
-        <p className="text-[#536DFE]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
-          Order Type
-        </p>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setOrderType('dine_in')}
-            className={`flex-1 py-4 rounded-xl text-sm font-bold transition-all ${
-              orderType === 'dine_in'
-                ? 'bg-[#536DFE] text-[#F5F5F7] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                : 'bg-white/30 border border-[#536DFE]/40 text-[#536DFE] hover:bg-[#536DFE]/10'
-            }`}
-          >
-            DINE IN
+            <div className="flex-1 min-w-0">
+              <p className="text-[#1D2956] text-sm font-medium truncate">{restaurant.address}</p>
+              <p className="text-gray-400 text-[11px]">Tap to open in maps</p>
+            </div>
+            <svg className="w-4 h-4 text-gray-300 group-hover:text-[#536DFE] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
           </button>
-          <button
-            onClick={() => setOrderType('takeaway')}
-            className={`flex-1 py-4 rounded-xl text-sm font-bold transition-all ${
-              orderType === 'takeaway'
-                ? 'bg-[#536DFE] text-[#F5F5F7] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                : 'bg-white/30 border border-[#536DFE]/40 text-[#536DFE] hover:bg-[#536DFE]/10'
-            }`}
-          >
-            TAKE OUT
-          </button>
-        </div>
-      </div>
-
-      {/* Reservation Section - Only for Dine In */}
-      {orderType === 'dine_in' && (
-        <div className="px-4 py-8 bg-[#F5F5F7]">
-          <h3 className="text-[#536DFE] text-xl font-bold leading-tight tracking-tight mb-8 flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Reserve Your Table
-          </h3>
-
-          {/* Party Size */}
-          <div className="flex justify-between items-center bg-white/40 p-5 rounded-2xl border border-[#536DFE]/20 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#536DFE]/10 flex items-center justify-center flex-shrink-0">
+              <Phone className="w-4 h-4 text-[#536DFE]" />
+            </div>
             <div>
-              <p className="text-[#536DFE] text-[10px] font-bold uppercase tracking-[0.2em]">
-                Party Size
-              </p>
-              <p className="text-gray-400 text-[10px] font-medium">Guests</p>
-            </div>
-            <div className="flex items-center gap-8">
-              <button
-                onClick={() => setPartySize(Math.max(1, partySize - 1))}
-                className="flex items-center justify-center outline-none"
-              >
-                <Minus className="w-8 h-8 text-[#536DFE] cursor-pointer hover:scale-110 transition-transform" />
-              </button>
-              <span className="text-[#1D2956] text-2xl font-bold w-6 text-center">
-                {partySize}
-              </span>
-              <button
-                onClick={() => setPartySize(Math.min(20, partySize + 1))}
-                className="flex items-center justify-center outline-none"
-              >
-                <Plus className="w-8 h-8 text-[#536DFE] cursor-pointer hover:scale-110 transition-transform" />
-              </button>
+              <p className="text-[#1D2956] text-sm font-medium">{restaurant.phone}</p>
+              <p className="text-gray-400 text-[11px]">{restaurant.opening_hours}</p>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Date Selection */}
-          <div className="mb-10">
-            <p className="text-[#536DFE]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
-              Select Date
-            </p>
-            <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
-              {getAvailableDates().map((date) => {
-                const formatted = formatDate(date);
-                const isSelected = selectedDate === formatted.fullDate;
-                return (
-                  <button
-                    key={formatted.fullDate}
-                    onClick={() => setSelectedDate(formatted.fullDate)}
-                    className={`flex flex-col items-center justify-center min-w-[68px] h-[84px] rounded-2xl transition-all ${
-                      isSelected
-                        ? 'bg-[#536DFE] text-[#F5F5F7] font-bold shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                        : 'bg-white/30 border border-[#536DFE]/40 text-[#536DFE]'
-                    }`}
-                  >
-                    <span className="text-[10px] uppercase opacity-80">
-                      {formatted.month}
-                    </span>
-                    <span className="text-2xl font-bold">{formatted.day}</span>
-                  </button>
-                );
-              })}
-            </div>
+      {/* ── Order Type Selection ── */}
+      <div className="px-4 pb-4">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4">
+          <p className="text-[#1D2956] text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Order Type</p>
+          <div className="flex gap-2 p-1 bg-gray-50 rounded-2xl">
+            <button
+              onClick={() => setOrderType('dine_in')}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
+                orderType === 'dine_in'
+                  ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
+                  : 'text-gray-400 hover:text-[#1D2956]'
+              }`}
+            >
+              Dine In
+            </button>
+            <button
+              onClick={() => setOrderType('takeaway')}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
+                orderType === 'takeaway'
+                  ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
+                  : 'text-gray-400 hover:text-[#1D2956]'
+              }`}
+            >
+              Take Out
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* Time Selection */}
-          <div className="mb-6">
-            <p className="text-[#536DFE]/60 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
-              Available Time Slots
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {timeSlots.map((time) => {
-                const isSelected = selectedTime === time;
-                return (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    className={`py-4 rounded-xl text-sm font-bold transition-all ${
-                      isSelected
-                        ? 'bg-[#536DFE] text-[#F5F5F7] shadow-[0_0_20px_rgba(202,161,87,0.3)]'
-                        : 'bg-white/30 border border-[#536DFE]/40 text-[#536DFE] hover:bg-[#536DFE]/10'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                );
-              })}
+      {/* ── Reservation Section ── */}
+      {orderType === 'dine_in' && (
+        <div className="px-4 pb-4">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+            <h3 className="text-[#1D2956] text-base font-bold mb-5 flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-[#536DFE]/10 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-[#536DFE]" />
+              </div>
+              Reserve Your Table
+            </h3>
+
+            {/* Party Size */}
+            <div className="flex justify-between items-center bg-[#F5F5F7] p-4 rounded-2xl mb-5">
+              <div>
+                <p className="text-[#1D2956] text-sm font-bold">Party Size</p>
+                <p className="text-gray-400 text-[11px]">Number of guests</p>
+              </div>
+              <div className="flex items-center gap-5">
+                <button onClick={() => setPartySize(Math.max(1, partySize - 1))} className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:border-[#536DFE]/40 transition-all shadow-sm">
+                  <Minus className="w-4 h-4 text-[#536DFE]" />
+                </button>
+                <span className="text-[#1D2956] text-xl font-bold w-6 text-center">{partySize}</span>
+                <button onClick={() => setPartySize(Math.min(20, partySize + 1))} className="w-9 h-9 rounded-xl bg-[#536DFE] flex items-center justify-center shadow-md shadow-[#536DFE]/30 hover:bg-[#536DFE]/90 transition-all">
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Date Selection */}
+            <div className="mb-5">
+              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Select Date</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {getAvailableDates().map((date) => {
+                  const formatted = formatDate(date);
+                  const isSelected = selectedDate === formatted.fullDate;
+                  return (
+                    <button
+                      key={formatted.fullDate}
+                      onClick={() => setSelectedDate(formatted.fullDate)}
+                      className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[60px] h-[72px] rounded-2xl transition-all ${
+                        isSelected
+                          ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
+                          : 'bg-[#F5F5F7] border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40'
+                      }`}
+                    >
+                      <span className={`text-[9px] font-bold uppercase mb-0.5 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>{formatted.month}</span>
+                      <span className="text-xl font-bold">{formatted.day}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Time Selection */}
+            <div>
+              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Time Slots</p>
+              <div className="grid grid-cols-3 gap-2">
+                {timeSlots.map((time) => {
+                  const isSelected = selectedTime === time;
+                  return (
+                    <button
+                      key={time}
+                      onClick={() => setSelectedTime(time)}
+                      className={`py-3 rounded-2xl text-sm font-bold transition-all ${
+                        isSelected
+                          ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
+                          : 'bg-[#F5F5F7] border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Menu Section */}
-      <div className="px-4 py-8 bg-[#F5F5F7] pb-32">
-        <h3 className="text-[#536DFE] text-xl font-bold leading-tight tracking-tight mb-6 flex items-center gap-2">
-          <ShoppingCart className="w-5 h-5" />
-          Our Menu
-        </h3>
+      {/* ── Menu Section ── */}
+      <div className="px-4 pb-36">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[#1D2956] text-base font-bold flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-[#536DFE]/10 flex items-center justify-center">
+                <ShoppingCart className="w-4 h-4 text-[#536DFE]" />
+              </div>
+              Menu
+            </h3>
+            <span className="text-gray-400 text-[11px] font-medium">{filteredMenuItems.length} items</span>
+          </div>
 
-        {/* Search Bar */}
-        <div className="mb-6 relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#536DFE]/60" />
-          <input
-            type="text"
-            placeholder="Search menu items..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/30 border border-[#536DFE]/20 text-white placeholder-slate-400 focus:outline-none focus:border-[#536DFE]/60 transition-all"
-          />
-        </div>
+          {/* Search Bar */}
+          <div className="mb-4 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F5F5F7] border border-gray-100 text-[#1D2956] text-sm placeholder-gray-400 focus:outline-none focus:border-[#536DFE]/40 focus:ring-2 focus:ring-[#536DFE]/10 transition-all"
+            />
+          </div>
 
-        {/* Menu Items */}
-        <div className="space-y-4">
-          {filteredMenuItems.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No menu items found</p>
-          ) : (
-            filteredMenuItems.map((item) => {
-              const cartItem = cart.find((c) => c.id === item.id);
-              const quantity = cartItem?.quantity || 0;
-
-              return (
-                <div
-                  key={item.id}
-                  ref={(el) => { menuItemRefs.current[item.id] = el; }}
-                  className="bg-white/20 border border-[#536DFE]/20 rounded-2xl p-4 hover:border-[#536DFE]/50 transition-all cursor-pointer group"
-                  onClick={() => setSelectedMenuItem(item)}
-                >
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-[#536DFE]/20">
+          {/* Menu Items */}
+          <div className="space-y-3">
+            {filteredMenuItems.length === 0 ? (
+              <p className="text-gray-400 text-center py-8 text-sm">No menu items found</p>
+            ) : (
+              filteredMenuItems.map((item) => {
+                const cartItem = cart.find((c) => c.id === item.id);
+                const quantity = cartItem?.quantity || 0;
+                return (
+                  <div
+                    key={item.id}
+                    ref={(el) => { menuItemRefs.current[item.id] = el; }}
+                    className="flex gap-3 p-3 bg-[#F5F5F7] rounded-2xl hover:bg-gray-100 transition-all cursor-pointer group border border-transparent hover:border-[#536DFE]/10"
+                    onClick={() => setSelectedMenuItem(item)}
+                  >
+                    {/* Image */}
+                    <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden flex-shrink-0">
                       <img
                         src={item.image_url}
                         alt={item.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-[#1D2956] font-semibold text-base mb-1">
-                        {item.name}
-                      </h4>
-                      <p className="text-gray-400 text-xs mb-2 line-clamp-2">
-                        {item.description}
-                      </p>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[#1D2956] font-bold text-sm mb-0.5 truncate">{item.name}</h4>
+                      <p className="text-gray-400 text-[11px] line-clamp-2 mb-2">{item.description}</p>
                       <div className="flex items-center justify-between">
-                        <p className="text-[#536DFE] font-bold text-lg">
-                          ${item.price.toFixed(2)}
-                        </p>
+                        <p className="text-[#536DFE] font-bold text-sm">${item.price.toFixed(2)}</p>
                         {quantity > 0 ? (
-                          <div
-                            className="flex items-center gap-3 bg-[#536DFE]/10 rounded-lg px-3 py-1 border border-[#536DFE]/30"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
-                              className="text-[#536DFE] hover:scale-110 transition-transform"
-                            >
-                              <Minus className="w-4 h-4" />
+                          <div className="flex items-center gap-2 bg-white rounded-xl px-2.5 py-1 border border-[#536DFE]/20 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                            <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} className="text-[#536DFE] hover:scale-110 transition-transform">
+                              <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="text-[#1D2956] font-bold min-w-[20px] text-center">
-                              {quantity}
-                            </span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                              className="text-[#536DFE] hover:scale-110 transition-transform"
-                            >
-                              <Plus className="w-4 h-4" />
+                            <span className="text-[#1D2956] font-bold text-sm min-w-[16px] text-center">{quantity}</span>
+                            <button onClick={(e) => { e.stopPropagation(); addToCart(item); }} className="text-[#536DFE] hover:scale-110 transition-transform">
+                              <Plus className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
                           <button
                             onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                            className="bg-[#536DFE] text-[#F5F5F7] px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#536DFE]/90 transition-all active:scale-95"
+                            className="bg-[#536DFE] text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm shadow-[#536DFE]/30 hover:bg-[#536DFE]/90 transition-all active:scale-95"
                           >
                             Add
                           </button>
@@ -552,10 +520,10 @@ const RestaurantDetails = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 

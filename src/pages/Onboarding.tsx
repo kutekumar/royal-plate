@@ -109,75 +109,98 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 z-10">
-        {/* Logo - animated floating */}
-        <div ref={logoRef} className="mb-8 flex items-center justify-center">
-          <img src={LogoImg} alt="Royal Plate Logo" className="h-32 object-contain drop-shadow-xl" />
-        </div>
+    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-white font-poppins">
 
-        {/* Text */}
-        <div ref={textRef} className="text-center mb-8">
-          <div className="h-[1px] w-16 bg-[#536DFE] mx-auto mb-4 opacity-60"></div>
-          <p className="text-[#1D2956]/70 text-xs font-light tracking-[0.3em] leading-normal uppercase">
-            Reserve Your Regal Dining Experience
-          </p>
-        </div>
-      </div>
+      {/* Subtle top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#536DFE] to-transparent z-20" />
 
-      {/* Image Section */}
-      <div className="px-8 pb-16 z-10">
-        <div ref={imageRef} className="mb-10 overflow-hidden rounded-2xl border border-gray-200 shadow-xl relative">
-          <div className="w-full h-36 relative">
-            {/* Background Image */}
-            <img 
-              src={OnIcon1} 
-              alt="Dining Experience" 
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            {/* Gradient Overlay */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(to top, rgba(29,41,86,0.6) 0%, rgba(29,41,86,0.2) 50%, rgba(29,41,86,0.05) 100%)'
-              }}
-            />
+      {/* Background subtle gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#F0F3FF] via-white to-[#F8F9FF] pointer-events-none" />
+
+      {/* Full layout — three zones distributed across full screen height */}
+      <div className="flex flex-col items-center w-full h-full px-8 pt-16 pb-8 z-10 justify-between">
+
+        {/* ZONE 1 — Top: Logo + Tagline */}
+        <div className="flex flex-col items-center">
+          {/* Logo - animated floating */}
+          <div ref={logoRef} className="mb-5 flex items-center justify-center">
+            <img src={LogoImg} alt="Royal Plate Logo" className="h-36 object-contain drop-shadow-2xl" />
+          </div>
+
+          {/* Tagline */}
+          <div ref={textRef} className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="h-[1px] w-10 bg-gradient-to-r from-transparent to-[#536DFE]/50" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#536DFE]/60" />
+              <div className="h-[1px] w-10 bg-gradient-to-l from-transparent to-[#536DFE]/50" />
+            </div>
+            <p className="text-[#1D2956]/50 text-[10px] font-medium tracking-[0.35em] leading-normal uppercase">
+              Reserve Your Regal Dining Experience
+            </p>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div ref={buttonsRef} className="flex flex-col gap-4">
-          <button 
-            onClick={handleGetStarted}
-            onMouseEnter={handleButtonHover}
-            onMouseLeave={handleButtonLeave}
-            onMouseDown={handleButtonPress}
-            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-[#536DFE] text-white text-lg font-bold leading-normal tracking-wider shadow-[0_8px_30px_rgba(83,109,254,0.35)] transition-all"
-          >
-            <span className="truncate uppercase">Get Started</span>
-          </button>
-          <button 
-            onClick={handleSignIn}
-            onMouseEnter={handleButtonHover}
-            onMouseLeave={handleButtonLeave}
-            onMouseDown={handleButtonPress}
-            className="flex w-full cursor-pointer items-center justify-center rounded-xl h-14 px-5 border-2 border-[#536DFE]/40 text-[#536DFE] text-sm font-semibold tracking-[0.15em] bg-white transition-all uppercase shadow-sm"
-          >
-            <span className="truncate">Sign In</span>
-          </button>
+        {/* ZONE 2 — Middle: Image + Buttons */}
+        <div className="w-full flex flex-col gap-5">
+          {/* Image card */}
+          <div ref={imageRef} className="w-full overflow-hidden rounded-3xl shadow-2xl relative">
+            <div className="w-full h-44 relative">
+              <img
+                src={OnIcon1}
+                alt="Dining Experience"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(to top, rgba(29,41,86,0.65) 0%, rgba(29,41,86,0.25) 55%, rgba(29,41,86,0.05) 100%)'
+                }}
+              />
+              <div className="absolute bottom-4 left-5">
+                <p className="text-white/90 text-xs font-semibold tracking-[0.2em] uppercase">Fine Dining · Curated</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div ref={buttonsRef} className="w-full flex flex-col gap-3">
+            <button
+              onClick={handleGetStarted}
+              onMouseEnter={handleButtonHover}
+              onMouseLeave={handleButtonLeave}
+              onMouseDown={handleButtonPress}
+              className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl h-14 px-5 bg-[#536DFE] text-white text-sm font-bold leading-normal tracking-[0.2em] shadow-[0_8px_32px_rgba(83,109,254,0.4)] transition-all"
+            >
+              <span className="truncate uppercase">Get Started</span>
+            </button>
+            <button
+              onClick={handleSignIn}
+              onMouseEnter={handleButtonHover}
+              onMouseLeave={handleButtonLeave}
+              onMouseDown={handleButtonPress}
+              className="flex w-full cursor-pointer items-center justify-center rounded-2xl h-14 px-5 border border-[#536DFE]/30 text-[#536DFE] text-sm font-semibold tracking-[0.15em] bg-white/80 backdrop-blur-sm transition-all uppercase"
+            >
+              <span className="truncate">Sign In</span>
+            </button>
+          </div>
         </div>
 
-        {/* Footer Text */}
-        <div ref={footerRef} className="mt-8 text-center">
-          <p className="text-[#1D2956]/40 text-[10px] font-semibold tracking-[0.25em] uppercase">
-            By Invitation Only
+        {/* ZONE 3 — Bottom: Powered By */}
+        <div ref={footerRef} className="flex flex-col items-center gap-2">
+          <p className="text-[#1D2956]/30 text-[9px] font-semibold tracking-[0.35em] uppercase">
+            Powered By
           </p>
+          <img
+            src="https://mingalarmon.com/assets/logo_light.png"
+            alt="Mingalar Mon"
+            className="h-12 object-contain opacity-70"
+          />
         </div>
+
       </div>
 
-      {/* Bottom Bar Indicator */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1 bg-[#536DFE]/20 rounded-full"></div>
+      {/* Bottom home indicator bar */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1D2956]/10 rounded-full" />
     </div>
   );
 };

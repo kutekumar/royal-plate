@@ -148,227 +148,225 @@ const Home = () => {
     setShowNotifications(false);
   };
 
+  const firstName = profile?.full_name?.split(' ')[0] || 'Guest';
+
   return (
     <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
-      {/* Header */}
-      <div ref={headerRef} className="flex items-center justify-between px-6 pt-6 pb-4 z-10 relative">
-        {/* Logo - Left */}
-        <div className="flex items-center justify-center w-12 h-12">
-          <img src={LogoImg} alt="Royal Plate Logo" className="w-12 h-12 object-contain" />
+
+      {/* ── Header ── */}
+      <div ref={headerRef} className="flex items-center justify-between px-5 pt-6 pb-3 z-10 relative bg-[#F5F5F7]">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          <img src={LogoImg} alt="Royal Plate" className="w-10 h-10 object-contain" />
+          <div>
+            <p className="text-[10px] text-gray-400 font-medium tracking-[0.2em] uppercase leading-none">Good day,</p>
+            <p className="text-[#1D2956] text-sm font-bold leading-tight">{firstName} 👋</p>
+          </div>
         </div>
 
-        {/* Title - Center */}
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-[#1D2956] text-2xl tracking-wider" style={{ fontWeight: 700 }}>
-          Discover
-        </h1>
-
         {/* Right Icons */}
-        <div className="flex items-center gap-3">
-          {/* Notification Bell */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative flex items-center justify-center w-11 h-11 rounded-full bg-white border border-gray-200 hover:border-[#536DFE]/50 hover:shadow-md transition-all shadow-sm"
+            className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-white border border-gray-200/80 hover:border-[#536DFE]/40 hover:shadow-md transition-all shadow-sm"
           >
-            <Bell className="w-5 h-5 text-[#1D2956]" />
+            <Bell className="w-4.5 h-4.5 text-[#1D2956]" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full">
+              <span className="absolute -top-1 -right-1 flex items-center justify-center w-4.5 h-4.5 bg-[#536DFE] text-white text-[9px] font-bold rounded-full min-w-[18px] min-h-[18px]">
                 {unreadCount}
               </span>
             )}
           </button>
-
-          {/* User Icon */}
           <button
             onClick={() => navigate('/profile')}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-white border border-gray-200 hover:border-[#536DFE]/50 hover:shadow-md transition-all shadow-sm"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white border border-gray-200/80 hover:border-[#536DFE]/40 hover:shadow-md transition-all shadow-sm"
           >
-            <User className="w-5 h-5 text-[#1D2956]" />
+            <User className="w-4.5 h-4.5 text-[#1D2956]" />
           </button>
         </div>
       </div>
 
       {/* Notification Dropdown */}
       {showNotifications && (
-        <div className="absolute top-20 right-6 w-80 max-h-96 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-y-auto z-50">
-          <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-            <h3 className="text-[#1D2956] font-semibold">Notifications</h3>
+        <div className="absolute top-[72px] right-5 w-80 max-h-96 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-y-auto z-50">
+          <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-2xl">
+            <h3 className="text-[#1D2956] font-bold text-sm">Notifications</h3>
             {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-[#536DFE] hover:text-[#536DFE]/80 font-semibold"
-              >
+              <button onClick={markAllAsRead} className="text-[10px] text-[#536DFE] font-bold uppercase tracking-wider">
                 Mark all read
               </button>
             )}
           </div>
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-400 text-sm">
-              No notifications
-            </div>
+            <div className="p-6 text-center text-gray-400 text-sm">No notifications yet</div>
           ) : (
             notifications.map((notification) => (
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  !notification.is_read ? 'bg-[#536DFE]/8' : ''
-                }`}
+                className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-[#536DFE]/5' : ''}`}
               >
-                <p className="text-[#1D2956] text-sm font-semibold">{notification.title}</p>
-                <p className="text-gray-500 text-xs mt-1">{notification.message}</p>
-                <p className="text-gray-400 text-xs mt-2">
-                  {new Date(notification.created_at).toLocaleDateString()}
-                </p>
+                <div className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!notification.is_read ? 'bg-[#536DFE]' : 'bg-gray-200'}`} />
+                  <div>
+                    <p className="text-[#1D2956] text-sm font-semibold">{notification.title}</p>
+                    <p className="text-gray-500 text-xs mt-0.5">{notification.message}</p>
+                    <p className="text-gray-400 text-[10px] mt-1">{new Date(notification.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
               </div>
             ))
           )}
         </div>
       )}
 
-      {/* Search Box */}
-      <div ref={searchRef} className="px-6 pb-6 z-10">
+      {/* ── Search ── */}
+      <div ref={searchRef} className="px-5 pb-4 z-10">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Find your table at the palace..."
+            placeholder="Search restaurants, cuisines..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 bg-white border border-gray-200 rounded-xl text-[#1D2956] placeholder-gray-400 focus:border-[#536DFE] focus:ring-2 focus:ring-[#536DFE]/20 shadow-sm transition-all"
+            className="w-full h-11 pl-11 pr-4 bg-white border border-gray-200 rounded-2xl text-[#1D2956] text-sm placeholder-gray-400 focus:border-[#536DFE] focus:ring-2 focus:ring-[#536DFE]/15 shadow-sm transition-all"
           />
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-6 pb-20 z-10 scrollbar-hide">
-        {/* Featured Selections */}
+      {/* ── Scrollable Content ── */}
+      <div className="flex-1 overflow-y-auto pb-24 z-10 scrollbar-hide">
+
+        {/* ── Featured Section ── */}
         {featuredRestaurants.length > 0 && (
           <div ref={featuredRef} className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[#1D2956] text-lg font-bold" style={{ fontWeight: 700 }}>Featured Selections</h2>
-              <button className="text-[#536DFE] text-sm hover:text-[#536DFE]/80 font-semibold transition-colors" style={{ fontWeight: 500 }}>
-                View All
-              </button>
+            <div className="flex items-center justify-between px-5 mb-3">
+              <div>
+                <h2 className="text-[#1D2956] text-base font-bold tracking-tight">Featured</h2>
+                <p className="text-gray-400 text-[10px] uppercase tracking-widest">Top picks for you</p>
+              </div>
+              <button className="text-[#536DFE] text-xs font-bold uppercase tracking-wider">See All</button>
             </div>
 
-            {/* Horizontal Scroll */}
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide touch-pan-x" style={{ 
-              overscrollBehavior: 'contain',
-              WebkitOverflowScrolling: 'touch'
-            }}>
+            {/* Horizontal Scroll Cards */}
+            <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide touch-pan-x" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
               {featuredRestaurants.map((restaurant) => (
-              <div
-                key={restaurant.id}
-                onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                className="flex-shrink-0 w-72 cursor-pointer group"
-              >
-                <div className="relative overflow-hidden rounded-2xl h-44 shadow-lg">
-                  <img
-                    src={restaurant.image_url || '/placeholder.svg'}
-                    alt={restaurant.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  {/* Strong gradient for text contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
-                  {/* Cuisine badge */}
-                  <Badge className="absolute top-3 left-3 bg-white/20 backdrop-blur-md text-white border border-white/30 uppercase text-[10px] px-3 tracking-wide" style={{ fontWeight: 700 }}>
-                    {restaurant.cuisine_type || 'Fine Dining'}
-                  </Badge>
-                  {/* Star rating badge top right */}
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/30 backdrop-blur-md rounded-full px-2 py-1 border border-white/20">
-                    <Star className="w-3 h-3 fill-white text-white" />
-                    <span className="text-white text-[10px] font-bold">{restaurant.rating?.toFixed(1)}</span>
-                  </div>
-                  {/* Bottom text */}
-                  <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-6">
-                    <h3 className="text-white text-base leading-tight drop-shadow-md" style={{ fontWeight: 700 }}>{restaurant.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-white/80 text-[11px]" style={{ fontWeight: 400 }}>
-                        {restaurant.cuisine_type || 'Fine Dining'}
-                      </span>
-                      <span className="text-white/50 text-[11px]">•</span>
-                      <span className="text-white/80 text-[11px]" style={{ fontWeight: 400 }}>
-                        {restaurant.township}
-                      </span>
+                <div
+                  key={restaurant.id}
+                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                  className="flex-shrink-0 w-64 cursor-pointer group"
+                >
+                  <div className="relative overflow-hidden rounded-3xl h-48 shadow-xl">
+                    <img
+                      src={restaurant.image_url || '/placeholder.svg'}
+                      alt={restaurant.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    />
+                    {/* Multi-layer gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#536DFE]/10 to-transparent" />
+
+                    {/* Rating pill */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-1 border border-white/25">
+                      <Star className="w-3 h-3 fill-white text-white" />
+                      <span className="text-white text-[10px] font-bold">{restaurant.rating?.toFixed(1)}</span>
+                    </div>
+
+                    {/* Cuisine pill */}
+                    <div className="absolute top-3 left-3 bg-[#536DFE]/80 backdrop-blur-md rounded-full px-2.5 py-1 border border-white/20">
+                      <span className="text-white text-[9px] font-bold uppercase tracking-wider">{restaurant.cuisine_type || 'Fine Dining'}</span>
+                    </div>
+
+                    {/* Bottom info */}
+                    <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+                      <h3 className="text-white text-sm font-bold leading-snug drop-shadow">{restaurant.name}</h3>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <MapPin className="w-3 h-3 text-white/60" />
+                        <span className="text-white/70 text-[10px]">{restaurant.township}</span>
+                        <span className="text-white/40 text-[10px]">·</span>
+                        <span className="text-white/70 text-[10px]">{restaurant.distance} mi</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Top Rated */}
-        <div>
-          <h2 className="text-[#1D2956] text-lg mb-4" style={{ fontWeight: 700 }}>Top Rated</h2>
-          
-          <div ref={listRef} className="space-y-4">
-            {filteredRestaurants.map((restaurant) => (
-              <div
-                key={restaurant.id}
-                onClick={() => navigate(`/restaurant/${restaurant.id}`)}
-                className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:border-[#536DFE]/40 hover:shadow-md transition-all group shadow-sm"
-              >
-                {/* Restaurant Image */}
-                <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-gray-100">
-                  <img
-                    src={restaurant.image_url || '/placeholder.svg'}
-                    alt={restaurant.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-
-                {/* Restaurant Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="text-[#1D2956] text-base truncate" style={{ fontWeight: 700 }}>
-                      {restaurant.name}
-                    </h3>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Star className="w-4 h-4 text-[#536DFE] fill-[#536DFE]" />
-                      <span className="text-[#536DFE] text-sm" style={{ fontWeight: 600 }}>
-                        {restaurant.rating.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-400 text-xs mb-2" style={{ fontWeight: 400 }}>
-                    {restaurant.cuisine_type || 'International'}
-                  </p>
-                  
-                  <div className="flex items-center gap-3 text-gray-500 text-xs" style={{ fontWeight: 400 }}>
-                    <span style={{ fontWeight: 700 }} className="text-[#536DFE]">{restaurant.price_range || '$$$'}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {restaurant.distance} miles away
-                    </span>
-                  </div>
-                  
-                  <p className="text-gray-400 text-xs mt-1" style={{ fontWeight: 300 }}>
-                    {restaurant.township}
-                  </p>
-                </div>
-              </div>
-            ))}
+        {/* ── All Restaurants ── */}
+        <div className="px-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-[#1D2956] text-base font-bold tracking-tight">
+                {searchQuery ? 'Search Results' : 'All Restaurants'}
+              </h2>
+              <p className="text-gray-400 text-[10px] uppercase tracking-widest">
+                {filteredRestaurants.length} place{filteredRestaurants.length !== 1 ? 's' : ''}
+              </p>
+            </div>
           </div>
 
-          {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-[#536DFE]/30 border-t-[#536DFE] rounded-full animate-spin"></div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-8 h-8 border-2 border-[#536DFE]/20 border-t-[#536DFE] rounded-full animate-spin" />
             </div>
-          )}
+          ) : !isLoading && filteredRestaurants.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-400 font-medium">No restaurants found</p>
+              <p className="text-gray-300 text-sm mt-1">Try a different search</p>
+            </div>
+          ) : (
+            <div ref={listRef} className="space-y-3">
+              {filteredRestaurants.map((restaurant) => (
+                <div
+                  key={restaurant.id}
+                  onClick={() => navigate(`/restaurant/${restaurant.id}`)}
+                  className="flex items-center gap-4 p-3 bg-white rounded-3xl cursor-pointer hover:shadow-lg transition-all duration-300 group shadow-sm border border-gray-100/80 active:scale-[0.98]"
+                >
+                  {/* Image */}
+                  <div className="flex-shrink-0 w-[72px] h-[72px] rounded-2xl overflow-hidden">
+                    <img
+                      src={restaurant.image_url || '/placeholder.svg'}
+                      alt={restaurant.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
 
-          {!isLoading && filteredRestaurants.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-400">No restaurants found</p>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-0.5">
+                      <h3 className="text-[#1D2956] text-sm font-bold truncate leading-snug">{restaurant.name}</h3>
+                      <div className="flex items-center gap-1 bg-[#536DFE]/8 rounded-full px-2 py-0.5 flex-shrink-0">
+                        <Star className="w-3 h-3 text-[#536DFE] fill-[#536DFE]" />
+                        <span className="text-[#536DFE] text-[10px] font-bold">{restaurant.rating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                    <p className="text-gray-400 text-[11px] mb-1.5">{restaurant.cuisine_type || 'International'}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#536DFE] text-[11px] font-bold bg-[#536DFE]/8 rounded-full px-2 py-0.5">{restaurant.price_range || '$$$'}</span>
+                      <span className="text-gray-300 text-[10px]">·</span>
+                      <span className="flex items-center gap-0.5 text-gray-400 text-[11px]">
+                        <MapPin className="w-2.5 h-2.5" />{restaurant.distance} mi
+                      </span>
+                      <span className="text-gray-300 text-[10px]">·</span>
+                      <span className="text-gray-400 text-[11px] truncate">{restaurant.township}</span>
+                    </div>
+                  </div>
+
+                  {/* Right arrow accent */}
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:bg-[#536DFE] group-hover:border-[#536DFE] transition-all duration-300">
+                    <svg className="w-3 h-3 text-gray-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );
