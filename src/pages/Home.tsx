@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCustomerNotifications } from '@/hooks/useCustomerNotifications';
 import gsap from 'gsap';
-import CrownIcon from '@/imgs/crown.png';
+import LogoImg from '@/imgs/Logo.png';
 
 interface Restaurant {
   id: string;
@@ -152,9 +152,9 @@ const Home = () => {
     <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
       {/* Header */}
       <div ref={headerRef} className="flex items-center justify-between px-6 pt-6 pb-4 z-10 relative">
-        {/* Crown Icon - Left */}
-        <div className="flex items-center justify-center w-10 h-10">
-          <img src={CrownIcon} alt="Crown" className="w-7 h-7 object-contain" />
+        {/* Logo - Left */}
+        <div className="flex items-center justify-center w-12 h-12">
+          <img src={LogoImg} alt="Royal Plate Logo" className="w-12 h-12 object-contain" />
         </div>
 
         {/* Title - Center */}
