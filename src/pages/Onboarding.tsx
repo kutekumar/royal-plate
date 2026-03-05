@@ -159,7 +159,7 @@ const Onboarding = () => {
             <img
               src={MascotImg}
               alt="Royal Plate Mascot"
-              className="w-full h-auto object-contain"
+              className="w-1/2 h-auto object-contain"
             />
           </div>
 
