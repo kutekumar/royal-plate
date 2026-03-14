@@ -1,0 +1,204 @@
+/* Brand Image Filters - Creates cohesive visual identity */
+
+/* Premium brand filter for all food and restaurant images */
+.brand-image-filter {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-image-filter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.08) 0%, rgba(107, 127, 255, 0.12) 100%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.brand-image-filter:hover::before {
+  opacity: 0.7;
+}
+
+/* Enhanced contrast and saturation for premium look */
+.brand-image-filter img {
+  filter: contrast(1.05) saturate(1.1) brightness(0.98);
+  transition: filter 0.5s ease, transform 0.5s ease;
+}
+
+.brand-image-filter:hover img {
+  filter: contrast(1.08) saturate(1.15) brightness(1);
+  transform: scale(1.05);
+}
+
+/* Luxury vignette effect */
+.brand-image-filter::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 40%, rgba(29, 41, 86, 0.15) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Hero image specific filter - more dramatic */
+.brand-hero-filter {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-hero-filter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.12) 0%, rgba(107, 127, 255, 0.18) 100%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.brand-hero-filter img {
+  filter: contrast(1.1) saturate(1.15) brightness(0.95);
+}
+
+/* Featured card filter - subtle elegance */
+.brand-featured-filter {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-featured-filter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.06) 0%, rgba(107, 127, 255, 0.1) 100%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+
+.brand-featured-filter:hover::before {
+  opacity: 0.8;
+}
+
+.brand-featured-filter img {
+  filter: contrast(1.06) saturate(1.12) brightness(0.97);
+  transition: filter 0.6s ease, transform 0.6s ease;
+}
+
+.brand-featured-filter:hover img {
+  filter: contrast(1.1) saturate(1.18) brightness(1);
+}
+
+/* Menu item filter - appetizing enhancement */
+.brand-menu-filter {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-menu-filter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.05) 0%, rgba(107, 127, 255, 0.08) 100%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.brand-menu-filter:hover::before {
+  opacity: 0.9;
+}
+
+.brand-menu-filter img {
+  filter: contrast(1.08) saturate(1.2) brightness(0.98) hue-rotate(-2deg);
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+.brand-menu-filter:hover img {
+  filter: contrast(1.12) saturate(1.25) brightness(1.02) hue-rotate(-2deg);
+}
+
+/* Shimmer effect on hover for premium feel */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.brand-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.brand-shimmer:hover::after {
+  opacity: 1;
+  animation: shimmer 1.5s ease-in-out;
+}
+
+/* Smooth image loading with fade-in */
+.brand-image-fade {
+  animation: fadeInImage 0.6s ease-out;
+}
+
+@keyframes fadeInImage {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Glass morphism overlay for images */
+.brand-glass-overlay {
+  position: relative;
+}
+
+.brand-glass-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(83, 109, 254, 0.05) 50%,
+    rgba(107, 127, 255, 0.08) 100%
+  );
+  backdrop-filter: blur(0.5px);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.brand-glass-overlay:hover::before {
+  opacity: 1;
+}

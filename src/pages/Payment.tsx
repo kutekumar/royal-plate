@@ -14,6 +14,9 @@ import {
   Clock,
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
+import { motion } from 'framer-motion';
+import BrandLoader from '@/components/BrandLoader';
+import PageTransition from '@/components/PageTransition';
 
 interface CartItem {
   id: string;
@@ -43,6 +46,7 @@ const Payment = () => {
   const orderData = location.state as OrderData;
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [processing, setProcessing] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   if (!orderData) {
     navigate('/');
@@ -146,7 +150,10 @@ const Payment = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto">
+    <>
+      <BrandLoader isLoading={isTransitioning} />
+      <PageTransition>
+        <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#1d2956] border-b border-[#caa157]/20 p-4">
         <div className="flex items-center gap-4">
@@ -306,7 +313,9 @@ const Payment = () => {
           )}
         </button>
       </div>
-    </div>
+        </div>
+      </PageTransition>
+    </>
   );
 };
 

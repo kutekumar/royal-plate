@@ -1,208 +1,519 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, Sparkles, Crown, MapPin } from 'lucide-react';
 import LogoImg from '@/imgs/logo.png';
 import MascotImg from '@/imgs/mascot.png';
+import BrandLoader from '@/components/BrandLoader';
+import PageTransition from '@/components/PageTransition';
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const logoRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const buttonsRef = useRef<HTMLDivElement>(null);
-  const footerRef = useRef<HTMLDivElement>(null);
+  const [currentScreen, setCurrentScreen] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  useEffect(() => {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    
-    // Staggered entrance animations
-    tl.fromTo(
-      logoRef.current,
-      { scale: 0, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.8, ease: 'back.out(1.7)' }
-    )
-    .fromTo(
-      textRef.current,
-      { y: 20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5 },
-      '-=0.3'
-    )
-    .fromTo(
-      imageRef.current,
-      { y: 40, opacity: 0, scale: 0.95 },
-      { y: 0, opacity: 1, scale: 1, duration: 0.6 },
-      '-=0.2'
-    )
-    .fromTo(
-      buttonsRef.current?.children || [],
-      { y: 30, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
-      '-=0.3'
-    )
-    .fromTo(
-      footerRef.current,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.4 },
-      '-=0.2'
-    );
-
-    // Floating animation for logo
-    gsap.to(logoRef.current, {
-      y: -10,
-      duration: 2,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
-    });
-
-    // Subtle pulsing left-right animation for mascot image
-    const mascotImg = imageRef.current?.querySelector('img');
-    if (mascotImg) {
-      gsap.to(mascotImg, {
-        x: 8,
-        duration: 2.5,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
+  const screens = [
+    {
+      icon: Crown,
+      title: "Welcome to Royal Plate",
+      subtitle: "Your Gateway to Elite Dining",
+      description: "Experience the finest restaurants at your fingertips. Reserve tables, explore menus, and indulge in culinary excellence.",
+      gradient: "from-[#536DFE] to-[#6B7FFF]",
+      accentColor: "#536DFE"
+    },
+    {
+      icon: Sparkles,
+      title: "Discover & Reserve",
+      subtitle: "Effortless Elegance",
+      description: "Browse curated restaurants, view real-time availability, and secure your perfect table with just a few taps.",
+      gradient: "from-[#536DFE] to-[#6B7FFF]",
+      accentColor: "#536DFE"
+    },
+    {
+      icon: MapPin,
+      title: "Your Culinary Journey",
+      subtitle: "Begins Here",
+      description: "Track your reservations, earn rewards, and unlock exclusive dining experiences. Your table awaits.",
+      gradient: "from-[#536DFE] to-[#6B7FFF]",
+      accentColor: "#536DFE"
     }
-  }, []);
+  ];
+
+  const currentScreenData = screens[currentScreen];
+  const IconComponent = currentScreenData.icon;
+
+  const handleNext = () => {
+    if (currentScreen < screens.length - 1) {
+      setCurrentScreen(currentScreen + 1);
+    } else {
+      handleGetStarted();
+    }
+  };
+
+  const handleSkip = () => {
+    handleGetStarted();
+  };
 
   const handleGetStarted = () => {
-    const tl = gsap.timeline({
-      onComplete: () => navigate('/auth?mode=signup')
-    });
-    
-    tl.to([logoRef.current, textRef.current, imageRef.current, buttonsRef.current, footerRef.current], {
-      opacity: 0,
-      y: -30,
-      duration: 0.4,
-      stagger: 0.05,
-      ease: 'power2.in'
-    });
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate('/auth?mode=signup');
+    }, 1000);
   };
 
   const handleSignIn = () => {
-    const tl = gsap.timeline({
-      onComplete: () => navigate('/auth?mode=signin')
-    });
-    
-    tl.to([logoRef.current, textRef.current, imageRef.current, buttonsRef.current, footerRef.current], {
-      opacity: 0,
-      y: -30,
-      duration: 0.4,
-      stagger: 0.05,
-      ease: 'power2.in'
-    });
-  };
-
-  const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.currentTarget, {
-      scale: 1.02,
-      duration: 0.3,
-      ease: 'power2.out'
-    });
-  };
-
-  const handleButtonLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.currentTarget, {
-      scale: 1,
-      duration: 0.3,
-      ease: 'power2.out'
-    });
-  };
-
-  const handleButtonPress = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.currentTarget, {
-      scale: 0.96,
-      duration: 0.1,
-      ease: 'power2.out'
-    });
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate('/auth?mode=signin');
+    }, 1000);
   };
 
   return (
-    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-white font-poppins">
+    <>
+      <BrandLoader isLoading={isTransitioning} />
+      <PageTransition>
+        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-white font-poppins">
 
-      {/* Subtle top accent line */}
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#536DFE] to-transparent z-20" />
-
-      {/* Background subtle gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#F0F3FF] via-white to-[#F8F9FF] pointer-events-none" />
-
-      {/* Full layout — three zones distributed across full screen height */}
-      <div className="flex flex-col items-center w-full h-full px-8 pt-16 pb-8 z-10 justify-between">
-
-        {/* ZONE 1 — Top: Logo + Tagline */}
-        <div className="flex flex-col items-center">
-          {/* Logo - animated floating */}
-          <div ref={logoRef} className="mb-5 flex items-center justify-center">
-            <img src={LogoImg} alt="Royal Plate Logo" className="h-36 object-contain drop-shadow-2xl" />
-          </div>
-
-          {/* Tagline */}
-          <div ref={textRef} className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="h-[1px] w-10 bg-gradient-to-r from-transparent to-[#536DFE]/50" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#536DFE]/60" />
-              <div className="h-[1px] w-10 bg-gradient-to-l from-transparent to-[#536DFE]/50" />
-            </div>
-            <p className="text-[#1D2956]/50 text-[10px] font-medium tracking-[0.35em] leading-normal uppercase">
-              Reserve Your Regal Dining Experience
-            </p>
-          </div>
-        </div>
-
-        {/* ZONE 2 — Middle: Image + Buttons */}
-        <div className="w-full flex flex-col gap-5">
-          {/* Image - plain mascot without frame or overlay */}
-          <div ref={imageRef} className="w-full flex items-center justify-center">
-            <img
-              src={MascotImg}
-              alt="Royal Plate Mascot"
-              className="w-1/2 h-auto object-contain"
+          {/* Animated background gradient orbs - Brand Blue */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.15, 0.25, 0.15],
+                x: [0, 50, 0],
+                y: [0, -30, 0]
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] blur-3xl"
+            />
+            <motion.div
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.1, 0.2, 0.1],
+                x: [0, -40, 0],
+                y: [0, 40, 0]
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1
+              }}
+              className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full bg-gradient-to-tr from-[#536DFE] to-[#6B7FFF] blur-3xl"
             />
           </div>
 
-          {/* Buttons */}
-          <div ref={buttonsRef} className="w-full flex flex-col gap-3">
-            <button
-              onClick={handleGetStarted}
-              onMouseEnter={handleButtonHover}
-              onMouseLeave={handleButtonLeave}
-              onMouseDown={handleButtonPress}
-              className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl h-14 px-5 bg-[#536DFE] text-white text-sm font-bold leading-normal tracking-[0.2em] shadow-[0_8px_32px_rgba(83,109,254,0.4)] transition-all"
+          {/* Content Container */}
+          <div className="relative z-10 flex flex-col h-full px-8 pt-12 pb-8">
+
+            {/* Top Bar - Logo + Skip */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+              className="flex items-center justify-between mb-8"
             >
-              <span className="truncate uppercase">Get Started</span>
-            </button>
-            <button
-              onClick={handleSignIn}
-              onMouseEnter={handleButtonHover}
-              onMouseLeave={handleButtonLeave}
-              onMouseDown={handleButtonPress}
-              className="flex w-full cursor-pointer items-center justify-center rounded-2xl h-14 px-5 border border-[#536DFE]/30 text-[#536DFE] text-sm font-semibold tracking-[0.15em] bg-white/80 backdrop-blur-sm transition-all uppercase"
-            >
-              <span className="truncate">Sign In</span>
-            </button>
+              <motion.img
+                src={LogoImg}
+                alt="Royal Plate"
+                className="h-12 object-contain drop-shadow-2xl"
+                animate={{
+                  y: [-3, 3, -3]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              {currentScreen < screens.length - 1 && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  onClick={handleSkip}
+                  whileHover={{ scale: 1.05, x: 2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="text-[#536DFE] text-sm font-semibold tracking-wider uppercase"
+                >
+                  Skip
+                </motion.button>
+              )}
+            </motion.div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentScreen}
+                  initial={{ opacity: 0, x: 100, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -100, scale: 0.95 }}
+                  transition={{
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  className="w-full flex flex-col items-center"
+                >
+                  {/* Mascot with Icon Badge */}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{
+                      duration: 0.8,
+                      ease: [0.34, 1.56, 0.64, 1],
+                      delay: 0.2
+                    }}
+                    className="relative mb-10"
+                  >
+                    {/* Mascot Image with Float Animation */}
+                    <motion.div
+                      animate={{
+                        y: [-10, 10, -10],
+                        rotate: [-3, 3, -3]
+                      }}
+                      transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="relative"
+                    >
+                      <motion.img
+                        src={MascotImg}
+                        alt="Royal Plate Mascot"
+                        className="w-72 h-72 object-contain drop-shadow-2xl"
+                        animate={{
+                          filter: [
+                            "drop-shadow(0 20px 40px rgba(83, 109, 254, 0.3))",
+                            "drop-shadow(0 25px 50px rgba(83, 109, 254, 0.4))",
+                            "drop-shadow(0 20px 40px rgba(83, 109, 254, 0.3))"
+                          ]
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
+
+                      {/* Floating Icon Badge */}
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{
+                          duration: 0.7,
+                          ease: [0.34, 1.56, 0.64, 1],
+                          delay: 0.5
+                        }}
+                        className="absolute -top-6 -right-6 w-20 h-20 rounded-3xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-2xl border-4 border-white"
+                      >
+                        <motion.div
+                          animate={{
+                            rotate: [0, 5, -5, 0],
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          <IconComponent className="w-10 h-10 text-white" />
+                        </motion.div>
+                      </motion.div>
+                    </motion.div>
+
+                    {/* Pulsing Glow Effect */}
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.3, 1],
+                        opacity: [0.2, 0.4, 0.2]
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="absolute inset-0 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] blur-3xl -z-10"
+                    />
+
+                    {/* Orbiting Particles */}
+                    {[0, 1, 2, 3].map((i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-3 h-3 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] shadow-lg"
+                        animate={{
+                          rotate: [0, 360],
+                          scale: [1, 1.3, 1],
+                          opacity: [0.6, 1, 0.6]
+                        }}
+                        transition={{
+                          rotate: {
+                            duration: 8,
+                            repeat: Infinity,
+                            ease: "linear",
+                            delay: i * 0.5
+                          },
+                          scale: {
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.3
+                          },
+                          opacity: {
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.3
+                          }
+                        }}
+                        style={{
+                          left: '50%',
+                          top: '50%',
+                          marginLeft: '-6px',
+                          marginTop: '-6px',
+                          transformOrigin: `${Math.cos((i * Math.PI) / 2) * 140}px ${Math.sin((i * Math.PI) / 2) * 140}px`
+                        }}
+                      />
+                    ))}
+                  </motion.div>
+
+                  {/* Text Content */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.6,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: 0.4
+                    }}
+                    className="text-center px-4"
+                  >
+                    <motion.h1
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                        delay: 0.5
+                      }}
+                      className="text-[#1D2956] text-4xl font-bold mb-3 leading-tight"
+                    >
+                      {currentScreenData.title}
+                    </motion.h1>
+                    <motion.p
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                        delay: 0.6
+                      }}
+                      className="text-[#536DFE] text-sm font-bold tracking-[0.25em] uppercase mb-5"
+                    >
+                      {currentScreenData.subtitle}
+                    </motion.p>
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                        delay: 0.7
+                      }}
+                      className="text-[#1D2956]/70 text-base leading-relaxed max-w-sm mx-auto"
+                    >
+                      {currentScreenData.description}
+                    </motion.p>
+                  </motion.div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom Section - Pagination + Buttons + Branding - Properly structured */}
+            <div className="space-y-4">
+              {/* Pagination Dots - Brand Blue */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="flex items-center justify-center gap-3"
+              >
+                {screens.map((_, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={() => setCurrentScreen(index)}
+                    whileHover={{ scale: 1.4 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="relative"
+                  >
+                    <motion.div
+                      animate={{
+                        width: currentScreen === index ? 44 : 12,
+                        height: currentScreen === index ? 4 : 4,
+                        backgroundColor: currentScreen === index ? '#536DFE' : '#E2E8F0'
+                      }}
+                      transition={{
+                        duration: 0.4,
+                        ease: [0.22, 1, 0.36, 1]
+                      }}
+                      className="rounded-full"
+                    />
+                    {currentScreen === index && (
+                      <motion.div
+                        layoutId="activeDot"
+                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] shadow-lg shadow-[#536DFE]/25"
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25
+                        }}
+                      />
+                    )}
+                  </motion.button>
+                ))}
+              </motion.div>
+
+              {/* Action Buttons - Brand Blue */}
+              <div className="space-y-4">
+                {currentScreen === screens.length - 1 ? (
+                  <>
+                    <motion.button
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.9 }}
+                      onClick={handleGetStarted}
+                      whileHover={{ scale: 1.03, y: -3, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.4)" }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-sm tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                    >
+                      {/* Animated background gradient */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-[#6B7FFF] to-[#536DFE]"
+                        animate={{
+                          x: ["-100%", "100%"]
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        style={{ backgroundSize: "200% 100%" }}
+                      />
+                      <motion.span
+                        className="relative z-10"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                      >
+                        Get Started
+                      </motion.span>
+                      <motion.div
+                        className="relative z-10"
+                        animate={{ x: [0, 3, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: 1.5 }}
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </motion.div>
+                    </motion.button>
+                    <motion.button
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 1.0 }}
+                      onClick={handleSignIn}
+                      whileHover={{ scale: 1.03, y: -3, backgroundColor: 'rgba(83, 109, 254, 0.1)', boxShadow: "0 15px 35px rgba(83, 109, 254, 0.2)" }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full h-16 rounded-2xl border-2 border-[#536DFE]/40 text-[#536DFE] font-bold text-sm tracking-[0.2em] uppercase bg-white shadow-lg relative overflow-hidden"
+                    >
+                      {/* Animated border glow */}
+                      <motion.div
+                        className="absolute inset-0 rounded-2xl border-2 border-transparent"
+                        animate={{
+                          boxShadow: [
+                            "0 0 0 0 rgba(83, 109, 254, 0)",
+                            "0 0 0 10px rgba(83, 109, 254, 0.1)",
+                            "0 0 0 0 rgba(83, 109, 254, 0)"
+                          ]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeOut"
+                        }}
+                      />
+                      <span className="relative z-10">Sign In</span>
+                    </motion.button>
+                  </>
+                ) : (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.9 }}
+                    onClick={handleNext}
+                    whileHover={{ scale: 1.03, y: -3, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.4)" }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-sm tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                  >
+                    {/* Animated background gradient */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-[#6B7FFF] to-[#536DFE]"
+                      animate={{
+                        x: ["-100%", "100%"]
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      style={{ backgroundSize: "200% 100%" }}
+                    />
+                    <motion.span
+                      className="relative z-10"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      Next
+                    </motion.span>
+                    <motion.div
+                      className="relative z-10"
+                      animate={{ x: [0, 3, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </motion.div>
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Powered By - Properly positioned */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1 }}
+                className="flex flex-col items-center gap-2 pt-2 pb-1"
+              >
+                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE] to-transparent rounded-full" />
+                <p className="text-[#1D2956]/40 text-[8px] font-semibold tracking-[0.2em] uppercase">
+                  Powered By
+                </p>
+                <img
+                  src="https://mingalarmon.com/assets/logo_light.png"
+                  alt="Mingalar Mon"
+                  className="h-6 object-contain opacity-60"
+                />
+              </motion.div>
+            </div>
           </div>
+
+          {/* Bottom home indicator */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1D2956]/10 rounded-full z-20" />
         </div>
-
-        {/* ZONE 3 — Bottom: Powered By */}
-        <div ref={footerRef} className="flex flex-col items-center gap-2">
-          <p className="text-[#1D2956]/30 text-[9px] font-semibold tracking-[0.35em] uppercase">
-            Powered By
-          </p>
-          <img
-            src="https://mingalarmon.com/assets/logo_light.png"
-            alt="Mingalar Mon"
-            className="h-12 object-contain opacity-70"
-          />
-        </div>
-
-      </div>
-
-      {/* Bottom home indicator bar */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1D2956]/10 rounded-full" />
-    </div>
+      </PageTransition>
+    </>
   );
 };
 

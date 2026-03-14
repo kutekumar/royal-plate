@@ -7,6 +7,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import gsap from 'gsap';
 import { formatCurrency } from '@/utils/currency';
+import { motion, AnimatePresence } from 'framer-motion';
+import BrandLoader from '@/components/BrandLoader';
+import PageTransition from '@/components/PageTransition';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: any; gradient: string }> = {
   pending:    { label: 'Pending',    color: 'text-amber-600',  bg: 'bg-amber-50 border-amber-200', icon: Timer, gradient: 'from-amber-400 to-amber-500' },
@@ -23,6 +26,7 @@ const Orders = () => {
   const [fullscreenQR, setFullscreenQR] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
@@ -92,45 +96,53 @@ const Orders = () => {
 
   if (loading) {
     return (
-      <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins items-center justify-center">
-        <div className="w-10 h-10 border-2 border-[#536DFE]/20 border-t-[#536DFE] rounded-full animate-spin" />
-      </div>
+      <>
+        <BrandLoader isLoading={true} />
+      </>
     );
   }
 
   return (
-    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
+    <>
+      <BrandLoader isLoading={isTransitioning} />
+      <PageTransition>
+        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
 
-      {/* ── Header ── */}
-      <div ref={headerRef} className="flex items-center justify-between px-5 pt-6 pb-3 z-10 bg-[#F5F5F7]">
-        <div>
-          <h1 className="text-[#1D2956] text-xl font-bold tracking-tight leading-none">My Orders</h1>
-          <p className="text-gray-400 text-[10px] uppercase tracking-[0.25em] mt-0.5">Track your reservations</p>
-        </div>
-        <div className="flex items-center gap-2 bg-[#536DFE]/10 rounded-2xl px-3 py-2">
-          <ShoppingBag className="w-4 h-4 text-[#536DFE]" />
-          <span className="text-[#536DFE] text-xs font-bold">{orders.length}</span>
+      {/* ── Premium Header ── */}
+      <div ref={headerRef} className="relative px-5 pt-8 pb-4 z-10">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-transparent backdrop-blur-xl" />
+
+        <div className="relative flex items-center justify-between">
+          <div>
+            <h1 className="text-[#1D2956] text-2xl font-bold tracking-tight leading-none mb-1">My Orders</h1>
+            <p className="text-gray-400 text-[11px] uppercase tracking-[0.3em] font-medium">Track your reservations</p>
+          </div>
+          <div className="flex items-center gap-2.5 bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 rounded-2xl px-4 py-2.5 border border-[#536DFE]/20 shadow-lg">
+            <ShoppingBag className="w-4.5 h-4.5 text-[#536DFE]" />
+            <span className="text-[#536DFE] text-sm font-bold">{orders.length}</span>
+          </div>
         </div>
       </div>
 
-      {/* ── Filter Tabs ── */}
-      <div ref={filterRef} className="px-5 pb-4 z-10">
-        <div className="flex p-1 bg-gray-100 rounded-2xl border border-gray-200 shadow-sm">
+      {/* ── Premium Filter Tabs ── */}
+      <div ref={filterRef} className="px-5 pb-5 z-10">
+        <div className="flex p-1.5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200/50 shadow-inner">
           {(['upcoming', 'past'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${
+              className={`flex-1 py-3.5 text-sm font-bold rounded-xl transition-all ${
                 filter === tab
-                  ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                  : 'text-gray-500 hover:text-[#1D2956]'
+                  ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
+                  : 'text-gray-500 hover:text-[#1D2956] hover:bg-white/50'
               }`}
             >
               <span className="flex items-center justify-center gap-2">
                 {tab === 'upcoming' ? 'Active' : 'History'}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                   filter === tab
-                    ? 'bg-white/20 text-white'
+                    ? 'bg-white/25 text-white'
                     : 'bg-gray-200 text-gray-600'
                 }`}>
                   {tab === 'upcoming' ? upcomingCount : pastCount}
@@ -141,93 +153,106 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* ── Orders List ── */}
+      {/* ── Premium Orders List ── */}
       <div className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide">
         {filteredOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#1D2956]/10 flex items-center justify-center mb-5 shadow-inner">
-              <ShoppingBag className="w-10 h-10 text-[#536DFE]/40" />
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center mb-6 shadow-xl shadow-black/5">
+              <ShoppingBag className="w-12 h-12 text-[#536DFE]/40" />
             </div>
-            <p className="text-[#1D2956] font-bold text-base mb-1">
-              {filter === 'upcoming' ? 'No active orders' : 'No order history'}
+            <p className="text-[#1D2956] font-bold text-lg mb-2">
+              {filter === 'upcoming' ? 'No Active Orders' : 'No Order History'}
             </p>
-            <p className="text-gray-400 text-sm max-w-[200px]">
-              {filter === 'upcoming' 
-                ? 'Your upcoming reservations will appear here' 
+            <p className="text-gray-400 text-sm max-w-[220px] leading-relaxed">
+              {filter === 'upcoming'
+                ? 'Your upcoming reservations will appear here'
                 : 'Completed orders will show up here'}
             </p>
           </div>
         ) : (
-          <div ref={listRef} className="space-y-3">
-            {filteredOrders.map((order) => {
+          <div ref={listRef} className="space-y-4">
+            {filteredOrders.map((order, index) => {
               const status = statusConfig[order.status] || statusConfig.pending;
               const isDineIn = order.order_type === 'dine_in';
               const StatusIcon = status.icon;
 
               return (
-                <div
+                <motion.div
                   key={order.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08, duration: 0.4 }}
                   onClick={() => setSelectedOrder(order)}
-                  className="relative rounded-3xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300 active:scale-[0.98] border border-gray-100/80"
+                  className="relative rounded-3xl overflow-hidden cursor-pointer group shadow-xl shadow-black/5 hover:shadow-2xl hover:shadow-[#536DFE]/20 transition-all duration-500 active:scale-[0.98] border border-white/60"
                 >
-                  {/* ── Background Image ── */}
-                  <div className="relative h-44">
+                  {/* ── Background Image with Brand Filter ── */}
+                  <div className="relative h-48 brand-image-filter brand-shimmer">
                     {order.restaurants?.image_url ? (
                       <img
                         src={order.restaurants.image_url}
                         alt={order.restaurants?.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brand-image-fade"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-[#1D2956] to-[#536DFE]/80" />
                     )}
-                    
-                    {/* ── Gradient Overlay ── */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1D2956]/95 via-[#1D2956]/40 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#536DFE]/10 to-transparent" />
+
+                    {/* ── Enhanced Gradient Overlay ── */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1D2956]/95 via-[#1D2956]/50 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#536DFE]/15 to-transparent" />
 
                     {/* ── Top Row: Status + Type ── */}
                     <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${status.gradient} text-white text-[10px] font-bold uppercase tracking-wider shadow-lg`}>
-                        <StatusIcon className="w-3 h-3" />
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: index * 0.08 + 0.2, duration: 0.3 }}
+                        className={`flex items-center gap-2 px-3.5 py-2 rounded-full bg-gradient-to-r ${status.gradient} text-white text-[10px] font-bold uppercase tracking-wider shadow-xl border border-white/30`}
+                      >
+                        <StatusIcon className="w-3.5 h-3.5" />
                         {status.label}
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border border-white/20">
-                        {isDineIn ? <UtensilsCrossed className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
+                      </motion.div>
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: index * 0.08 + 0.3, duration: 0.3 }}
+                        className="flex items-center gap-2 bg-white/20 backdrop-blur-xl text-white text-[10px] font-bold uppercase tracking-wide px-3.5 py-2 rounded-full border border-white/30 shadow-lg"
+                      >
+                        {isDineIn ? <UtensilsCrossed className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
                         {isDineIn ? 'Dine In' : 'Take Out'}
-                      </div>
+                      </motion.div>
                     </div>
 
                     {/* ── Bottom Content ── */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white text-lg font-bold leading-tight drop-shadow mb-1.5">
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                      <h3 className="text-white text-xl font-bold leading-tight drop-shadow-lg mb-2">
                         {order.restaurants?.name}
                       </h3>
-                      
-                      <div className="flex flex-wrap items-center gap-3 text-white/70 text-xs mb-3">
+
+                      <div className="flex flex-wrap items-center gap-3 text-white/80 text-xs mb-3.5">
                         {isDineIn && order.reservation_date ? (
                           <>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
+                            <span className="flex items-center gap-1.5 font-medium">
+                              <Calendar className="w-3.5 h-3.5" />
                               {formatDate(order.reservation_date)}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
+                            <span className="flex items-center gap-1.5 font-medium">
+                              <Clock className="w-3.5 h-3.5" />
                               {order.reservation_time}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3 h-3" />
+                            <span className="flex items-center gap-1.5 font-medium">
+                              <Users className="w-3.5 h-3.5" />
                               {order.party_size} {order.party_size === 1 ? 'guest' : 'guests'}
                             </span>
                           </>
                         ) : (
                           <>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
+                            <span className="flex items-center gap-1.5 font-medium">
+                              <Calendar className="w-3.5 h-3.5" />
                               {formatDate(order.created_at)}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
+                            <span className="flex items-center gap-1.5 font-medium">
+                              <Clock className="w-3.5 h-3.5" />
                               {formatTime(order.created_at)}
                             </span>
                           </>
@@ -235,19 +260,19 @@ const Orders = () => {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <p className="text-white font-bold text-xl drop-shadow">
+                        <p className="text-white font-bold text-2xl drop-shadow-lg">
                           {formatCurrency(order.total_amount)}
                         </p>
-                        <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/20 group-hover:bg-white/30 transition-colors">
+                        <div className="flex items-center gap-2.5 bg-white/25 backdrop-blur-xl rounded-full px-4 py-2 border border-white/30 group-hover:bg-white/35 transition-all shadow-lg">
                           <span className="text-white text-xs font-bold uppercase tracking-wider">View Details</span>
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -392,6 +417,8 @@ const Orders = () => {
 
       <BottomNav />
     </div>
+      </PageTransition>
+    </>
   );
 };
 

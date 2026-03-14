@@ -22,6 +22,9 @@ import RestaurantChatbot from '@/components/RestaurantChatbot';
 import { formatCurrency } from '@/utils/currency';
 import { getUserLocation, Coordinates } from '@/utils/location';
 import SingleRestaurantMap from '@/components/SingleRestaurantMap';
+import { motion, AnimatePresence } from 'framer-motion';
+import BrandLoader from '@/components/BrandLoader';
+import PageTransition from '@/components/PageTransition';
 
 interface MenuItem {
   id: string;
@@ -69,6 +72,7 @@ const RestaurantDetails = () => {
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const menuSectionRef = useRef<HTMLDivElement>(null);
   const menuItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -219,7 +223,10 @@ const RestaurantDetails = () => {
       totalAmount: getTotalPrice(),
     };
 
-    navigate('/payment', { state: orderData });
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate('/payment', { state: orderData });
+    }, 600);
   };
 
   const filteredMenuItems = menuItems.filter((item) =>
@@ -259,91 +266,95 @@ const RestaurantDetails = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#F5F5F7] max-w-[430px] mx-auto overflow-x-hidden font-poppins">
+    <>
+      <BrandLoader isLoading={isTransitioning} />
+      <PageTransition>
+        <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] max-w-[430px] mx-auto overflow-x-hidden font-poppins">
 
-      {/* ── Hero Image ── */}
-      <div className="relative w-full h-72 overflow-hidden">
+      {/* ── Premium Hero Image ── */}
+      <div className="relative w-full h-80 overflow-hidden brand-hero-filter">
         <img
           src={restaurant.image_url}
           alt={restaurant.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover brand-image-fade"
         />
-        {/* Gradient layers */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
+        {/* Multi-layer premium gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#536DFE]/10 to-transparent" />
 
-        {/* Back button */}
+        {/* Premium Back button with glassmorphism */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-5 left-4 z-10 w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/40 transition-all"
+          className="absolute top-6 left-5 z-10 w-11 h-11 rounded-2xl bg-white/25 backdrop-blur-xl border border-white/40 flex items-center justify-center hover:bg-white/40 hover:scale-105 transition-all shadow-xl"
         >
-          <ArrowLeft className="w-5 h-5 text-white" />
+          <ArrowLeft className="w-5 h-5 text-white drop-shadow" />
         </button>
 
-        {/* Chatbot button */}
+        {/* Premium Chatbot button */}
         <button
           onClick={() => setShowChatbot(!showChatbot)}
-          className="absolute top-5 right-4 z-10 flex items-center gap-2 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white px-5 py-3 rounded-2xl shadow-xl shadow-[#536DFE]/50 hover:shadow-2xl hover:shadow-[#536DFE]/60 hover:scale-105 transition-all duration-300 border border-white/20"
+          className="absolute top-6 right-5 z-10 flex items-center gap-2.5 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-[#536DFE]/60 hover:shadow-[0_0_40px_rgba(83,109,254,0.8)] hover:scale-105 transition-all duration-300 border border-white/30 backdrop-blur-md"
         >
-          <MessageCircle className="w-4.5 h-4.5" />
-          <span className="text-sm font-bold">Talk To Us</span>
+          <MessageCircle className="w-5 h-5" />
+          <span className="text-sm font-bold tracking-wide">Talk To Us</span>
         </button>
 
-        {/* Rating badge on hero */}
-        <div className="absolute bottom-16 left-4 flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/30">
+        {/* Premium Rating badge */}
+        <div className="absolute bottom-20 left-5 flex items-center gap-2 bg-white/25 backdrop-blur-xl rounded-2xl px-4 py-2.5 border border-white/40 shadow-2xl">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(restaurant.rating) ? 'fill-white text-white' : 'text-white/30'}`} />
+            <Star key={i} className={`w-4 h-4 ${i < Math.floor(restaurant.rating) ? 'fill-white text-white' : 'text-white/30'} drop-shadow`} />
           ))}
-          <span className="text-white text-xs font-bold ml-1">{restaurant.rating}</span>
-          <span className="text-white/60 text-xs">• 1.2k reviews</span>
+          <span className="text-white text-sm font-bold ml-1 drop-shadow">{restaurant.rating}</span>
+          <span className="text-white/70 text-sm drop-shadow">• 1.2k reviews</span>
         </div>
       </div>
 
-      {/* ── Restaurant Info Card ── */}
-      <div className="bg-white mx-4 -mt-6 relative z-10 rounded-3xl shadow-xl border border-gray-100 p-5 mb-4">
-        <h1 className="text-[#1D2956] text-2xl font-bold leading-tight tracking-tight mb-1">
+      {/* ── Premium Restaurant Info Card ── */}
+      <div className="bg-white/95 backdrop-blur-xl mx-5 -mt-8 relative z-10 rounded-3xl shadow-2xl shadow-black/10 border border-white/60 p-6 mb-5">
+        <h1 className="text-[#1D2956] text-2xl font-bold leading-tight tracking-tight mb-2">
           {restaurant.name}
         </h1>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-4">
           {restaurant.cuisine_type && (
-            <span className="bg-[#536DFE]/10 text-[#536DFE] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+            <span className="bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 text-[#536DFE] text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-[#536DFE]/20">
               {restaurant.cuisine_type}
             </span>
           )}
         </div>
         <p className="text-gray-500 text-sm leading-relaxed">{restaurant.description}</p>
 
-        {/* Contact row */}
-        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+        {/* Premium Contact row */}
+        <div className="mt-5 pt-5 border-t border-gray-100 space-y-4">
           <button
             onClick={() => setShowMap(!showMap)}
-            className="flex items-center gap-3 w-full text-left group"
+            className="flex items-center gap-3.5 w-full text-left group"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#536DFE]/10 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-4 h-4 text-[#536DFE]" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-md">
+              <MapPin className="w-5 h-5 text-[#536DFE]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#1D2956] text-sm font-medium truncate">{restaurant.address}</p>
-              <p className="text-gray-400 text-[11px]">{showMap ? 'Hide map' : 'Show on map'}</p>
+              <p className="text-[#1D2956] text-sm font-semibold truncate">{restaurant.address}</p>
+              <p className="text-gray-400 text-[11px] font-medium mt-0.5">{showMap ? 'Hide map' : 'Show on map'}</p>
             </div>
-            <svg className="w-4 h-4 text-gray-300 group-hover:text-[#536DFE] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-5 h-5 text-gray-300 group-hover:text-[#536DFE] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#536DFE]/10 flex items-center justify-center flex-shrink-0">
-              <Phone className="w-4 h-4 text-[#536DFE]" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 shadow-md">
+              <Phone className="w-5 h-5 text-[#536DFE]" />
             </div>
             <div>
-              <p className="text-[#1D2956] text-sm font-medium">{restaurant.phone}</p>
-              <p className="text-gray-400 text-[11px]">{restaurant.opening_hours}</p>
+              <p className="text-[#1D2956] text-sm font-semibold">{restaurant.phone}</p>
+              <p className="text-gray-400 text-[11px] font-medium mt-0.5">{restaurant.opening_hours}</p>
             </div>
           </div>
         </div>
 
-        {/* Map Display */}
+        {/* Premium Map Display */}
         {showMap && restaurant.latitude && restaurant.longitude && (
-          <div className="mt-4">
+          <div className="mt-5 rounded-2xl overflow-hidden border border-white/60 shadow-xl">
             <SingleRestaurantMap
               name={restaurant.name}
               address={restaurant.address}
@@ -358,27 +369,30 @@ const RestaurantDetails = () => {
         )}
       </div>
 
-      {/* ── Order Type Selection ── */}
-      <div className="px-4 pb-4">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4">
-          <p className="text-[#1D2956] text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Order Type</p>
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl border border-gray-200">
+      {/* ── Premium Order Type Selection ── */}
+      <div className="px-5 pb-5">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-5">
+          <p className="text-[#1D2956] text-[11px] font-bold uppercase tracking-[0.25em] mb-4 flex items-center gap-2">
+            <div className="w-1 h-4 bg-gradient-to-b from-[#536DFE] to-[#6B7FFF] rounded-full" />
+            Order Type
+          </p>
+          <div className="flex gap-3 p-1.5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200/50 shadow-inner">
             <button
               onClick={() => setOrderType('dine_in')}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all ${
                 orderType === 'dine_in'
-                  ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                  : 'text-gray-500 hover:text-[#1D2956]'
+                  ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
+                  : 'text-gray-500 hover:text-[#1D2956] hover:bg-white/50'
               }`}
             >
               Dine In
             </button>
             <button
               onClick={() => setOrderType('takeaway')}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all ${
                 orderType === 'takeaway'
-                  ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                  : 'text-gray-500 hover:text-[#1D2956]'
+                  ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
+                  : 'text-gray-500 hover:text-[#1D2956] hover:bg-white/50'
               }`}
             >
               Take Out
@@ -387,38 +401,44 @@ const RestaurantDetails = () => {
         </div>
       </div>
 
-      {/* ── Reservation Section ── */}
+      {/* ── Premium Reservation Section ── */}
       {orderType === 'dine_in' && (
-        <div className="px-4 pb-4">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
-            <h3 className="text-[#1D2956] text-base font-bold mb-5 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-[#536DFE]/10 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-[#536DFE]" />
+        <div className="px-5 pb-5">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-6">
+            <h3 className="text-[#1D2956] text-lg font-bold mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 flex items-center justify-center shadow-md">
+                <Calendar className="w-5 h-5 text-[#536DFE]" />
               </div>
               Reserve Your Table
             </h3>
 
-            {/* Party Size */}
-            <div className="flex justify-between items-center bg-[#F5F5F7] p-4 rounded-2xl mb-5">
+            {/* Premium Party Size */}
+            <div className="flex justify-between items-center bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] p-5 rounded-2xl mb-6 border border-gray-100/50 shadow-inner">
               <div>
                 <p className="text-[#1D2956] text-sm font-bold">Party Size</p>
-                <p className="text-gray-400 text-[11px]">Number of guests</p>
+                <p className="text-gray-400 text-[11px] font-medium mt-0.5">Number of guests</p>
               </div>
-              <div className="flex items-center gap-5">
-                <button onClick={() => setPartySize(Math.max(1, partySize - 1))} className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:border-[#536DFE]/40 transition-all shadow-sm">
-                  <Minus className="w-4 h-4 text-[#536DFE]" />
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setPartySize(Math.max(1, partySize - 1))}
+                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:border-[#536DFE]/40 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md hover:shadow-lg active:scale-95"
+                >
+                  <Minus className="w-4.5 h-4.5 text-[#536DFE]" />
                 </button>
-                <span className="text-[#1D2956] text-xl font-bold w-6 text-center">{partySize}</span>
-                <button onClick={() => setPartySize(Math.min(20, partySize + 1))} className="w-9 h-9 rounded-xl bg-[#536DFE] flex items-center justify-center shadow-md shadow-[#536DFE]/30 hover:bg-[#536DFE]/90 transition-all">
-                  <Plus className="w-4 h-4 text-white" />
+                <span className="text-[#1D2956] text-2xl font-bold w-8 text-center">{partySize}</span>
+                <button
+                  onClick={() => setPartySize(Math.min(20, partySize + 1))}
+                  className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-xl shadow-[#536DFE]/40 hover:shadow-2xl hover:scale-105 transition-all active:scale-95"
+                >
+                  <Plus className="w-4.5 h-4.5 text-white" />
                 </button>
               </div>
             </div>
 
-            {/* Date Selection */}
-            <div className="mb-5">
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Select Date</p>
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {/* Premium Date Selection */}
+            <div className="mb-6">
+              <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4">Select Date</p>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {getAvailableDates().map((date) => {
                   const formatted = formatDate(date);
                   const isSelected = selectedDate === formatted.fullDate;
@@ -426,34 +446,34 @@ const RestaurantDetails = () => {
                     <button
                       key={formatted.fullDate}
                       onClick={() => setSelectedDate(formatted.fullDate)}
-                      className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[60px] h-[72px] rounded-2xl transition-all ${
+                      className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[68px] h-[80px] rounded-2xl transition-all shadow-lg ${
                         isSelected
-                          ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                          : 'bg-[#F5F5F7] border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40'
+                          ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/40 scale-105 border border-white/30'
+                          : 'bg-white/90 backdrop-blur-md border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40 hover:shadow-xl shadow-black/5'
                       }`}
                     >
-                      <span className={`text-[9px] font-bold uppercase mb-0.5 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>{formatted.month}</span>
-                      <span className="text-xl font-bold">{formatted.day}</span>
+                      <span className={`text-[10px] font-bold uppercase mb-1 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>{formatted.month}</span>
+                      <span className="text-2xl font-bold">{formatted.day}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Time Selection */}
+            {/* Premium Time Selection */}
             <div>
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Time Slots</p>
-              <div className="grid grid-cols-3 gap-2">
+              <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4">Time Slots</p>
+              <div className="grid grid-cols-3 gap-3">
                 {timeSlots.map((time) => {
                   const isSelected = selectedTime === time;
                   return (
                     <button
                       key={time}
                       onClick={() => setSelectedTime(time)}
-                      className={`py-3 rounded-2xl text-sm font-bold transition-all ${
+                      className={`py-3.5 rounded-2xl text-sm font-bold transition-all shadow-lg ${
                         isSelected
-                          ? 'bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
-                          : 'bg-[#F5F5F7] border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40'
+                          ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/40 scale-105'
+                          : 'bg-white/90 backdrop-blur-md border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40 hover:shadow-xl shadow-black/5'
                       }`}
                     >
                       {time}
@@ -466,81 +486,85 @@ const RestaurantDetails = () => {
         </div>
       )}
 
-      {/* ── Menu Section ── */}
-      <div className="px-4 pb-36">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[#1D2956] text-base font-bold flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-[#536DFE]/10 flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 text-[#536DFE]" />
+      {/* ── Premium Menu Section ── */}
+      <div className="px-5 pb-36">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-[#1D2956] text-lg font-bold flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 flex items-center justify-center shadow-md">
+                <ShoppingCart className="w-5 h-5 text-[#536DFE]" />
               </div>
               Menu
             </h3>
-            <span className="text-gray-400 text-[11px] font-medium">{filteredMenuItems.length} items</span>
+            <span className="text-gray-400 text-[11px] font-semibold tracking-wide">{filteredMenuItems.length} items</span>
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-4 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          {/* Premium Search Bar */}
+          <div className="mb-5 relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#536DFE]/10 to-[#6B7FFF]/10 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400 z-10 group-focus-within:text-[#536DFE] transition-colors" />
             <input
               type="text"
               placeholder="Search menu..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F5F5F7] border border-gray-100 text-[#1D2956] text-sm placeholder-gray-400 focus:outline-none focus:border-[#536DFE]/40 focus:ring-2 focus:ring-[#536DFE]/10 transition-all"
+              className="relative w-full pl-12 pr-4 py-3.5 rounded-2xl bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] border border-gray-100 text-[#1D2956] text-sm placeholder-gray-400 focus:outline-none focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 transition-all shadow-inner"
             />
           </div>
 
-          {/* Menu Items */}
-          <div className="space-y-3">
+          {/* Premium Menu Items */}
+          <div className="space-y-4">
             {filteredMenuItems.length === 0 ? (
-              <p className="text-gray-400 text-center py-8 text-sm">No menu items found</p>
+              <p className="text-gray-400 text-center py-10 text-sm">No menu items found</p>
             ) : (
-              filteredMenuItems.map((item) => {
+              filteredMenuItems.map((item, index) => {
                 const cartItem = cart.find((c) => c.id === item.id);
                 const quantity = cartItem?.quantity || 0;
                 return (
-                  <div
+                  <motion.div
                     key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05, duration: 0.4 }}
                     ref={(el) => { menuItemRefs.current[item.id] = el; }}
-                    className="flex gap-3 p-3 bg-[#F5F5F7] rounded-2xl hover:bg-gray-100 transition-all cursor-pointer group border border-transparent hover:border-[#536DFE]/10"
+                    className="flex gap-4 p-4 bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] rounded-2xl hover:from-white hover:to-[#F5F5F7] hover:shadow-xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-[#536DFE]/20 shadow-md"
                     onClick={() => setSelectedMenuItem(item)}
                   >
-                    {/* Image */}
-                    <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden flex-shrink-0">
+                    {/* Premium Image with Brand Filter */}
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg border border-white/60 brand-menu-filter brand-shimmer">
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brand-image-fade"
                       />
                     </div>
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-[#1D2956] font-bold text-sm mb-0.5 truncate">{item.name}</h4>
-                      <p className="text-gray-400 text-[11px] line-clamp-2 mb-2">{item.description}</p>
+                      <h4 className="text-[#1D2956] font-bold text-sm mb-1 truncate group-hover:text-[#536DFE] transition-colors">{item.name}</h4>
+                      <p className="text-gray-400 text-[11px] line-clamp-2 mb-2.5 leading-relaxed">{item.description}</p>
                       <div className="flex items-center justify-between">
-                        <p className="text-[#536DFE] font-bold text-sm">{formatCurrency(item.price)}</p>
+                        <p className="text-[#536DFE] font-bold text-base">{formatCurrency(item.price)}</p>
                         {quantity > 0 ? (
-                          <div className="flex items-center gap-2 bg-white rounded-xl px-2.5 py-1 border border-[#536DFE]/20 shadow-sm" onClick={(e) => e.stopPropagation()}>
-                            <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} className="text-[#536DFE] hover:scale-110 transition-transform">
-                              <Minus className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-2.5 bg-white rounded-xl px-3 py-1.5 border border-[#536DFE]/30 shadow-lg shadow-[#536DFE]/20" onClick={(e) => e.stopPropagation()}>
+                            <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} className="text-[#536DFE] hover:scale-110 transition-transform active:scale-95">
+                              <Minus className="w-4 h-4" />
                             </button>
-                            <span className="text-[#1D2956] font-bold text-sm min-w-[16px] text-center">{quantity}</span>
-                            <button onClick={(e) => { e.stopPropagation(); addToCart(item); }} className="text-[#536DFE] hover:scale-110 transition-transform">
-                              <Plus className="w-3.5 h-3.5" />
+                            <span className="text-[#1D2956] font-bold text-sm min-w-[20px] text-center">{quantity}</span>
+                            <button onClick={(e) => { e.stopPropagation(); addToCart(item); }} className="text-[#536DFE] hover:scale-110 transition-transform active:scale-95">
+                              <Plus className="w-4 h-4" />
                             </button>
                           </div>
                         ) : (
                           <button
                             onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                            className="bg-[#536DFE] text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm shadow-[#536DFE]/30 hover:bg-[#536DFE]/90 transition-all active:scale-95"
+                            className="bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-[#536DFE]/40 hover:shadow-xl hover:scale-105 transition-all active:scale-95"
                           >
                             Add
                           </button>
                         )}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })
             )}
@@ -548,87 +572,96 @@ const RestaurantDetails = () => {
         </div>
       </div>
 
-      {/* Menu Item Detail Modal */}
+      {/* Premium Menu Item Detail Modal */}
       {selectedMenuItem && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-end justify-center"
-          onClick={() => setSelectedMenuItem(null)}
-        >
-          <div
-            className="bg-[#F5F5F7] w-full max-w-[430px] rounded-t-3xl border-t border-[#536DFE]/30 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxHeight: '88vh' }}
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] flex items-end justify-center"
+            onClick={() => setSelectedMenuItem(null)}
           >
-            {/* Full image at top */}
-            <div className="relative w-full h-64 overflow-hidden">
-              <img
-                src={selectedMenuItem.image_url}
-                alt={selectedMenuItem.name}
-                className="w-full h-full object-cover"
-              />
-              {/* Gradient overlay — dark at bottom for text contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/40 to-transparent" />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] w-full max-w-[430px] rounded-t-3xl border-t-2 border-[#536DFE]/40 overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxHeight: '88vh' }}
+            >
+              {/* Premium Full image at top */}
+              <div className="relative w-full h-72 overflow-hidden brand-menu-filter">
+                <img
+                  src={selectedMenuItem.image_url}
+                  alt={selectedMenuItem.name}
+                  className="w-full h-full object-cover brand-image-fade"
+                />
+              {/* Multi-layer gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7]/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#536DFE]/10 to-transparent" />
 
-              {/* Close button */}
+              {/* Premium Close button */}
               <button
                 onClick={() => setSelectedMenuItem(null)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-[#F5F5F7]/70 backdrop-blur-md border border-[#536DFE]/30 flex items-center justify-center hover:bg-[#F5F5F7] transition-all"
+                className="absolute top-5 right-5 w-11 h-11 rounded-2xl bg-white/30 backdrop-blur-xl border border-white/50 flex items-center justify-center hover:bg-white/50 hover:scale-105 transition-all shadow-xl"
               >
-                <X className="w-4 h-4 text-[#536DFE]" />
+                <X className="w-5 h-5 text-[#536DFE] drop-shadow" />
               </button>
 
-              {/* Category badge */}
+              {/* Premium Category badge */}
               {selectedMenuItem.category && (
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#536DFE] text-[#F5F5F7] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                <div className="absolute top-5 left-5">
+                  <span className="bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white text-[11px] font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-xl shadow-[#536DFE]/50 border border-white/30 backdrop-blur-md">
                     {selectedMenuItem.category}
                   </span>
                 </div>
               )}
 
-              {/* Name & price overlaid on image bottom */}
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-4">
-                <h2 className="text-[#1D2956] text-2xl font-bold leading-tight drop-shadow-lg">
+              {/* Premium Name & price overlaid on image bottom */}
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-5">
+                <h2 className="text-[#1D2956] text-2xl font-bold leading-tight drop-shadow-lg mb-2">
                   {selectedMenuItem.name}
                 </h2>
-                <p className="text-[#536DFE] text-xl font-bold mt-1 drop-shadow-lg">
+                <p className="text-[#536DFE] text-xl font-bold drop-shadow-lg">
                   {formatCurrency(selectedMenuItem.price)}
                 </p>
               </div>
             </div>
 
-            {/* Description */}
-            <div className="px-6 pt-4 pb-2">
+            {/* Premium Description */}
+            <div className="px-6 pt-5 pb-3">
               <p className="text-gray-500 text-sm leading-relaxed">
                 {selectedMenuItem.description || 'A delicious dish prepared with the finest ingredients.'}
               </p>
             </div>
 
-            {/* Cart controls */}
+            {/* Premium Cart controls */}
             <div className="px-6 pt-4 pb-8">
               {(() => {
                 const cartItem = cart.find((c) => c.id === selectedMenuItem.id);
                 const qty = cartItem?.quantity || 0;
                 return qty > 0 ? (
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-4 bg-[#536DFE]/10 border border-[#536DFE]/30 rounded-2xl px-6 py-4 flex-1 justify-between">
+                    <div className="flex items-center gap-5 bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 border border-[#536DFE]/30 rounded-2xl px-8 py-5 flex-1 justify-between shadow-lg">
                       <button
                         onClick={() => removeFromCart(selectedMenuItem.id)}
-                        className="text-[#536DFE] hover:scale-110 transition-transform"
+                        className="text-[#536DFE] hover:scale-110 transition-transform active:scale-95"
                       >
-                        <Minus className="w-5 h-5" />
+                        <Minus className="w-6 h-6" />
                       </button>
-                      <span className="text-[#1D2956] font-bold text-xl">{qty}</span>
+                      <span className="text-[#1D2956] font-bold text-2xl">{qty}</span>
                       <button
                         onClick={() => addToCart(selectedMenuItem)}
-                        className="text-[#536DFE] hover:scale-110 transition-transform"
+                        className="text-[#536DFE] hover:scale-110 transition-transform active:scale-95"
                       >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-6 h-6" />
                       </button>
                     </div>
                     <button
                       onClick={() => setSelectedMenuItem(null)}
-                      className="bg-[#536DFE] text-[#F5F5F7] font-bold px-6 py-4 rounded-2xl text-sm uppercase tracking-wider hover:bg-[#536DFE]/90 transition-all active:scale-95 shadow-[0_0_20px_rgba(210,141,31,0.3)]"
+                      className="bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white font-bold px-8 py-5 rounded-2xl text-sm uppercase tracking-wider hover:shadow-2xl hover:shadow-[#536DFE]/60 transition-all active:scale-95 shadow-xl shadow-[#536DFE]/40"
                     >
                       Done
                     </button>
@@ -636,7 +669,7 @@ const RestaurantDetails = () => {
                 ) : (
                   <button
                     onClick={() => { addToCart(selectedMenuItem); setSelectedMenuItem(null); }}
-                    className="w-full bg-[#536DFE] text-[#F5F5F7] font-bold py-5 rounded-2xl text-sm uppercase tracking-widest hover:bg-[#536DFE]/90 transition-all active:scale-[0.98] shadow-[0_0_24px_rgba(210,141,31,0.35)] flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white font-bold py-5 rounded-2xl text-sm uppercase tracking-widest hover:shadow-2xl hover:shadow-[#536DFE]/60 transition-all active:scale-[0.98] shadow-xl shadow-[#536DFE]/50 flex items-center justify-center gap-3"
                   >
                     <ShoppingCart className="w-5 h-5" />
                     Add to Cart — {formatCurrency(selectedMenuItem.price)}
@@ -644,70 +677,85 @@ const RestaurantDetails = () => {
                 );
               })()}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+        </AnimatePresence>
       )}
 
-      {/* Cart Modal */}
+      {/* Premium Cart Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-end justify-center">
-          <div className="bg-[#F5F5F7] w-full max-w-[430px] rounded-t-3xl border-t border-[#536DFE]/20 max-h-[85vh] flex flex-col">
-            <div className="sticky top-0 bg-[#F5F5F7] border-b border-[#536DFE]/20 p-6 flex items-center justify-between z-10">
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-end justify-center"
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] w-full max-w-[430px] rounded-t-3xl border-t-2 border-[#536DFE]/40 max-h-[85vh] flex flex-col shadow-2xl"
+            >
+            <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-[#536DFE]/20 p-6 flex items-center justify-between z-10 rounded-t-3xl">
               <h3 className="text-[#536DFE] text-xl font-bold">Your Cart</h3>
               <button
                 onClick={() => setShowCart(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center hover:from-[#536DFE]/10 hover:to-[#6B7FFF]/10 transition-all shadow-md"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {cart.length === 0 ? (
-                <div className="text-center py-12">
-                  <ShoppingCart className="w-16 h-16 text-[#536DFE]/30 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg">Your cart is empty</p>
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-5 shadow-xl">
+                    <ShoppingCart className="w-10 h-10 text-gray-300" />
+                  </div>
+                  <p className="text-gray-400 text-lg font-semibold">Your cart is empty</p>
                 </div>
               ) : (
                 <>
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-4 bg-white/20 p-4 rounded-xl border border-[#536DFE]/20"
+                      className="flex items-center gap-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-white/60 shadow-lg hover:shadow-xl transition-all"
                     >
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-16 h-16 rounded-lg object-cover border border-[#536DFE]/20"
+                        className="w-20 h-20 rounded-xl object-cover border border-[#536DFE]/20 shadow-md"
                       />
                       <div className="flex-1">
-                        <h4 className="text-[#1D2956] font-semibold">{item.name}</h4>
-                        <p className="text-[#536DFE] font-bold">
+                        <h4 className="text-[#1D2956] font-bold text-sm">{item.name}</h4>
+                        <p className="text-[#536DFE] font-bold text-sm mt-1">
                           {formatCurrency(item.price)} x {item.quantity}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3 bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] rounded-xl px-3 py-2 shadow-inner">
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="text-[#536DFE] hover:scale-110 transition-transform"
+                          className="text-[#536DFE] hover:scale-110 transition-transform active:scale-95"
                         >
-                          <Minus className="w-5 h-5" />
+                          <Minus className="w-4.5 h-4.5" />
                         </button>
                         <span className="text-[#1D2956] font-bold min-w-[24px] text-center">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => addToCart(item)}
-                          className="text-[#536DFE] hover:scale-110 transition-transform"
+                          className="text-[#536DFE] hover:scale-110 transition-transform active:scale-95"
                         >
-                          <Plus className="w-5 h-5" />
+                          <Plus className="w-4.5 h-4.5" />
                         </button>
                       </div>
                     </div>
                   ))}
-                  <div className="border-t border-[#536DFE]/20 pt-4 mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-400 text-sm">Subtotal</span>
-                      <span className="text-[#1D2956] font-semibold">{formatCurrency(getTotalPrice())}</span>
+                  <div className="border-t border-[#536DFE]/20 pt-5 mt-5 bg-white/90 backdrop-blur-md rounded-2xl p-5 shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-gray-400 text-sm font-semibold">Subtotal</span>
+                      <span className="text-[#1D2956] font-bold">{formatCurrency(getTotalPrice())}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#536DFE] text-lg font-bold">Total</span>
@@ -717,20 +765,23 @@ const RestaurantDetails = () => {
                 </>
               )}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+        </AnimatePresence>
       )}
 
 
-      {/* Fixed Bottom Checkout Button */}
+      {/* Premium Fixed Bottom Checkout Button */}
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-[#F5F5F7]/90 backdrop-blur-xl border-t border-[#536DFE]/20 z-50">
-          <div className="flex items-center justify-between mb-3">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-white/95 backdrop-blur-xl border-t border-[#536DFE]/20 z-50 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setShowCart(true)}
-              className="text-[#536DFE] text-sm font-semibold flex items-center gap-2 hover:text-[#536DFE]/80 transition-colors"
+              className="text-[#536DFE] text-sm font-bold flex items-center gap-2.5 hover:text-[#6B7FFF] transition-colors"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center shadow-md">
+                <ShoppingCart className="w-5 h-5" />
+              </div>
               {getTotalItems()} items
             </button>
             <p className="text-[#1D2956] text-xl font-bold">
@@ -739,7 +790,7 @@ const RestaurantDetails = () => {
           </div>
           <button
             onClick={handleProceedToPayment}
-            className="w-full bg-[#536DFE] hover:bg-[#536DFE]/90 text-[#F5F5F7] font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(202,161,87,0.2)] uppercase tracking-widest text-sm"
+            className="w-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] hover:shadow-2xl hover:shadow-[#536DFE]/60 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-xl shadow-[#536DFE]/50 uppercase tracking-widest text-sm"
           >
             <Check className="w-5 h-5" />
             Checkout
@@ -755,6 +806,8 @@ const RestaurantDetails = () => {
         restaurantImage={restaurant?.image_url}
       />
     </div>
+      </PageTransition>
+    </>
   );
 };
 

@@ -12,6 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import gsap from 'gsap';
+import { motion } from 'framer-motion';
+import BrandLoader from '@/components/BrandLoader';
+import PageTransition from '@/components/PageTransition';
 
 type BlogPost = {
   id: string;
@@ -58,7 +61,8 @@ const Blog = () => {
   const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
   const [submittingComment, setSubmittingComment] = useState<Record<string, boolean>>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
@@ -344,10 +348,13 @@ const Blog = () => {
   );
 
   return (
-    <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-[#F5F5F7] font-poppins">
+    <>
+      <BrandLoader isLoading={isTransitioning} />
+      <PageTransition>
+        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-b from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
 
-      {/* ── Header ── */}
-      <div ref={headerRef} className="flex items-center justify-between px-5 pt-6 pb-3 z-10 bg-[#F5F5F7]">
+          {/* ── Header ── */}
+          <div ref={headerRef} className="flex items-center justify-between px-5 pt-6 pb-3 z-10 bg-white/90 backdrop-blur-xl border-b border-white/60 shadow-lg shadow-black/5">
         <div>
           <h1 className="text-[#1D2956] text-xl font-bold tracking-tight leading-none">Updates</h1>
           <p className="text-gray-400 text-[10px] uppercase tracking-[0.25em] mt-0.5">Stories & Promotions</p>
@@ -470,36 +477,44 @@ const Blog = () => {
             )}
           </div>
         ) : (
-          <div ref={listRef} className="space-y-3">
-            {sortedPosts.map((post) => {
+          <div ref={listRef} className="space-y-4">
+            {sortedPosts.map((post, index) => {
               const postComments = comments[post.id] || [];
               const commentsExpanded = expandedPostIds.has(post.id);
               const initials = (post.restaurants?.name || 'R').split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase();
 
               return (
-                <div
+                <motion.div
                   key={post.id}
-                  className="rounded-3xl bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 active:scale-[0.98] border border-gray-100/80 group"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.4 }}
+                  className="rounded-3xl bg-white overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 active:scale-[0.98] border border-gray-100/80 group"
                 >
                   {/* ── Hero Image ── */}
                   {post.hero_image_url && (
                     <div
-                      className="relative h-44 overflow-hidden cursor-pointer"
+                      className="relative h-48 overflow-hidden cursor-pointer brand-featured-filter"
                       onClick={() => toggleContentExpand(post.id)}
                     >
                       <img
                         src={post.hero_image_url}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brand-shimmer"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       
                       {/* Pinned badge */}
                       {post.is_pinned && (
-                        <div className="absolute top-3 left-3 flex items-center gap-1 bg-[#536DFE] text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.2, duration: 0.3 }}
+                          className="absolute top-3 left-3 flex items-center gap-1 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xl shadow-[#536DFE]/40"
+                        >
                           <TrendingUp className="w-3 h-3" />
                           Featured
-                        </div>
+                        </motion.div>
                       )}
 
                       {/* Restaurant overlay */}
@@ -647,7 +662,7 @@ const Blog = () => {
                       </div>
                     </div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -655,7 +670,9 @@ const Blog = () => {
       </div>
 
       <BottomNav />
-    </div>
+        </div>
+      </PageTransition>
+    </>
   );
 };
 

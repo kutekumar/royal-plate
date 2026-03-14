@@ -13,6 +13,9 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
+import { motion } from 'framer-motion';
+import BrandLoader from '@/components/BrandLoader';
+import PageTransition from '@/components/PageTransition';
 
 interface ConfirmationData {
   orderId: string;
@@ -40,6 +43,7 @@ const Confirmation = () => {
   const location = useLocation();
   const confirmationData = location.state as ConfirmationData;
   const [qrValue, setQrValue] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (!confirmationData) {
@@ -75,17 +79,32 @@ const Confirmation = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto overflow-hidden">
+    <>
+      <BrandLoader isLoading={isTransitioning} />
+      <PageTransition>
+        <div className="relative flex min-h-screen w-full flex-col bg-[#1d2956] max-w-[430px] mx-auto overflow-hidden">
       {/* Success Header with Animation */}
       <div className="relative bg-gradient-to-b from-[#caa157]/20 to-transparent pt-12 pb-8">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#caa157] mb-4 animate-bounce">
             <Check className="w-10 h-10 text-[#1d2956]" />
           </div>
-          <h1 className="text-[#caa157] text-3xl font-bold mb-2">Order Confirmed!</h1>
-          <p className="text-slate-300 text-sm px-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-[#caa157] text-3xl font-bold mb-2"
+          >
+            Order Confirmed!
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-slate-300 text-sm px-6"
+          >
             Your order has been placed successfully
-          </p>
+          </motion.p>
         </div>
       </div>
 
@@ -267,7 +286,9 @@ const Confirmation = () => {
           Back to Home
         </button>
       </div>
-    </div>
+        </div>
+      </PageTransition>
+    </>
   );
 };
 
