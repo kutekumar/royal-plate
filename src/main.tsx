@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "leaflet/dist/leaflet.css";
 import { registerServiceWorker, setupPWAPrompt } from "./utils/pwa";
 
 // Register service worker for PWA functionality

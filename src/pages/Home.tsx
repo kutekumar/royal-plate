@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Star, MapPin, Bell, User } from 'lucide-react';
+import { Search, Star, MapPin, Bell, User, Map } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -12,6 +12,8 @@ import { useCustomerNotifications } from '@/hooks/useCustomerNotifications';
 import gsap from 'gsap';
 import LogoImg from '@/imgs/logo.png';
 import { formatCurrency } from '@/utils/currency';
+import { getUserLocation, calculateDistance, YANGON_CENTER, Coordinates } from '@/utils/location';
+import RestaurantMap from '@/components/RestaurantMap';
 
 interface Restaurant {
   id: string;
@@ -27,6 +29,8 @@ interface Restaurant {
   is_featured: boolean;
   rating: number;
   total_reviews: number;
+  latitude?: number;
+  longitude?: number;
   township?: string;
   distance?: number;
 }
@@ -38,6 +42,8 @@ const Home = () => {
   const [featuredRestaurants, setFeaturedRestaurants] = useState<Restaurant[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const [showMapView, setShowMapView] = useState(false);
 
   // Notification system
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useCustomerNotifications();
@@ -46,19 +52,31 @@ const Home = () => {
   // Animation refs
   const headerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
   const featuredRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchRestaurants();
+    fetchUserLocation();
   }, []);
+
+  const fetchUserLocation = async () => {
+    const location = await getUserLocation();
+    if (location) {
+      setUserLocation(location);
+    } else {
+      // Use Yangon center as default
+      setUserLocation(YANGON_CENTER);
+    }
+  };
 
   // Entrance animations
   useEffect(() => {
     if (restaurants.length === 0) return;
-    
+
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    
+
     tl.fromTo(
       headerRef.current,
       { y: -30, opacity: 0 },
@@ -66,6 +84,12 @@ const Home = () => {
     )
     .fromTo(
       searchRef.current,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5 },
+      '-=0.3'
+    )
+    .fromTo(
+      mapRef.current,
       { y: 20, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.5 },
       '-=0.3'
@@ -95,17 +119,38 @@ const Home = () => {
       if (error) throw error;
 
       if (data) {
-        // Add mock township and distance data
-        const enhancedData = data.map((restaurant: any) => ({
-          ...restaurant,
-          township: extractTownship(restaurant.address),
-          distance: calculateMockDistance(),
-          rating: restaurant.rating || 4.5,
-          total_reviews: restaurant.total_reviews || Math.floor(Math.random() * 500) + 50
-        }));
+        // Get user location for distance calculation
+        const location = await getUserLocation();
+        const referencePoint = location || YANGON_CENTER;
 
-        setRestaurants(enhancedData);
-        
+        // Add township and calculate real distance
+        const enhancedData = data.map((restaurant: any) => {
+          let distance = 0;
+
+          // Calculate real distance if coordinates exist
+          if (restaurant.latitude && restaurant.longitude) {
+            distance = calculateDistance(referencePoint, {
+              latitude: restaurant.latitude,
+              longitude: restaurant.longitude,
+            });
+          } else {
+            // Fallback to mock distance if no coordinates
+            distance = calculateMockDistance();
+          }
+
+          return {
+            ...restaurant,
+            township: extractTownship(restaurant.address),
+            distance,
+            rating: restaurant.rating || 4.5,
+            total_reviews: restaurant.total_reviews || Math.floor(Math.random() * 500) + 50
+          };
+        });
+
+        // Sort by distance (closest first)
+        const sortedByDistance = [...enhancedData].sort((a, b) => a.distance - b.distance);
+        setRestaurants(sortedByDistance);
+
         // Set featured as top 10 restaurants by rating
         const topRated = [...enhancedData]
           .sort((a, b) => b.rating - a.rating)
@@ -234,6 +279,35 @@ const Home = () => {
           />
         </div>
       </div>
+
+      {/* ── Map Overview ── */}
+      {!searchQuery && restaurants.length > 0 && (
+        <div ref={mapRef} className="px-5 pb-6 z-10">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-[#1D2956] text-base font-bold tracking-tight">Explore Map</h2>
+              <p className="text-gray-400 text-[10px] uppercase tracking-widest">Find restaurants near you</p>
+            </div>
+            <button
+              onClick={() => setShowMapView(!showMapView)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#536DFE] text-white text-xs font-bold rounded-full hover:bg-[#4557d8] transition-colors"
+            >
+              <Map className="w-3.5 h-3.5" />
+              {showMapView ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          {showMapView && (
+            <RestaurantMap
+              restaurants={restaurants.filter(r => r.latitude && r.longitude)}
+              center={userLocation || YANGON_CENTER}
+              zoom={13}
+              height="350px"
+              onMarkerClick={(id) => navigate(`/restaurant/${id}`)}
+            />
+          )}
+        </div>
+      )}
 
       {/* ── Scrollable Content ── */}
       <div className="flex-1 overflow-y-auto pb-24 z-10 scrollbar-hide">

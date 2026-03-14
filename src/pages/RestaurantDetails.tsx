@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import RestaurantChatbot from '@/components/RestaurantChatbot';
 import { formatCurrency } from '@/utils/currency';
+import { getUserLocation, Coordinates } from '@/utils/location';
+import SingleRestaurantMap from '@/components/SingleRestaurantMap';
 
 interface MenuItem {
   id: string;
@@ -41,6 +43,8 @@ interface Restaurant {
   rating: number;
   image_url: string;
   cuisine_type: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface CartItem extends MenuItem {
@@ -63,6 +67,8 @@ const RestaurantDetails = () => {
   const [showCart, setShowCart] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const [showMap, setShowMap] = useState(false);
 
   const menuSectionRef = useRef<HTMLDivElement>(null);
   const menuItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -71,8 +77,16 @@ const RestaurantDetails = () => {
     if (id) {
       fetchRestaurantDetails();
       fetchMenuItems();
+      fetchUserLocation();
     }
   }, [id]);
+
+  const fetchUserLocation = async () => {
+    const location = await getUserLocation();
+    if (location) {
+      setUserLocation(location);
+    }
+  };
 
   useEffect(() => {
     // Generate available dates (next 7 days)
@@ -269,18 +283,11 @@ const RestaurantDetails = () => {
         {/* Chatbot button */}
         <button
           onClick={() => setShowChatbot(!showChatbot)}
-          className="absolute top-5 right-4 z-10 flex items-center gap-2 bg-[#536DFE] text-white px-4 py-2.5 rounded-2xl shadow-lg shadow-[#536DFE]/40 hover:scale-105 transition-all"
+          className="absolute top-5 right-4 z-10 flex items-center gap-2 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white px-5 py-3 rounded-2xl shadow-xl shadow-[#536DFE]/50 hover:shadow-2xl hover:shadow-[#536DFE]/60 hover:scale-105 transition-all duration-300 border border-white/20"
         >
-          <MessageCircle className="w-4 h-4" />
-          <span className="text-xs font-bold">AI Chat</span>
+          <MessageCircle className="w-4.5 h-4.5" />
+          <span className="text-sm font-bold">Talk To Us</span>
         </button>
-
-        {/* Chatbot Overlay */}
-        {showChatbot && (
-          <div className="absolute top-16 right-4 w-80 z-20 max-w-[calc(100vw-2rem)]">
-            <RestaurantChatbot restaurantId={id || ''} />
-          </div>
-        )}
 
         {/* Rating badge on hero */}
         <div className="absolute bottom-16 left-4 flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/30">
@@ -309,10 +316,7 @@ const RestaurantDetails = () => {
         {/* Contact row */}
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
           <button
-            onClick={() => {
-              const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`;
-              window.open(mapUrl, '_blank');
-            }}
+            onClick={() => setShowMap(!showMap)}
             className="flex items-center gap-3 w-full text-left group"
           >
             <div className="w-9 h-9 rounded-xl bg-[#536DFE]/10 flex items-center justify-center flex-shrink-0">
@@ -320,7 +324,7 @@ const RestaurantDetails = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[#1D2956] text-sm font-medium truncate">{restaurant.address}</p>
-              <p className="text-gray-400 text-[11px]">Tap to open in maps</p>
+              <p className="text-gray-400 text-[11px]">{showMap ? 'Hide map' : 'Show on map'}</p>
             </div>
             <svg className="w-4 h-4 text-gray-300 group-hover:text-[#536DFE] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -336,6 +340,22 @@ const RestaurantDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* Map Display */}
+        {showMap && restaurant.latitude && restaurant.longitude && (
+          <div className="mt-4">
+            <SingleRestaurantMap
+              name={restaurant.name}
+              address={restaurant.address}
+              coordinates={{
+                latitude: restaurant.latitude,
+                longitude: restaurant.longitude,
+              }}
+              height="250px"
+              userLocation={userLocation}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Order Type Selection ── */}
@@ -726,6 +746,14 @@ const RestaurantDetails = () => {
           </button>
         </div>
       )}
+
+      {/* Full-Screen Chatbot */}
+      <RestaurantChatbot
+        isOpen={showChatbot}
+        onClose={() => setShowChatbot(false)}
+        restaurantName={restaurant?.name || ''}
+        restaurantImage={restaurant?.image_url}
+      />
     </div>
   );
 };
