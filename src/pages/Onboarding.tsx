@@ -54,18 +54,20 @@ const Onboarding = () => {
     handleGetStarted();
   };
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
     setIsTransitioning(true);
+    // Wait for exit animation to complete before navigating
     setTimeout(() => {
       navigate('/auth?mode=signup');
-    }, 1000);
+    }, 600); // Match the exit animation duration
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     setIsTransitioning(true);
+    // Wait for exit animation to complete before navigating
     setTimeout(() => {
       navigate('/auth?mode=signin');
-    }, 1000);
+    }, 600); // Match the exit animation duration
   };
 
   return (
@@ -108,19 +110,19 @@ const Onboarding = () => {
           </div>
 
           {/* Content Container */}
-          <div className="relative z-10 flex flex-col h-full px-8 pt-12 pb-8">
+          <div className="relative z-10 flex flex-col h-full px-6 sm:px-8 pt-8 pb-6 safe-area-inset">
 
             {/* Top Bar - Logo + Skip */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="flex items-center justify-between mb-8"
+              className="flex items-center justify-between mb-4 sm:mb-6"
             >
               <motion.img
                 src={LogoImg}
                 alt="Royal Plate"
-                className="h-12 object-contain drop-shadow-2xl"
+                className="h-10 sm:h-12 object-contain drop-shadow-2xl"
                 animate={{
                   y: [-3, 3, -3]
                 }}
@@ -138,7 +140,7 @@ const Onboarding = () => {
                   onClick={handleSkip}
                   whileHover={{ scale: 1.05, x: 2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="text-[#536DFE] text-sm font-semibold tracking-wider uppercase"
+                  className="text-[#536DFE] text-xs sm:text-sm font-semibold tracking-wider uppercase"
                 >
                   Skip
                 </motion.button>
@@ -168,7 +170,7 @@ const Onboarding = () => {
                       ease: [0.34, 1.56, 0.64, 1],
                       delay: 0.2
                     }}
-                    className="relative mb-10"
+                    className="relative mb-6 sm:mb-8"
                   >
                     {/* Mascot Image with Float Animation */}
                     <motion.div
@@ -186,7 +188,7 @@ const Onboarding = () => {
                       <motion.img
                         src={MascotImg}
                         alt="Royal Plate Mascot"
-                        className="w-72 h-72 object-contain drop-shadow-2xl"
+                        className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain drop-shadow-2xl mx-auto"
                         animate={{
                           filter: [
                             "drop-shadow(0 20px 40px rgba(83, 109, 254, 0.3))",
@@ -210,7 +212,7 @@ const Onboarding = () => {
                           ease: [0.34, 1.56, 0.64, 1],
                           delay: 0.5
                         }}
-                        className="absolute -top-6 -right-6 w-20 h-20 rounded-3xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-2xl border-4 border-white"
+                        className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-2xl border-3 sm:border-4 border-white"
                       >
                         <motion.div
                           animate={{
@@ -223,7 +225,7 @@ const Onboarding = () => {
                             ease: "easeInOut"
                           }}
                         >
-                          <IconComponent className="w-10 h-10 text-white" />
+                          <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                         </motion.div>
                       </motion.div>
                     </motion.div>
@@ -292,7 +294,7 @@ const Onboarding = () => {
                       ease: [0.22, 1, 0.36, 1],
                       delay: 0.4
                     }}
-                    className="text-center px-4"
+                    className="text-center px-2 sm:px-4"
                   >
                     <motion.h1
                       initial={{ opacity: 0, y: 20 }}
@@ -302,7 +304,7 @@ const Onboarding = () => {
                         ease: [0.22, 1, 0.36, 1],
                         delay: 0.5
                       }}
-                      className="text-[#1D2956] text-4xl font-bold mb-3 leading-tight"
+                      className="text-[#1D2956] text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 leading-tight"
                     >
                       {currentScreenData.title}
                     </motion.h1>
@@ -314,7 +316,7 @@ const Onboarding = () => {
                         ease: [0.22, 1, 0.36, 1],
                         delay: 0.6
                       }}
-                      className="text-[#536DFE] text-sm font-bold tracking-[0.25em] uppercase mb-5"
+                      className="text-[#536DFE] text-xs sm:text-sm font-bold tracking-[0.15em] sm:tracking-[0.25em] uppercase mb-3 sm:mb-4"
                     >
                       {currentScreenData.subtitle}
                     </motion.p>
@@ -326,7 +328,7 @@ const Onboarding = () => {
                         ease: [0.22, 1, 0.36, 1],
                         delay: 0.7
                       }}
-                      className="text-[#1D2956]/70 text-base leading-relaxed max-w-sm mx-auto"
+                      className="text-[#1D2956]/70 text-sm sm:text-base leading-relaxed max-w-sm mx-auto"
                     >
                       {currentScreenData.description}
                     </motion.p>
@@ -336,13 +338,13 @@ const Onboarding = () => {
             </div>
 
             {/* Bottom Section - Pagination + Buttons + Branding - Properly structured */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4 mt-auto">
               {/* Pagination Dots - Brand Blue */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
-                className="flex items-center justify-center gap-3"
+                className="flex items-center justify-center gap-2 sm:gap-3"
               >
                 {screens.map((_, index) => (
                   <motion.button
@@ -380,7 +382,7 @@ const Onboarding = () => {
               </motion.div>
 
               {/* Action Buttons - Brand Blue */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {currentScreen === screens.length - 1 ? (
                   <>
                     <motion.button
@@ -390,7 +392,7 @@ const Onboarding = () => {
                       onClick={handleGetStarted}
                       whileHover={{ scale: 1.03, y: -3, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.4)" }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-sm tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                      className="w-full h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
                     >
                       {/* Animated background gradient */}
                       <motion.div
@@ -427,7 +429,7 @@ const Onboarding = () => {
                       onClick={handleSignIn}
                       whileHover={{ scale: 1.03, y: -3, backgroundColor: 'rgba(83, 109, 254, 0.1)', boxShadow: "0 15px 35px rgba(83, 109, 254, 0.2)" }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full h-16 rounded-2xl border-2 border-[#536DFE]/40 text-[#536DFE] font-bold text-sm tracking-[0.2em] uppercase bg-white shadow-lg relative overflow-hidden"
+                      className="w-full h-14 sm:h-16 rounded-xl sm:rounded-2xl border-2 border-[#536DFE]/40 text-[#536DFE] font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase bg-white shadow-lg relative overflow-hidden"
                     >
                       {/* Animated border glow */}
                       <motion.div
@@ -456,7 +458,7 @@ const Onboarding = () => {
                     onClick={handleNext}
                     whileHover={{ scale: 1.03, y: -3, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.4)" }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-sm tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                    className="w-full h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
                   >
                     {/* Animated background gradient */}
                     <motion.div
@@ -494,16 +496,16 @@ const Onboarding = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.1 }}
-                className="flex flex-col items-center gap-2 pt-2 pb-1"
+                className="flex flex-col items-center gap-1.5 sm:gap-2 pt-2 pb-safe"
               >
-                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE] to-transparent rounded-full" />
-                <p className="text-[#1D2956]/40 text-[8px] font-semibold tracking-[0.2em] uppercase">
+                <div className="w-12 sm:w-16 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE] to-transparent rounded-full" />
+                <p className="text-[#1D2956]/40 text-[7px] sm:text-[8px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase">
                   Powered By
                 </p>
                 <img
                   src="https://mingalarmon.com/assets/logo_light.png"
                   alt="Mingalar Mon"
-                  className="h-6 object-contain opacity-60"
+                  className="h-5 sm:h-6 object-contain opacity-60"
                 />
               </motion.div>
             </div>

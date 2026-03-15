@@ -93,8 +93,12 @@ const Profile = () => {
   };
 
   const handleSignOut = async () => {
+    setIsTransitioning(true);
     await signOut();
-    navigate('/auth');
+    // Wait for exit animation to complete before navigating
+    setTimeout(() => {
+      navigate('/auth');
+    }, 600); // Match the exit animation duration
     toast.success('Signed out successfully');
   };
 

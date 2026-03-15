@@ -10,6 +10,7 @@ import LogoImg from '@/imgs/logo.png';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const { signUp, signIn, user, userRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,9 +68,12 @@ const Auth = () => {
       setIsLoading(false);
     } else {
       toast.success('Account created! Welcome to Royal Plate');
+      // Trigger exit animation
+      setIsExiting(true);
+      // Wait for exit animation to complete before navigating
       setTimeout(() => {
         navigate('/home');
-      }, 1000);
+      }, 600); // Match the exit animation duration
     }
   };
 
@@ -84,17 +88,20 @@ const Auth = () => {
       setIsLoading(false);
     } else {
       toast.success('Signing in...');
+      // Trigger exit animation
+      setIsExiting(true);
+      // Wait for exit animation to complete before navigating
       setTimeout(() => {
         navigate('/home');
-      }, 1000);
+      }, 600); // Match the exit animation duration
     }
   };
 
   return (
     <>
-      <BrandLoader isLoading={isLoading} />
+      <BrandLoader isLoading={isLoading || isExiting} />
       <PageTransition>
-        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-white font-poppins">
+        <div className="relative flex min-h-screen w-full max-w-md mx-auto flex-col overflow-y-auto bg-white font-poppins">
 
           {/* Animated background gradient orbs - Brand Blue */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -130,20 +137,20 @@ const Auth = () => {
           </div>
 
           {/* Content Container */}
-          <div className="relative z-10 flex flex-col h-full px-8 pt-12 pb-8">
+          <div className="relative z-10 flex flex-col min-h-screen px-6 sm:px-8 pt-8 sm:pt-10 pb-6 safe-area-inset">
 
             {/* Top Bar - Back Button */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="mb-8"
+              className="mb-6 sm:mb-8"
             >
               <motion.button
                 onClick={() => navigate('/')}
                 whileHover={{ scale: 1.05, x: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 text-[#536DFE] text-sm font-semibold"
+                className="flex items-center gap-2 text-[#536DFE] text-xs sm:text-sm font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Home
@@ -151,14 +158,14 @@ const Auth = () => {
             </motion.div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="flex-1 flex flex-col justify-start">
 
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                className="text-center mb-8"
+                className="text-center mb-6 sm:mb-8"
               >
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
@@ -168,12 +175,12 @@ const Auth = () => {
                     ease: [0.34, 1.56, 0.64, 1],
                     delay: 0.1
                   }}
-                  className="flex justify-center mb-4"
+                  className="flex justify-center mb-3 sm:mb-4"
                 >
                   <motion.img
                     src={LogoImg}
                     alt="Royal Plate Logo"
-                    className="h-20 object-contain drop-shadow-2xl"
+                    className="h-16 sm:h-20 object-contain drop-shadow-2xl"
                     animate={{
                       y: [-3, 3, -3]
                     }}
@@ -188,7 +195,7 @@ const Auth = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="text-[#1D2956] text-3xl font-bold mb-2"
+                  className="text-[#1D2956] text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2"
                 >
                   {mode === 'signin' ? 'Welcome Back' : 'Join Royal Plate'}
                 </motion.h1>
@@ -196,7 +203,7 @@ const Auth = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
-                  className="text-[#1D2956]/60 text-base"
+                  className="text-[#1D2956]/60 text-sm sm:text-base"
                 >
                   {mode === 'signin' ? 'Sign in to continue your experience' : 'Create your account to begin your journey'}
                 </motion.p>
@@ -211,7 +218,7 @@ const Auth = () => {
                   exit={{ opacity: 0, y: -20, scale: 0.98 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
                   onSubmit={mode === 'signin' ? handleSignIn : handleSignUp}
-                  className="space-y-5"
+                  className="space-y-4 sm:space-y-5"
                 >
 
                   {/* Name Field (only for signup) */}
@@ -221,17 +228,17 @@ const Auth = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
                     >
-                      <label className="block text-sm font-medium text-[#1D2956]/70 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-[#1D2956]/70 mb-1.5 sm:mb-2">
                         Full Name
                       </label>
                       <div className="relative">
-                        <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#536DFE]/50" />
+                        <User className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#536DFE]/50" />
                         <input
                           type="text"
                           placeholder="Enter your full name"
                           value={signUpData.fullName}
                           onChange={(e) => setSignUpData({ ...signUpData, fullName: e.target.value })}
-                          className="w-full pl-12 pr-4 py-4 bg-white border-2 border-[#E2E8F0] rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] placeholder-[#1D2956]/40"
+                          className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 bg-white border-2 border-[#E2E8F0] rounded-xl sm:rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] text-sm sm:text-base placeholder-[#1D2956]/40"
                           required
                         />
                       </div>
@@ -245,17 +252,17 @@ const Auth = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5, delay: 0.5 }}
                     >
-                      <label className="block text-sm font-medium text-[#1D2956]/70 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-[#1D2956]/70 mb-1.5 sm:mb-2">
                         Phone Number
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#536DFE]/50" />
+                        <Phone className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#536DFE]/50" />
                         <input
                           type="tel"
                           placeholder="+95 9 XXX XXX XXX"
                           value={signUpData.phone}
                           onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value })}
-                          className="w-full pl-12 pr-4 py-4 bg-white border-2 border-[#E2E8F0] rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] placeholder-[#1D2956]/40"
+                          className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 bg-white border-2 border-[#E2E8F0] rounded-xl sm:rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] text-sm sm:text-base placeholder-[#1D2956]/40"
                           required
                         />
                       </div>
@@ -268,11 +275,11 @@ const Auth = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: mode === 'signup' ? 0.6 : 0.4 }}
                   >
-                    <label className="block text-sm font-medium text-[#1D2956]/70 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-[#1D2956]/70 mb-1.5 sm:mb-2">
                       Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#536DFE]/50" />
+                      <Mail className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#536DFE]/50" />
                       <input
                         type="email"
                         placeholder="Enter your email"
@@ -284,7 +291,7 @@ const Auth = () => {
                             setSignUpData({ ...signUpData, email: e.target.value });
                           }
                         }}
-                        className="w-full pl-12 pr-4 py-4 bg-white border-2 border-[#E2E8F0] rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] placeholder-[#1D2956]/40"
+                        className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 bg-white border-2 border-[#E2E8F0] rounded-xl sm:rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] text-sm sm:text-base placeholder-[#1D2956]/40"
                         required
                       />
                     </div>
@@ -296,11 +303,11 @@ const Auth = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: mode === 'signup' ? 0.7 : 0.5 }}
                   >
-                    <label className="block text-sm font-medium text-[#1D2956]/70 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-[#1D2956]/70 mb-1.5 sm:mb-2">
                       Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#536DFE]/50" />
+                      <Lock className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#536DFE]/50" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Enter your password"
@@ -312,16 +319,16 @@ const Auth = () => {
                             setSignUpData({ ...signUpData, password: e.target.value });
                           }
                         }}
-                        className="w-full pl-12 pr-12 py-4 bg-white border-2 border-[#E2E8F0] rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] placeholder-[#1D2956]/40"
+                        className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-4 bg-white border-2 border-[#E2E8F0] rounded-xl sm:rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] text-sm sm:text-base placeholder-[#1D2956]/40"
                         required
                         minLength={6}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#536DFE]/60 hover:text-[#536DFE] transition-colors"
+                        className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-[#536DFE]/60 hover:text-[#536DFE] transition-colors"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                       </button>
                     </div>
                   </motion.div>
@@ -333,25 +340,25 @@ const Auth = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5, delay: 0.8 }}
                     >
-                      <label className="block text-sm font-medium text-[#1D2956]/70 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-[#1D2956]/70 mb-1.5 sm:mb-2">
                         Confirm Password
                       </label>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#536DFE]/50" />
+                        <Lock className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#536DFE]/50" />
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Confirm your password"
                           value={signUpData.confirmPassword}
                           onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
-                          className="w-full pl-12 pr-12 py-4 bg-white border-2 border-[#E2E8F0] rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] placeholder-[#1D2956]/40"
+                          className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-4 bg-white border-2 border-[#E2E8F0] rounded-xl sm:rounded-2xl focus:border-[#536DFE] focus:outline-none transition-colors text-[#1D2956] text-sm sm:text-base placeholder-[#1D2956]/40"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#536DFE]/60 hover:text-[#536DFE] transition-colors"
+                          className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-[#536DFE]/60 hover:text-[#536DFE] transition-colors"
                         >
-                          {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                         </button>
                       </div>
                     </motion.div>
@@ -366,7 +373,7 @@ const Auth = () => {
                     disabled={isLoading}
                     whileHover={{ scale: 1.02, y: -2, boxShadow: "0 20px 40px rgba(83, 109, 254, 0.3)" }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-sm tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                    className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
                   >
                     {/* Animated background gradient */}
                     <motion.div
@@ -400,9 +407,9 @@ const Auth = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: mode === 'signup' ? 1.0 : 0.7 }}
-                className="mt-6 text-center"
+                className="mt-4 sm:mt-6 text-center"
               >
-                <p className="text-[#1D2956]/60 text-sm">
+                <p className="text-[#1D2956]/60 text-xs sm:text-sm">
                   {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
                   <button
                     type="button"
