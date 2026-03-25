@@ -1,26 +1,26 @@
  import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import {
-  LogOut,
-  UtensilsCrossed,
-  Receipt,
-  ScanLine,
-  LayoutList,
-  Settings,
-  Bell,
-  BellDot,
-  CheckCircle2,
-  BookOpenText
-} from 'lucide-react';
-import OrdersManagement from '@/components/dashboard/OrdersManagement';
-import QRScanner from '@/components/dashboard/QRScanner';
-import MenuManagement from '@/components/dashboard/MenuManagement';
-import RestaurantSettings from '@/components/dashboard/RestaurantSettings';
-import RestaurantBlogManagement from '@/components/dashboard/RestaurantBlogManagement';
-import { useOrderNotifications } from '@/hooks/useOrderNotifications';
-import { useRestaurantBlogNotifications } from '@/hooks/useRestaurantBlogNotifications';
+ import { useAuth } from '@/contexts/AuthContext';
+ import { useNavigate, useLocation } from 'react-router-dom';
+ import { Button } from '@/components/ui/button';
+ import {
+   LogOut,
+   UtensilsCrossed,
+   Receipt,
+   ScanLine,
+   LayoutList,
+   Settings,
+   Bell,
+   BellDot,
+   CheckCircle2,
+   BookOpenText
+ } from 'lucide-react';
+ import OrdersManagement from '@/components/dashboard/OrdersManagement';
+ import QRScanner from '@/components/dashboard/QRScanner';
+ import MenuManagement from '@/components/dashboard/MenuManagement';
+ import RestaurantSettings from '@/components/dashboard/RestaurantSettings';
+ import RestaurantBlogManagement from '@/components/dashboard/RestaurantBlogManagement';
+ import { useOrderNotifications, OrderNotification } from '@/hooks/useOrderNotifications';
+ import { useRestaurantBlogNotifications, RestaurantBlogNotification } from '@/hooks/useRestaurantBlogNotifications';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +37,13 @@ import {
   DialogDescription
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+interface OrderDetail extends OrderNotification {
+  customer_display_name?: string | null;
+  customer_display_phone?: string | null;
+  order_type?: string;
+  order_items?: any[];
+}
 
 const RestaurantDashboard = () => {
   const { signOut } = useAuth();
@@ -74,7 +81,7 @@ const RestaurantDashboard = () => {
   const notifications = [...orderNotifications, ...blogNotifications];
   
   // Sort notifications with newest first (unread notifications should appear at the top)
-  const sortedNotifications = notifications.sort((a, b) => {
+  const sortedNotifications = [...notifications].sort((a, b) => {
     // First sort by unread status (unread first)
     if (a.status !== b.status) {
       return a.status === 'unread' ? -1 : 1;
@@ -104,7 +111,7 @@ const RestaurantDashboard = () => {
   };
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [orderDetail, setOrderDetail] = useState<any | null>(null);
+  const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [orderDetailOpen, setOrderDetailOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -112,7 +119,7 @@ const RestaurantDashboard = () => {
     navigate('/auth');
   };
 
-  const handleOpenNotificationOrder = async (notification: any) => {
+  const handleOpenNotificationOrder = async (notification: OrderNotification) => {
     if (!notification?.order_id) return;
     setSelectedOrderId(notification.order_id);
     setOrderDetail(null);
@@ -190,7 +197,7 @@ const RestaurantDashboard = () => {
     }
   };
 
-  const handleOpenNotificationBlog = async (notification: any) => {
+  const handleOpenNotificationBlog = async (notification: RestaurantBlogNotification) => {
     if (!notification?.blog_post_id) return;
     
     // Mark this notification as read

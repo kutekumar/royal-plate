@@ -152,8 +152,8 @@ const RestaurantDetails = () => {
       if (error) throw error;
       
       // Filter available items
-      const availableItems = (data || []).filter(item => 
-        item.is_available !== false && item.available !== false
+      const availableItems = (data || []).filter(item =>
+        item.is_available !== false
       );
       
       setMenuItems(availableItems);
@@ -236,7 +236,7 @@ const RestaurantDetails = () => {
   );
 
   const timeSlots = [
-    '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'
+    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30'
   ];
 
   const getAvailableDates = () => {
@@ -306,7 +306,6 @@ const RestaurantDetails = () => {
             <Star key={i} className={`w-4 h-4 ${i < Math.floor(restaurant.rating) ? 'fill-white text-white' : 'text-white/30'} drop-shadow`} />
           ))}
           <span className="text-white text-sm font-bold ml-1 drop-shadow">{restaurant.rating}</span>
-          <span className="text-white/70 text-sm drop-shadow">• 1.2k reviews</span>
         </div>
       </div>
 

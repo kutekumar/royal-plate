@@ -449,7 +449,7 @@ const Profile = () => {
             {[
               { icon: Award, label: 'Loyalty Rewards', desc: 'View your points & badges', action: () => {} },
               { icon: MapPin, label: 'Saved Addresses', desc: 'Manage delivery locations', action: () => {} },
-              { icon: Settings, label: 'Preferences', desc: 'App settings & notifications', action: () => {} },
+              { icon: Settings, label: 'Preferences', desc: 'App settings & notifications', action: () => navigate('/settings') },
             ].map(({ icon: Icon, label, desc, action }, index) => (
               <motion.button
                 key={label}

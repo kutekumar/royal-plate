@@ -8,7 +8,7 @@ import { Search, Star, MapPin, Bell, User, Map } from 'lucide-react';
 import { BottomNav } from '@/components/BottomNav';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useCustomerNotifications } from '@/hooks/useCustomerNotifications';
+import { useCustomerNotifications, CustomerNotification } from '@/hooks/useCustomerNotifications';
 import LogoImg from '@/imgs/logo.png';
 import { formatCurrency } from '@/utils/currency';
 import { getUserLocation, calculateDistance, YANGON_CENTER, Coordinates } from '@/utils/location';
@@ -19,26 +19,26 @@ import PageTransition from '@/components/PageTransition';
 
 interface Restaurant {
   id: string;
+  owner_id: string | null;
   name: string;
-  description: string;
-  address: string;
-  phone: string;
-  email: string;
-  opening_hours: any;
+  description: string | null;
   cuisine_type: string | null;
-  price_range: string;
-  image_url: string;
-  is_featured: boolean;
-  rating: number;
-  total_reviews: number;
+  address: string;
+  phone: string | null;
+  image_url: string | null;
+  rating: number | null;
+  distance: string | null;
+  open_hours: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   latitude?: number;
   longitude?: number;
   township?: string;
-  distance?: number;
+  distance_km?: number;
 }
 
 const Home = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [featuredRestaurants, setFeaturedRestaurants] = useState<Restaurant[]>([]);
@@ -84,25 +84,22 @@ const Home = () => {
 
         // Add township and calculate real distance
         const enhancedData = data.map((restaurant: any) => {
-          let distance = 0;
+          let distance_km = 0;
 
           // Calculate real distance if coordinates exist
           if (restaurant.latitude && restaurant.longitude) {
-            distance = calculateDistance(referencePoint, {
+            distance_km = calculateDistance(referencePoint, {
               latitude: restaurant.latitude,
               longitude: restaurant.longitude,
             });
-          } else {
-            // Fallback to mock distance if no coordinates
-            distance = calculateMockDistance();
           }
 
           return {
             ...restaurant,
             township: extractTownship(restaurant.address),
-            distance,
+            distance_km,
             rating: restaurant.rating || 4.5,
-            total_reviews: restaurant.total_reviews || Math.floor(Math.random() * 500) + 50
+            total_reviews: restaurant.total_reviews || 0
           };
         });
 
@@ -130,18 +127,13 @@ const Home = () => {
     return parts[parts.length - 2]?.trim() || parts[0]?.trim() || 'Downtown';
   };
 
-  const calculateMockDistance = (): number => {
-    // Generate random distance between 0.5 and 10 miles
-    return parseFloat((Math.random() * 9.5 + 0.5).toFixed(1));
-  };
-
   const filteredRestaurants = restaurants.filter((restaurant) =>
     restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     restaurant.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (restaurant.cuisine_type?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: CustomerNotification) => {
     markAsRead(notification.id);
 
     setIsTransitioning(true);
@@ -162,7 +154,7 @@ const Home = () => {
     }, 600);
   };
 
-  const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
+  const firstName = user?.email?.split('@')[0] || 'Guest';
 
   return (
     <>
@@ -179,10 +171,10 @@ const Home = () => {
           ease: [0.22, 1, 0.36, 1],
           delay: 0.1
         }}
-        className="relative px-5 pt-8 pb-4 z-10"
+        className="relative px-5 pt-8 pb-4 z-10 will-change-transform"
       >
         {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-transparent backdrop-blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white/30 to-transparent backdrop-blur-lg" />
 
         <div className="relative flex items-center justify-between">
           {/* Logo & Greeting */}
@@ -215,7 +207,8 @@ const Home = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.4 }}
-                className="text-[11px] text-gray-400 font-semibold tracking-[0.25em] uppercase leading-none"
+                className="text-[11px] text-gray-500 font-semibold tracking-[0.25em] uppercase leading-none"
+                aria-label="Welcome back greeting"
               >
                 Welcome Back
               </motion.p>
@@ -245,7 +238,9 @@ const Home = () => {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 hover:border-[#536DFE]/40 hover:shadow-xl transition-all shadow-lg shadow-black/5"
+              className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 hover:border-[#536DFE]/40 hover:shadow-xl transition-all shadow-lg shadow-black/5"
+              aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+              aria-expanded={showNotifications}
             >
               <Bell className="w-5 h-5 text-[#1D2956]" />
               {unreadCount > 0 && (
@@ -263,7 +258,8 @@ const Home = () => {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/profile')}
-              className="flex items-center justify-center w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 hover:border-[#536DFE]/40 hover:shadow-xl transition-all shadow-lg shadow-black/5"
+              className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 hover:border-[#536DFE]/40 hover:shadow-xl transition-all shadow-lg shadow-black/5"
+              aria-label="Go to profile"
             >
               <User className="w-5 h-5 text-[#1D2956]" />
             </motion.button>
@@ -277,7 +273,11 @@ const Home = () => {
           <div className="sticky top-0 bg-gradient-to-b from-white to-white/95 backdrop-blur-xl border-b border-gray-100 px-5 py-4 flex items-center justify-between rounded-t-3xl">
             <h3 className="text-[#1D2956] font-bold text-base">Notifications</h3>
             {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className="text-[10px] text-[#536DFE] font-bold uppercase tracking-wider hover:text-[#6B7FFF] transition-colors">
+              <button
+                onClick={markAllAsRead}
+                className="text-[10px] text-[#536DFE] font-bold uppercase tracking-wider hover:text-[#6B7FFF] transition-colors"
+                aria-label="Mark all notifications as read"
+              >
                 Mark all read
               </button>
             )}
@@ -289,10 +289,18 @@ const Home = () => {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gradient-to-r hover:from-[#536DFE]/5 hover:to-transparent transition-all ${!notification.is_read ? 'bg-[#536DFE]/5' : ''}`}
+                className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gradient-to-r hover:from-[#536DFE]/5 hover:to-transparent transition-all ${notification.status === 'unread' ? 'bg-[#536DFE]/5' : ''}`}
+                role="button"
+                tabIndex={0}
+                aria-label={`${notification.title}: ${notification.message}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleNotificationClick(notification);
+                  }
+                }}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-lg ${!notification.is_read ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF]' : 'bg-gray-200'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-lg ${notification.status === 'unread' ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF]' : 'bg-gray-200'}`} />
                   <div>
                     <p className="text-[#1D2956] text-sm font-semibold">{notification.title}</p>
                     <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{notification.message}</p>
@@ -314,7 +322,7 @@ const Home = () => {
           ease: [0.22, 1, 0.36, 1],
           delay: 0.4
         }}
-        className="px-5 pb-5 z-10"
+        className="px-5 pb-5 z-10 will-change-transform"
       >
         <div className="relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-[#536DFE]/20 to-[#6B7FFF]/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
@@ -324,7 +332,8 @@ const Home = () => {
             placeholder="Search restaurants, cuisines..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="relative w-full h-14 pl-14 pr-4 bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl text-[#1D2956] text-sm placeholder-gray-400 focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 shadow-xl shadow-black/5 transition-all"
+            className="relative w-full h-14 pl-14 pr-4 bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl text-[#1D2956] text-sm placeholder-gray-500 focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 shadow-xl shadow-black/5 transition-all"
+            aria-label="Search restaurants and cuisines"
           />
         </div>
       </motion.div>
@@ -339,7 +348,7 @@ const Home = () => {
             ease: [0.22, 1, 0.36, 1],
             delay: 0.5
           }}
-          className="px-5 pb-6 z-10"
+          className="px-5 pb-6 z-10 will-change-transform"
         >
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-5">
             <div className="flex items-center justify-between mb-4">
@@ -354,7 +363,9 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowMapView(!showMapView)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white text-xs font-bold rounded-2xl hover:shadow-xl hover:shadow-[#536DFE]/40 transition-all shadow-lg shadow-[#536DFE]/30"
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white text-xs font-bold rounded-2xl hover:shadow-xl hover:shadow-[#536DFE]/40 transition-all shadow-lg shadow-[#536DFE]/30"
+                aria-label={showMapView ? 'Hide map view' : 'Show map view'}
+                aria-expanded={showMapView}
               >
                 <Map className="w-4 h-4" />
                 {showMapView ? 'Hide' : 'Show'}
@@ -397,7 +408,7 @@ const Home = () => {
               ease: [0.22, 1, 0.36, 1],
               delay: 0.6
             }}
-            className="mb-8"
+            className="mb-8 will-change-transform"
           >
             <div className="flex items-center justify-between px-5 mb-4">
               <div>
@@ -409,7 +420,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide">
+            <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide" role="list" aria-label="Featured restaurants">
               {featuredRestaurants.slice(0, 5).map((restaurant, index) => (
                 <motion.div
                   key={restaurant.id}
@@ -424,8 +435,16 @@ const Home = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleRestaurantClick(restaurant.id)}
                   className="flex-shrink-0 w-72 cursor-pointer"
+                  role="listitem"
+                  tabIndex={0}
+                  aria-label={`${restaurant.name}, ${restaurant.cuisine_type || 'International'}, ${restaurant.distance_km?.toFixed(1)} kmles away, rated ${restaurant.rating || 0} stars`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleRestaurantClick(restaurant.id);
+                    }
+                  }}
                 >
-                  <Card className="overflow-hidden bg-white/90 backdrop-blur-md border-white/60 shadow-xl shadow-black/5 hover:shadow-2xl hover:shadow-black/10 transition-all duration-500 rounded-3xl">
+                  <Card className="overflow-hidden bg-white/95 backdrop-blur-md border-white/70 shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/10 transition-all duration-500 rounded-3xl">
                     <div className="relative h-56 overflow-hidden brand-featured-filter">
                       <img
                         src={restaurant.image_url}
@@ -442,9 +461,9 @@ const Home = () => {
                           ease: [0.34, 1.56, 0.64, 1],
                           delay: 0.8 + index * 0.08
                         }}
-                        className="absolute top-4 right-4"
+                        className="absolute top-3 right-3"
                       >
-                        <Badge className="bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white border-0 shadow-xl shadow-[#536DFE]/50 px-3 py-1.5 text-xs font-bold">
+                        <Badge className="bg-white/90 backdrop-blur-md text-[#1D2956] border border-white/60 shadow-lg shadow-black/10 px-2.5 py-1 text-xs font-bold">
                           ⭐ {restaurant.rating}
                         </Badge>
                       </motion.div>
@@ -462,11 +481,11 @@ const Home = () => {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.4, delay: 1.0 + index * 0.08 }}
-                          className="flex items-center gap-3 text-white/90 text-xs"
+                          className="flex items-center gap-3 text-white text-xs"
                         >
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            {restaurant.distance?.toFixed(1)} mi
+                            {restaurant.distance_km?.toFixed(1)} km
                           </span>
                           <span>•</span>
                           <span>{restaurant.cuisine_type || 'International'}</span>
@@ -489,7 +508,7 @@ const Home = () => {
             ease: [0.22, 1, 0.36, 1],
             delay: 1.1
           }}
-          className="px-5"
+          className="px-5 will-change-transform"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -497,7 +516,7 @@ const Home = () => {
                 <div className="w-1.5 h-6 bg-gradient-to-b from-[#536DFE] to-[#6B7FFF] rounded-full" />
                 {searchQuery ? 'Search Results' : 'All Restaurants'}
               </h2>
-              <p className="text-gray-400 text-[11px] uppercase tracking-[0.25em] font-medium ml-4">
+              <p className="text-gray-500 text-[11px] uppercase tracking-[0.25em] font-medium ml-4">
                 {filteredRestaurants.length} {filteredRestaurants.length !== 1 ? 'Places' : 'Place'}
               </p>
             </div>
@@ -595,7 +614,7 @@ const Home = () => {
                       <MapPin className="w-3 h-3 flex-shrink-0 text-[#536DFE]" />
                       <span className="truncate font-medium">{restaurant.township}</span>
                       <span className="text-gray-300">·</span>
-                      <span className="flex-shrink-0 font-semibold text-[#536DFE]">{restaurant.distance} mi</span>
+                      <span className="flex-shrink-0 font-semibold text-[#536DFE]">{restaurant.distance}</span>
                     </motion.div>
                   </div>
                 </motion.div>

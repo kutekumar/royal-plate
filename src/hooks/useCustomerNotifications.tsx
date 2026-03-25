@@ -80,6 +80,12 @@ export function useCustomerNotifications(options: UseCustomerNotificationsOption
           
           document.addEventListener('click', handleUserInteraction);
           document.addEventListener('keydown', handleUserInteraction);
+          
+          // Return cleanup function
+          return () => {
+            document.removeEventListener('click', handleUserInteraction);
+            document.removeEventListener('keydown', handleUserInteraction);
+          };
         }
       };
 

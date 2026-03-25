@@ -37,6 +37,25 @@ CREATE TABLE public.blog_comments (
 );
 
 
+-- View for blog comments with profile information
+CREATE OR REPLACE VIEW public.blog_comments_with_profiles AS
+SELECT
+  bc.id,
+  bc.blog_post_id,
+  bc.customer_id,
+  bc.content,
+  bc.is_edited,
+  bc.is_deleted,
+  bc.created_at,
+  bc.updated_at,
+  bc.parent_comment_id,
+  p.full_name as customer_name,
+  p.email as customer_email,
+  p.avatar_url
+FROM public.blog_comments bc
+LEFT JOIN public.profiles p ON bc.customer_id = p.id
+WHERE bc.is_deleted = false;
+
 CREATE TABLE public.blog_post_images (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   blog_post_id uuid NOT NULL,
@@ -111,6 +130,7 @@ CREATE TABLE public.menu_items (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   restaurant_id uuid NOT NULL,
   name text NOT NULL,
+  category text,
   description text,
   price numeric NOT NULL,
   image_url text,
@@ -177,22 +197,7 @@ CREATE TABLE public.restaurant_ratings (
   CONSTRAINT restaurant_ratings_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES auth.users(id),
   CONSTRAINT restaurant_ratings_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id)
 );
-CREATE TABLE public.restaurants (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  owner_id uuid,
-  name text NOT NULL,
-  description text,
-  cuisine_type text,
-  address text NOT NULL,
-  phone text,
-  image_url text,
-  rating numeric DEFAULT 0,
-  distance text,
-  open_hours text,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT restaurants_pkey PRIMARY KEY (id)
-);
+-- Note: The restaurants table is defined earlier in this file with latitude/longitude.
 CREATE TABLE public.user_roles (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,

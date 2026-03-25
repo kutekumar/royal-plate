@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Sparkles, Crown, MapPin } from 'lucide-react';
 import LogoImg from '@/imgs/logo.png';
@@ -11,6 +11,15 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const [currentScreen, setCurrentScreen] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const screens = [
     {
@@ -19,7 +28,8 @@ const Onboarding = () => {
       subtitle: "Your Gateway to Elite Dining",
       description: "Experience the finest restaurants at your fingertips. Reserve tables, explore menus, and indulge in culinary excellence.",
       gradient: "from-[#536DFE] to-[#6B7FFF]",
-      accentColor: "#536DFE"
+      accentColor: "#536DFE",
+      particles: 10
     },
     {
       icon: Sparkles,
@@ -27,7 +37,8 @@ const Onboarding = () => {
       subtitle: "Effortless Elegance",
       description: "Browse curated restaurants, view real-time availability, and secure your perfect table with just a few taps.",
       gradient: "from-[#536DFE] to-[#6B7FFF]",
-      accentColor: "#536DFE"
+      accentColor: "#536DFE",
+      particles: 12
     },
     {
       icon: MapPin,
@@ -35,7 +46,8 @@ const Onboarding = () => {
       subtitle: "Begins Here",
       description: "Track your reservations, earn rewards, and unlock exclusive dining experiences. Your table awaits.",
       gradient: "from-[#536DFE] to-[#6B7FFF]",
-      accentColor: "#536DFE"
+      accentColor: "#536DFE",
+      particles: 14
     }
   ];
 
@@ -56,139 +68,257 @@ const Onboarding = () => {
 
   const handleGetStarted = async () => {
     setIsTransitioning(true);
-    // Wait for exit animation to complete before navigating
     setTimeout(() => {
       navigate('/auth?mode=signup');
-    }, 600); // Match the exit animation duration
+    }, 600);
   };
 
   const handleSignIn = async () => {
     setIsTransitioning(true);
-    // Wait for exit animation to complete before navigating
     setTimeout(() => {
       navigate('/auth?mode=signin');
-    }, 600); // Match the exit animation duration
+    }, 600);
   };
 
   return (
     <>
       <BrandLoader isLoading={isTransitioning} />
       <PageTransition>
-        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-white font-poppins">
+        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F8FAFF] via-[#F0F4FF] to-[#E8EDFF] font-poppins">
+          
+          {/* ── Subtle Top Bar with Gradient ── */}
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute top-0 left-0 right-0 h-0.5 z-50"
+          >
+            <div className="h-full bg-gradient-to-r from-transparent via-[#536DFE]/40 to-transparent" />
+          </motion.div>
 
-          {/* Animated background gradient orbs - Brand Blue */}
+          {/* ── Animated Background Orbs - Light Mode ── */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.15, 0.25, 0.15],
-                x: [0, 50, 0],
-                y: [0, -30, 0]
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] blur-3xl"
-            />
+            {/* Main gradient orb - top right */}
             <motion.div
               animate={{
                 scale: [1, 1.3, 1],
-                opacity: [0.1, 0.2, 0.1],
-                x: [0, -40, 0],
-                y: [0, 40, 0]
+                opacity: [0.15, 0.25, 0.15],
+                x: [0, 60, 0],
+                y: [0, -40, 0]
               }}
               transition={{
-                duration: 10,
+                duration: 15,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="absolute -top-24 -right-24 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-[#536DFE]/30 to-[#6B7FFF]/20 blur-[80px]"
+            />
+            
+            {/* Secondary orb - bottom left */}
+            <motion.div
+              animate={{
+                scale: [1, 1.4, 1],
+                opacity: [0.1, 0.2, 0.1],
+                x: [0, -50, 0],
+                y: [0, 60, 0]
+              }}
+              transition={{
+                duration: 18,
                 repeat: Infinity,
                 ease: "easeInOut",
-                delay: 1
+                delay: 3
               }}
-              className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full bg-gradient-to-tr from-[#536DFE] to-[#6B7FFF] blur-3xl"
+              className="absolute -bottom-24 -left-24 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-[#536DFE]/25 to-[#6B7FFF]/15 blur-[100px]"
             />
+
+            {/* Accent orb - center */}
+            <motion.div
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.08, 0.15, 0.08],
+                x: [0, 30, 0],
+                y: [0, -30, 0]
+              }}
+              transition={{
+                duration: 12,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 5
+              }}
+              className="absolute top-1/2 left-1/2 w-[300px] h-[300px] rounded-full bg-gradient-to-r from-[#6B7FFF]/20 to-[#536DFE]/15 blur-[60px] -translate-x-1/2 -translate-y-1/2"
+            />
+
+            {/* Floating particles */}
+            {[...Array(currentScreenData.particles)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-full bg-[#536DFE]/40"
+                initial={{
+                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 400),
+                  y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
+                  opacity: 0
+                }}
+                animate={{
+                  y: [null, Math.random() * -150 - 50],
+                  opacity: [0, 0.6, 0],
+                  scale: [0, 1.2, 0]
+                }}
+                transition={{
+                  duration: 5 + Math.random() * 4,
+                  repeat: Infinity,
+                  delay: Math.random() * 6,
+                  ease: "easeOut"
+                }}
+              />
+            ))}
           </div>
 
-          {/* Content Container */}
-          <div className="relative z-10 flex flex-col h-full px-6 sm:px-8 pt-8 pb-6 safe-area-inset">
+          {/* ── Interactive Mouse Follower - Subtle ── */}
+          <motion.div
+            className="absolute w-48 h-48 rounded-full bg-gradient-to-r from-[#536DFE]/10 to-[#6B7FFF]/10 blur-2xl pointer-events-none"
+            animate={{
+              x: mousePosition.x - 96,
+              y: mousePosition.y - 96
+            }}
+            transition={{
+              type: "spring",
+              damping: 40,
+              stiffness: 150
+            }}
+          />
 
-            {/* Top Bar - Logo + Skip */}
+          {/* ── Content Container ── */}
+          <div className="relative z-10 flex flex-col h-full px-5 sm:px-6 pt-10 pb-6 safe-area-inset">
+            
+            {/* ── Top Bar - Logo + Skip ── */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="flex items-center justify-between mb-4 sm:mb-6"
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              className="flex items-center justify-between mb-6"
             >
-              <motion.img
-                src={LogoImg}
-                alt="Royal Plate"
-                className="h-10 sm:h-12 object-contain drop-shadow-2xl"
-                animate={{
-                  y: [-3, 3, -3]
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
+              <motion.div
+                className="relative"
+                whileHover={{ scale: 1.05 }}
+                whileFocus={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <motion.img
+                  src={LogoImg}
+                  alt="Royal Plate"
+                  className="h-10 sm:h-12 object-contain drop-shadow-lg focus:outline-none"
+                  animate={{
+                    y: [-3, 3, -3],
+                    filter: [
+                      "drop-shadow(0 8px 20px rgba(83, 109, 254, 0.3))",
+                      "drop-shadow(0 12px 30px rgba(83, 109, 254, 0.4))",
+                      "drop-shadow(0 8px 20px rgba(83, 109, 254, 0.3))"
+                    ]
+                  }}
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  tabIndex={0}
+                />
+                {/* Subtle glow behind logo */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-[#536DFE]/20 to-[#6B7FFF]/20 blur-xl -z-10 rounded-full"
+                  animate={{
+                    opacity: [0.5, 0.8, 0.5]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </motion.div>
+              
               {currentScreen < screens.length - 1 && (
                 <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.4, delay: 0.3 }}
                   onClick={handleSkip}
                   whileHover={{ scale: 1.05, x: 2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="text-[#536DFE] text-xs sm:text-sm font-semibold tracking-wider uppercase"
+                  className="relative px-4 py-1.5 text-[#536DFE]/50 text-[10px] sm:text-xs font-medium tracking-wider uppercase overflow-hidden group"
                 >
-                  Skip
+                  <span className="relative z-10">Skip</span>
                 </motion.button>
               )}
             </motion.div>
 
-            {/* Main Content Area */}
+            {/* ── Main Content Area ── */}
             <div className="flex-1 flex flex-col items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentScreen}
-                  initial={{ opacity: 0, x: 100, scale: 0.95 }}
+                  initial={{ opacity: 0, x: 100, scale: 0.92 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -100, scale: 0.95 }}
+                  exit={{ opacity: 0, x: -100, scale: 0.92 }}
                   transition={{
-                    duration: 0.6,
-                    ease: [0.22, 1, 0.36, 1]
+                    duration: 0.7,
+                    ease: [0.32, 0.72, 0, 1]
                   }}
                   className="w-full flex flex-col items-center"
                 >
-                  {/* Mascot with Icon Badge */}
+                  {/* ── Mascot with Premium Effects ── */}
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{
-                      duration: 0.8,
+                      duration: 0.9,
                       ease: [0.34, 1.56, 0.64, 1],
-                      delay: 0.2
+                      delay: 0.3
                     }}
-                    className="relative mb-6 sm:mb-8"
+                    className="relative mb-6"
                   >
-                    {/* Mascot Image with Float Animation */}
+                    {/* Outer glow ring */}
                     <motion.div
                       animate={{
-                        y: [-10, 10, -10],
-                        rotate: [-3, 3, -3]
+                        scale: [1, 1.15, 1],
+                        opacity: [0.2, 0.4, 0.2]
                       }}
                       transition={{
                         duration: 5,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
+                      className="absolute inset-0 rounded-full bg-gradient-to-r from-[#536DFE]/30 to-[#6B7FFF]/30 blur-xl -z-10"
+                    />
+
+                    {/* Mascot container with float animation */}
+                    <motion.div
+                      animate={{
+                        y: [-12, 12, -12],
+                        rotate: [-4, 4, -4]
+                      }}
+                      transition={{
+                        duration: 7,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
                       className="relative"
                     >
+                      {/* Decorative ring around mascot */}
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 25,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        className="absolute inset-0 rounded-full border-2 border-dashed border-[#536DFE]/20"
+                        style={{ width: '220px', height: '220px', top: '-15px', left: '-15px' }}
+                      />
+
                       <motion.img
                         src={MascotImg}
                         alt="Royal Plate Mascot"
-                        className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain drop-shadow-2xl mx-auto"
+                        className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 object-contain drop-shadow-xl mx-auto"
                         animate={{
                           filter: [
                             "drop-shadow(0 20px 40px rgba(83, 109, 254, 0.3))",
@@ -197,7 +327,7 @@ const Onboarding = () => {
                           ]
                         }}
                         transition={{
-                          duration: 3,
+                          duration: 5,
                           repeat: Infinity,
                           ease: "easeInOut"
                         }}
@@ -212,153 +342,169 @@ const Onboarding = () => {
                           ease: [0.34, 1.56, 0.64, 1],
                           delay: 0.5
                         }}
-                        className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-2xl border-3 sm:border-4 border-white"
+                        className="absolute -top-4 -right-4 sm:-top-5 sm:-right-5 w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-xl border-3 border-white/50 backdrop-blur-sm"
                       >
                         <motion.div
                           animate={{
-                            rotate: [0, 5, -5, 0],
+                            rotate: [0, 8, -8, 0],
                             scale: [1, 1.1, 1]
                           }}
                           transition={{
-                            duration: 2,
+                            duration: 3.5,
                             repeat: Infinity,
                             ease: "easeInOut"
                           }}
                         >
-                          <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                          <IconComponent className="w-8 h-8 sm:w-9 sm:h-9 text-white" />
                         </motion.div>
+                        
+                        {/* Badge glow */}
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] blur-lg opacity-40 -z-10" />
                       </motion.div>
                     </motion.div>
 
-                    {/* Pulsing Glow Effect */}
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.2, 0.4, 0.2]
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="absolute inset-0 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] blur-3xl -z-10"
-                    />
-
-                    {/* Orbiting Particles */}
-                    {[0, 1, 2, 3].map((i) => (
+                    {/* Orbiting decorative elements */}
+                    {[0, 1, 2, 3, 4].map((i) => (
                       <motion.div
                         key={i}
-                        className="absolute w-3 h-3 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] shadow-lg"
+                        className="absolute w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] shadow-md"
                         animate={{
                           rotate: [0, 360],
                           scale: [1, 1.3, 1],
-                          opacity: [0.6, 1, 0.6]
+                          opacity: [0.3, 0.8, 0.3]
                         }}
                         transition={{
                           rotate: {
-                            duration: 8,
+                            duration: 18,
                             repeat: Infinity,
                             ease: "linear",
-                            delay: i * 0.5
+                            delay: i * 1
                           },
                           scale: {
-                            duration: 2,
+                            duration: 3.5,
                             repeat: Infinity,
                             ease: "easeInOut",
-                            delay: i * 0.3
+                            delay: i * 0.5
                           },
                           opacity: {
-                            duration: 2,
+                            duration: 3.5,
                             repeat: Infinity,
                             ease: "easeInOut",
-                            delay: i * 0.3
+                            delay: i * 0.5
                           }
                         }}
                         style={{
                           left: '50%',
                           top: '50%',
-                          marginLeft: '-6px',
-                          marginTop: '-6px',
-                          transformOrigin: `${Math.cos((i * Math.PI) / 2) * 140}px ${Math.sin((i * Math.PI) / 2) * 140}px`
+                          marginLeft: '-3px',
+                          marginTop: '-3px',
+                          transformOrigin: `${Math.cos((i * Math.PI) / 2.5) * 130}px ${Math.sin((i * Math.PI) / 2.5) * 130}px`
                         }}
                       />
                     ))}
                   </motion.div>
 
-                  {/* Text Content */}
+                  {/* ── Text Content with Premium Typography ── */}
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.6,
                       ease: [0.22, 1, 0.36, 1],
-                      delay: 0.4
+                      delay: 0.5
                     }}
-                    className="text-center px-2 sm:px-4"
+                    className="text-center px-4 sm:px-5"
                   >
+                    {/* Decorative line above title */}
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 0.7, delay: 0.6 }}
+                      className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE] to-transparent mx-auto mb-3"
+                    />
+
                     <motion.h1
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{
                         duration: 0.5,
                         ease: [0.22, 1, 0.36, 1],
-                        delay: 0.5
+                        delay: 0.6
                       }}
-                      className="text-[#1D2956] text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 leading-tight"
+                      className="text-[#1D2956] text-2xl sm:text-3xl md:text-4xl font-bold mb-2 leading-tight tracking-tight"
                     >
                       {currentScreenData.title}
                     </motion.h1>
+                    
                     <motion.p
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{
                         duration: 0.5,
                         ease: [0.22, 1, 0.36, 1],
-                        delay: 0.6
+                        delay: 0.7
                       }}
-                      className="text-[#536DFE] text-xs sm:text-sm font-bold tracking-[0.15em] sm:tracking-[0.25em] uppercase mb-3 sm:mb-4"
+                      className="text-[#536DFE] text-xs sm:text-sm font-bold tracking-[0.15em] sm:tracking-[0.25em] uppercase mb-3"
                     >
                       {currentScreenData.subtitle}
                     </motion.p>
+                    
                     <motion.p
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{
                         duration: 0.5,
                         ease: [0.22, 1, 0.36, 1],
-                        delay: 0.7
+                        delay: 0.8
                       }}
                       className="text-[#1D2956]/70 text-sm sm:text-base leading-relaxed max-w-sm mx-auto"
                     >
                       {currentScreenData.description}
                     </motion.p>
+
+                    {/* Decorative line below description */}
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 0.7, delay: 0.9 }}
+                      className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE]/30 to-transparent mx-auto mt-4"
+                    />
                   </motion.div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Bottom Section - Pagination + Buttons + Branding - Properly structured */}
-            <div className="space-y-3 sm:space-y-4 mt-auto">
-              {/* Pagination Dots - Brand Blue */}
+            {/* ── Bottom Section - Pagination + Buttons + Branding ── */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentScreen}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+                className="space-y-4 mt-auto"
+              >
+              
+              {/* ── Premium Pagination Dots ── */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="flex items-center justify-center gap-2 sm:gap-3"
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="flex items-center justify-center gap-2.5"
               >
                 {screens.map((_, index) => (
                   <motion.button
                     key={index}
                     onClick={() => setCurrentScreen(index)}
-                    whileHover={{ scale: 1.4 }}
+                    whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
                     className="relative"
                   >
                     <motion.div
                       animate={{
-                        width: currentScreen === index ? 44 : 12,
-                        height: currentScreen === index ? 4 : 4,
-                        backgroundColor: currentScreen === index ? '#536DFE' : '#E2E8F0'
+                        width: currentScreen === index ? 40 : 10,
+                        height: currentScreen === index ? 5 : 5,
+                        backgroundColor: currentScreen === index ? '#536DFE' : 'rgba(83, 109, 254, 0.2)'
                       }}
                       transition={{
                         duration: 0.4,
@@ -369,7 +515,7 @@ const Onboarding = () => {
                     {currentScreen === index && (
                       <motion.div
                         layoutId="activeDot"
-                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] shadow-lg shadow-[#536DFE]/25"
+                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] shadow-md shadow-[#536DFE]/30"
                         transition={{
                           type: "spring",
                           stiffness: 300,
@@ -381,59 +527,76 @@ const Onboarding = () => {
                 ))}
               </motion.div>
 
-              {/* Action Buttons - Brand Blue */}
-              <div className="space-y-3 sm:space-y-4">
+              {/* ── Premium Action Buttons ── */}
+              <div className="space-y-3">
                 {currentScreen === screens.length - 1 ? (
                   <>
+                    {/* Get Started Button */}
                     <motion.button
                       initial={{ opacity: 0, y: 20, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 0.9 }}
+                      transition={{ duration: 0.5, delay: 1.0 }}
                       onClick={handleGetStarted}
-                      whileHover={{ scale: 1.03, y: -3, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.4)" }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                      whileHover={{ scale: 1.03, y: -4, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.5)" }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full h-14 sm:h-16 rounded-xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] uppercase shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group"
                     >
                       {/* Animated background gradient */}
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-[#6B7FFF] to-[#536DFE]"
+                        className="absolute inset-0 bg-gradient-to-r from-[#6B7FFF] via-[#536DFE] to-[#6B7FFF]"
                         animate={{
                           x: ["-100%", "100%"]
                         }}
                         transition={{
-                          duration: 3,
+                          duration: 5,
                           repeat: Infinity,
                           ease: "linear"
                         }}
                         style={{ backgroundSize: "200% 100%" }}
                       />
+                      
+                      {/* Shine effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                        animate={{
+                          x: ["-100%", "100%"]
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "linear",
+                          delay: 1.5
+                        }}
+                      />
+                      
                       <motion.span
-                        className="relative z-10"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                        className="relative z-10 flex items-center gap-2"
+                        animate={{ x: [0, 6, 0] }}
+                        transition={{ duration: 2.5, repeat: Infinity, delay: 1.5 }}
                       >
                         Get Started
+                        <motion.div
+                          animate={{ x: [0, 4, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity, delay: 1.5 }}
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </motion.div>
                       </motion.span>
-                      <motion.div
-                        className="relative z-10"
-                        animate={{ x: [0, 3, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity, delay: 1.5 }}
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </motion.div>
                     </motion.button>
+
+                    {/* Sign In Button */}
                     <motion.button
                       initial={{ opacity: 0, y: 20, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 1.0 }}
+                      transition={{ duration: 0.5, delay: 1.1 }}
                       onClick={handleSignIn}
-                      whileHover={{ scale: 1.03, y: -3, backgroundColor: 'rgba(83, 109, 254, 0.1)', boxShadow: "0 15px 35px rgba(83, 109, 254, 0.2)" }}
+                      whileHover={{ scale: 1.02, y: -3, backgroundColor: 'rgba(83, 109, 254, 0.08)', boxShadow: "0 15px 30px rgba(83, 109, 254, 0.2)" }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full h-14 sm:h-16 rounded-xl sm:rounded-2xl border-2 border-[#536DFE]/40 text-[#536DFE] font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase bg-white shadow-lg relative overflow-hidden"
+                      className="w-full h-14 sm:h-16 rounded-xl border-2 border-[#536DFE]/30 text-[#536DFE] font-bold text-xs sm:text-sm tracking-[0.15em] uppercase bg-white/80 backdrop-blur-sm shadow-lg relative overflow-hidden group"
                     >
                       {/* Animated border glow */}
                       <motion.div
-                        className="absolute inset-0 rounded-2xl border-2 border-transparent"
+                        className="absolute inset-0 rounded-xl border-2 border-transparent"
                         animate={{
                           boxShadow: [
                             "0 0 0 0 rgba(83, 109, 254, 0)",
@@ -442,11 +605,12 @@ const Onboarding = () => {
                           ]
                         }}
                         transition={{
-                          duration: 2,
+                          duration: 3,
                           repeat: Infinity,
                           ease: "easeOut"
                         }}
                       />
+                      
                       <span className="relative z-10">Sign In</span>
                     </motion.button>
                   </>
@@ -454,65 +618,92 @@ const Onboarding = () => {
                   <motion.button
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.9 }}
+                    transition={{ duration: 0.5, delay: 1.0 }}
                     onClick={handleNext}
-                    whileHover={{ scale: 1.03, y: -3, boxShadow: "0 25px 50px rgba(83, 109, 254, 0.4)" }}
+                    whileHover={{ scale: 1.02, y: -3, boxShadow: "0 20px 40px rgba(83, 109, 254, 0.4)" }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase shadow-2xl flex items-center justify-center gap-2 relative overflow-hidden"
+                    className="w-full h-14 sm:h-16 rounded-xl bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white font-bold text-xs sm:text-sm tracking-[0.15em] uppercase shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group"
                   >
                     {/* Animated background gradient */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-[#6B7FFF] to-[#536DFE]"
+                      className="absolute inset-0 bg-gradient-to-r from-[#6B7FFF] via-[#536DFE] to-[#6B7FFF]"
                       animate={{
                         x: ["-100%", "100%"]
                       }}
                       transition={{
-                        duration: 3,
+                        duration: 5,
                         repeat: Infinity,
                         ease: "linear"
                       }}
                       style={{ backgroundSize: "200% 100%" }}
                     />
+                    
+                    {/* Shine effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                      animate={{
+                        x: ["-100%", "100%"]
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        ease: "linear",
+                        delay: 1.5
+                      }}
+                    />
+                    
                     <motion.span
-                      className="relative z-10"
-                      animate={{ x: [0, 5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      className="relative z-10 flex items-center gap-2"
+                      animate={{ x: [0, 6, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity }}
                     >
                       Next
+                      <motion.div
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </motion.div>
                     </motion.span>
-                    <motion.div
-                      className="relative z-10"
-                      animate={{ x: [0, 3, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </motion.div>
                   </motion.button>
                 )}
               </div>
 
-              {/* Powered By - Properly positioned */}
+              {/* ── Premium Powered By Section ── */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.1 }}
-                className="flex flex-col items-center gap-1.5 sm:gap-2 pt-2 pb-safe"
+                transition={{ delay: 1.2 }}
+                className="flex flex-col items-center gap-2 pt-3 pb-1"
               >
-                <div className="w-12 sm:w-16 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE] to-transparent rounded-full" />
-                <p className="text-[#1D2956]/40 text-[7px] sm:text-[8px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase">
+                {/* Decorative top line */}
+                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE]/40 to-transparent rounded-full" />
+                
+                <p className="text-[#1D2956]/40 text-[9px] font-semibold tracking-[0.2em] uppercase">
                   Powered By
                 </p>
-                <img
-                  src="https://mingalarmon.com/assets/logo_light.png"
-                  alt="Mingalar Mon"
-                  className="h-5 sm:h-6 object-contain opacity-60"
-                />
+                
+                {/* Bigger brand logo with shadow */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                  className="relative"
+                >
+                  <img
+                    src="https://mingalarmon.com/assets/logo_light.png"
+                    alt="Mingalar Mon"
+                    className="h-10 object-contain opacity-60 hover:opacity-80 transition-opacity drop-shadow-lg"
+                  />
+                  {/* Subtle glow */}
+                  <div className="absolute inset-0 bg-white/10 blur-xl -z-10 rounded-full" />
+                </motion.div>
+                
+                {/* Decorative bottom line */}
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#536DFE]/20 to-transparent rounded-full" />
               </motion.div>
-            </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
-
-          {/* Bottom home indicator */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1D2956]/10 rounded-full z-20" />
         </div>
       </PageTransition>
     </>

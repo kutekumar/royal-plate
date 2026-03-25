@@ -82,6 +82,12 @@ export function useOrderNotifications(options: UseOrderNotificationsOptions = {}
           
           document.addEventListener('click', handleUserInteraction);
           document.addEventListener('keydown', handleUserInteraction);
+          
+          // Return cleanup function
+          return () => {
+            document.removeEventListener('click', handleUserInteraction);
+            document.removeEventListener('keydown', handleUserInteraction);
+          };
         }
       };
 

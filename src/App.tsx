@@ -12,8 +12,10 @@ import Payment from "./pages/Payment";
 import Confirmation from "./pages/Confirmation";
 import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
-import Blog from "./pages/Blog";
+import BlogEnhanced from "./pages/BlogEnhanced";
+import BlogPostDetail from "./pages/BlogPostDetail";
 import Food from "./pages/Food";
+import Settings from "./pages/Settings";
 import RestaurantDashboard from "./pages/dashboard/RestaurantDashboard";
 import BlogEditor from "./pages/dashboard/BlogEditor";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -40,9 +42,11 @@ const App = () => (
             {/* Customer-facing */}
             <Route path="/home" element={<Home />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog" element={<BlogEnhanced />} />
+            <Route path="/blog/:postId" element={<BlogPostDetail />} />
             <Route path="/food" element={<Food />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/restaurant/:id" element={<RestaurantDetails />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/confirmation" element={<Confirmation />} />

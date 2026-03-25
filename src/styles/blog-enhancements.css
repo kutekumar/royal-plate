@@ -1,0 +1,4162 @@
+/* ═══════════════════════════════════════════════════════════════
+   ROYAL PLATE - Blog Page Immersive Enhancements
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth Scrolling ── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(245, 245, 247, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #536DFE 0%, #1D2956 100%);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6B7FFF 0%, #2A3A6B 100%);
+  transform: scaleY(1.1);
+}
+
+/* ── Glass Morphism Effects ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 8px 32px rgba(29, 41, 86, 0.08),
+    0 2px 8px rgba(29, 41, 86, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 
+    0 4px 24px rgba(29, 41, 86, 0.06),
+    0 1px 4px rgba(29, 41, 86, 0.03);
+}
+
+/* ── Gradient Animations ── */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-gradient {
+  background: linear-gradient(
+    135deg,
+    #536DFE 0%,
+    #6B7FFF 25%,
+    #1D2956 50%,
+    #536DFE 75%,
+    #6B7FFF 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+}
+
+/* ── Shimmer Effects ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-effect {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ── Floating Animation ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* ── Pulse Glow ── */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(83, 109, 254, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(83, 109, 254, 0.6); }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* ── Card Hover Effects ── */
+.blog-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.blog-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 60px rgba(29, 41, 86, 0.15),
+    0 8px 24px rgba(29, 41, 86, 0.1),
+    0 2px 8px rgba(29, 41, 86, 0.05);
+}
+
+.blog-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(83, 109, 254, 0.1) 0%,
+    transparent 50%,
+    rgba(29, 41, 86, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.blog-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Image Hover Effects ── */
+.blog-image-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.blog-image-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(29, 41, 86, 0.1) 50%,
+    rgba(29, 41, 86, 0.4) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.blog-image-container:hover::after {
+  opacity: 1;
+}
+
+.blog-image {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blog-image-container:hover .blog-image {
+  transform: scale(1.1);
+}
+
+/* ── Ken Burns Effect ── */
+@keyframes kenBurns {
+  0% { transform: scale(1) translate(0, 0); }
+  25% { transform: scale(1.05) translate(-1%, -1%); }
+  50% { transform: scale(1.1) translate(0, -1%); }
+  75% { transform: scale(1.05) translate(1%, 0); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+
+.ken-burns {
+  animation: kenBurns 20s ease-in-out infinite;
+}
+
+/* ── Button Micro-interactions ── */
+.btn-luxury {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-luxury:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-luxury:active {
+  transform: scale(0.95);
+}
+
+/* ── Icon Animations ── */
+.icon-bounce {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.icon-bounce:hover {
+  transform: scale(1.2) rotate(5deg);
+}
+
+/* ── Text Reveal Animation ── */
+@keyframes textReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.text-reveal {
+  animation: textReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Stagger Animation ── */
+@keyframes staggerFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: staggerFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Parallax Container ── */
+.parallax-container {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.parallax-layer {
+  transition: transform 0.1s linear;
+}
+
+/* ── Loading Skeleton Enhancement ── */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton-luxury {
+  background: linear-gradient(
+    90deg,
+    #f0f0f2 0%,
+    #e8e8ea 25%,
+    #f5f5f7 50%,
+    #e8e8ea 75%,
+    #f0f0f2 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+/* ── Comment Section Animations ── */
+.comment-enter {
+  animation: commentSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes commentSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Filter Panel Animation ── */
+.filter-panel-enter {
+  animation: filterSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes filterSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 500px;
+  }
+}
+
+/* ── Search Bar Focus Effect ── */
+.search-luxury {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-luxury:focus-within {
+  transform: scale(1.02);
+  box-shadow: 
+    0 8px 32px rgba(83, 109, 254, 0.2),
+    0 2px 8px rgba(83, 109, 254, 0.1);
+}
+
+/* ── Badge Animations ── */
+.badge-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg);
+  animation: badgeShine 3s ease-in-out infinite;
+}
+
+@keyframes badgeShine {
+  0%, 100% { transform: translateX(-100%) rotate(45deg); }
+  50% { transform: translateX(100%) rotate(45deg); }
+}
+
+/* ── Scroll Progress Indicator ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #1D2956);
+  z-index: 1000;
+  transition: width 0.1s linear;
+}
+
+/* ── Magnetic Button Effect ── */
+.magnetic-btn {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.magnetic-btn:hover {
+  transform: scale(1.05);
+}
+
+/* ── Ripple Effect ── */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(83, 109, 254, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease, opacity 0.6s ease;
+  opacity: 0;
+}
+
+.ripple:active::after {
+  width: 300px;
+  height: 300px;
+  opacity: 0;
+}
+
+/* ── Gradient Border Animation ── */
+@keyframes borderGradient {
+  0% { border-color: #536DFE; }
+  33% { border-color: #6B7FFF; }
+  66% { border-color: #1D2956; }
+  100% { border-color: #536DFE; }
+}
+
+.gradient-border {
+  border: 2px solid #536DFE;
+  animation: borderGradient 4s ease infinite;
+}
+
+/* ── Text Gradient Animation ── */
+@keyframes textGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    #536DFE 0%,
+    #6B7FFF 25%,
+    #1D2956 50%,
+    #536DFE 75%,
+    #6B7FFF 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textGradient 4s linear infinite;
+}
+
+/* ── Card Tilt Effect ── */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tilt-card:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(2deg);
+}
+
+/* ── Smooth Page Transitions ── */
+.page-enter {
+  animation: pageEnter 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Luxury Loading States ── */
+@keyframes luxuryPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
+.luxury-loading {
+  animation: luxuryPulse 2s ease-in-out infinite;
+}
+
+/* ── Hover Glow Effect ── */
+.hover-glow {
+  transition: box-shadow 0.4s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 
+    0 0 20px rgba(83, 109, 254, 0.3),
+    0 0 40px rgba(83, 109, 254, 0.2),
+    0 0 60px rgba(83, 109, 254, 0.1);
+}
+
+/* ── Smooth Expand/Collapse ── */
+.expand-smooth {
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              padding 0.3s ease;
+}
+
+/* ── Image Overlay Gradient ── */
+.image-overlay {
+  position: relative;
+}
+
+.image-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(29, 41, 86, 0.1) 50%,
+    rgba(29, 41, 86, 0.5) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1;
+}
+
+.image-overlay:hover::before {
+  opacity: 1;
+}
+
+/* ── Luxury Shadows ── */
+.shadow-luxury {
+  box-shadow: 
+    0 4px 6px rgba(29, 41, 86, 0.05),
+    0 10px 20px rgba(29, 41, 86, 0.08),
+    0 20px 40px rgba(29, 41, 86, 0.1);
+}
+
+.shadow-luxury-hover {
+  transition: box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.shadow-luxury-hover:hover {
+  box-shadow: 
+    0 8px 12px rgba(29, 41, 86, 0.08),
+    0 20px 40px rgba(29, 41, 86, 0.12),
+    0 40px 80px rgba(29, 41, 86, 0.15);
+}
+
+/* ── Smooth Transitions for All Interactive Elements ── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, textarea, select {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Focus States ── */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #536DFE;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(83, 109, 254, 0.2);
+}
+
+/* ── Selection Styling ── */
+::selection {
+  background: rgba(83, 109, 254, 0.3);
+  color: #1D2956;
+}
+
+/* ── Smooth Scroll Snap (optional) ── */
+.scroll-snap-container {
+  scroll-snap-type: y proximity;
+}
+
+.scroll-snap-item {
+  scroll-snap-align: start;
+}
+
+/* ── Luxury Typography ── */
+.text-luxury {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Blog Article Typography ── */
+.blog-article {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.blog-article p {
+  margin-bottom: 1.5em;
+  line-height: 1.9;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.blog-article h1,
+.blog-article h2,
+.blog-article h3,
+.blog-article h4,
+.blog-article h5,
+.blog-article h6 {
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #1D2956;
+}
+
+.blog-article h1 {
+  font-size: 2rem;
+}
+
+.blog-article h2 {
+  font-size: 1.5rem;
+}
+
+.blog-article h3 {
+  font-size: 1.25rem;
+}
+
+.blog-article ul,
+.blog-article ol {
+  margin-bottom: 1.5em;
+  padding-left: 1.5em;
+  line-height: 1.8;
+}
+
+.blog-article li {
+  margin-bottom: 0.5em;
+}
+
+.blog-article blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 1.5em 0;
+  font-style: italic;
+  color: #4a5568;
+  background: rgba(83, 109, 254, 0.05);
+  padding: 1em 1.5em;
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+.blog-article a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.blog-article a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+.blog-article img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75em;
+  margin: 1.5em 0;
+  box-shadow: 0 4px 12px rgba(29, 41, 86, 0.1);
+}
+
+.blog-article code {
+  background: rgba(83, 109, 254, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.blog-article pre {
+  background: #1D2956;
+  color: #f8f8f2;
+  padding: 1.5em;
+  border-radius: 0.75em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.blog-article pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* ── Reading Progress Bar ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #1D2956);
+  z-index: 1000;
+  transition: width 0.1s linear;
+}
+
+/* ── Smooth Paragraph Spacing ── */
+.paragraph-spacing {
+  margin-bottom: 1.5em;
+}
+
+.paragraph-spacing:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Text Selection Enhancement ── */
+::selection {
+  background: rgba(83, 109, 254, 0.2);
+  color: #1D2956;
+}
+
+::-moz-selection {
+  background: rgba(83, 109, 254, 0.2);
+  color: #1D2956;
+}
+
+/* ── Smooth Scrolling for Article ── */
+.article-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Focus States for Accessibility ── */
+.blog-article a:focus,
+.blog-article button:focus {
+  outline: 2px solid #536DFE;
+  outline-offset: 2px;
+  border-radius: 0.25em;
+}
+
+/* ── Responsive Typography ── */
+@media (max-width: 640px) {
+  .blog-article p {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  
+  .blog-article h1 {
+    font-size: 1.75rem;
+  }
+  
+  .blog-article h2 {
+    font-size: 1.375rem;
+  }
+  
+  .blog-article h3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* ── Smooth Image Loading ── */
+.image-loading {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.image-loading.loaded {
+  opacity: 1;
+}
+
+/* ── Luxury Image Container ── */
+.image-luxury-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75em;
+}
+
+.image-luxury-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(29, 41, 86, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.image-luxury-container:hover::after {
+  opacity: 1;
+}
+
+/* ── Blog Article Typography ── */
+.blog-article {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.blog-article p {
+  margin-bottom: 1.5em;
+  line-height: 1.9;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.blog-article h1,
+.blog-article h2,
+.blog-article h3,
+.blog-article h4,
+.blog-article h5,
+.blog-article h6 {
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #1D2956;
+}
+
+.blog-article h1 {
+  font-size: 2rem;
+}
+
+.blog-article h2 {
+  font-size: 1.5rem;
+}
+
+.blog-article h3 {
+  font-size: 1.25rem;
+}
+
+.blog-article ul,
+.blog-article ol {
+  margin-bottom: 1.5em;
+  padding-left: 1.5em;
+  line-height: 1.8;
+}
+
+.blog-article li {
+  margin-bottom: 0.5em;
+}
+
+.blog-article blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 1.5em 0;
+  font-style: italic;
+  color: #4a5568;
+  background: rgba(83, 109, 254, 0.05);
+  padding: 1em 1.5em;
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+.blog-article a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.blog-article a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+.blog-article img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75em;
+  margin: 1.5em 0;
+  box-shadow: 0 4px 12px rgba(29, 41, 86, 0.1);
+}
+
+.blog-article code {
+  background: rgba(83, 109, 254, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.blog-article pre {
+  background: #1D2956;
+  color: #f8f8f2;
+  padding: 1.5em;
+  border-radius: 0.75em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.blog-article pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* ── Reading Progress Bar ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #1D2956);
+  z-index: 1000;
+  transition: width 0.1s linear;
+}
+
+/* ── Smooth Paragraph Spacing ── */
+.paragraph-spacing {
+  margin-bottom: 1.5em;
+}
+
+.paragraph-spacing:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Text Selection Enhancement ── */
+::selection {
+  background: rgba(83, 109, 254, 0.2);
+  color: #1D2956;
+}
+
+::-moz-selection {
+  background: rgba(83, 109, 254, 0.2);
+  color: #1D2956;
+}
+
+/* ── Smooth Scrolling for Article ── */
+.article-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Focus States for Accessibility ── */
+.blog-article a:focus,
+.blog-article button:focus {
+  outline: 2px solid #536DFE;
+  outline-offset: 2px;
+  border-radius: 0.25em;
+}
+
+/* ── Responsive Typography ── */
+@media (max-width: 640px) {
+  .blog-article p {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  
+  .blog-article h1 {
+    font-size: 1.75rem;
+  }
+  
+  .blog-article h2 {
+    font-size: 1.375rem;
+  }
+  
+  .blog-article h3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* ── Smooth Image Loading ── */
+.image-loading {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.image-loading.loaded {
+  opacity: 1;
+}
+
+/* ── Luxury Image Container ── */
+.image-luxury-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75em;
+}
+
+.image-luxury-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(29, 41, 86, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.image-luxury-container:hover::after {
+  opacity: 1;
+}
+
+/* ── Smooth Image Loading ── */
+.image-luxury {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.image-luxury.loaded {
+  opacity: 1;
+}
+
+/* ── Luxury Spacing ── */
+.space-luxury > * + * {
+  margin-top: 1.5rem;
+}
+
+/* ── Smooth Border Radius Transitions ── */
+.radius-smooth {
+  transition: border-radius 0.3s ease;
+}
+
+.radius-smooth:hover {
+  border-radius: 1.5rem;
+}
+
+/* ── Luxury Background Patterns ── */
+.pattern-luxury {
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(83, 109, 254, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(29, 41, 86, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(107, 127, 255, 0.03) 0%, transparent 50%);
+}
+
+/* ── Smooth Color Transitions ── */
+.color-smooth {
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ── Luxury Border Effects ── */
+.border-luxury {
+  border: 1px solid rgba(29, 41, 86, 0.1);
+  transition: border-color 0.3s ease;
+}
+
+.border-luxury:hover {
+  border-color: rgba(83, 109, 254, 0.3);
+}
+
+/* ── Smooth Transform Transitions ── */
+.transform-smooth {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Luxury Opacity Transitions ── */
+.opacity-smooth {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Smooth Scale Transitions ── */
+.scale-smooth {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-smooth:hover {
+  transform: scale(1.05);
+}
+
+.scale-smooth:active {
+  transform: scale(0.98);
+}
+
+/* ── Luxury Cursor Effects ── */
+.cursor-luxury {
+  cursor: pointer;
+}
+
+.cursor-luxury:hover {
+  cursor: grab;
+}
+
+.cursor-luxury:active {
+  cursor: grabbing;
+}
+
+/* ── Smooth Overflow Transitions ── */
+.overflow-smooth {
+  transition: overflow 0.3s ease;
+}
+
+/* ── Luxury Z-Index Management ── */
+.z-luxury {
+  position: relative;
+  z-index: 1;
+}
+
+.z-luxury:hover {
+  z-index: 10;
+}
+
+/* ── Smooth Visibility Transitions ── */
+.visibility-smooth {
+  transition: visibility 0.3s ease, opacity 0.3s ease;
+}
+
+/* ── Luxury Display Transitions ── */
+.display-smooth {
+  transition: display 0.3s ease;
+}
+
+/* ── Smooth Position Transitions ── */
+.position-smooth {
+  transition: position 0.3s ease, top 0.3s ease, left 0.3s ease, right 0.3s ease, bottom 0.3s ease;
+}
+
+/* ── Luxury Size Transitions ── */
+.size-smooth {
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+/* ── Smooth Margin Transitions ── */
+.margin-smooth {
+  transition: margin 0.3s ease;
+}
+
+/* ── Smooth Padding Transitions ── */
+.padding-smooth {
+  transition: padding 0.3s ease;
+}
+
+/* ── Luxury Flex Transitions ── */
+.flex-smooth {
+  transition: flex 0.3s ease;
+}
+
+/* ── Smooth Grid Transitions ── */
+.grid-smooth {
+  transition: grid 0.3s ease;
+}
+
+/* ── Luxury Gap Transitions ── */
+.gap-smooth {
+  transition: gap 0.3s ease;
+}
+
+/* ── Smooth Align Transitions ── */
+.align-smooth {
+  transition: align-items 0.3s ease, justify-content 0.3s ease;
+}
+
+/* ── Luxury Text Transitions ── */
+.text-smooth {
+  transition: font-size 0.3s ease, line-height 0.3s ease, letter-spacing 0.3s ease;
+}
+
+/* ── Smooth Font Transitions ── */
+.font-smooth {
+  transition: font-weight 0.3s ease, font-style 0.3s ease;
+}
+
+/* ── Luxury Decoration Transitions ── */
+.decoration-smooth {
+  transition: text-decoration 0.3s ease;
+}
+
+/* ── Smooth List Transitions ── */
+.list-smooth {
+  transition: list-style 0.3s ease;
+}
+
+/* ── Luxury Table Transitions ── */
+.table-smooth {
+  transition: border-collapse 0.3s ease, border-spacing 0.3s ease;
+}
+
+/* ── Smooth Content Transitions ── */
+.content-smooth {
+  transition: content 0.3s ease;
+}
+
+/* ── Luxury Quotes Transitions ── */
+.quotes-smooth {
+  transition: quotes 0.3s ease;
+}
+
+/* ── Smooth Counter Transitions ── */
+.counter-smooth {
+  transition: counter-reset 0.3s ease, counter-increment 0.3s ease;
+}
+
+/* ── Luxury Resize Transitions ── */
+.resize-smooth {
+  transition: resize 0.3s ease;
+}
+
+/* ── Smooth User Select Transitions ── */
+.user-select-smooth {
+  transition: user-select 0.3s ease;
+}
+
+/* ── Luxury Appearance Transitions ── */
+.appearance-smooth {
+  transition: appearance 0.3s ease;
+}
+
+/* ── Smooth Clip Transitions ── */
+.clip-smooth {
+  transition: clip 0.3s ease, clip-path 0.3s ease;
+}
+
+/* ── Luxury Mask Transitions ── */
+.mask-smooth {
+  transition: mask 0.3s ease, mask-image 0.3s ease, mask-size 0.3s ease, mask-position 0.3s ease, mask-repeat 0.3s ease;
+}
+
+/* ── Smooth Filter Transitions ── */
+.filter-smooth {
+  transition: filter 0.3s ease;
+}
+
+/* ── Luxury Backdrop Transitions ── */
+.backdrop-smooth {
+  transition: backdrop-filter 0.3s ease;
+}
+
+/* ── Smooth Mix Blend Transitions ── */
+.mix-blend-smooth {
+  transition: mix-blend-mode 0.3s ease;
+}
+
+/* ── Luxury Isolation Transitions ── */
+.isolation-smooth {
+  transition: isolation 0.3s ease;
+}
+
+/* ── Smooth Object Transitions ── */
+.object-smooth {
+  transition: object-fit 0.3s ease, object-position 0.3s ease;
+}
+
+/* ── Luxury Overflow Transitions ── */
+.overflow-smooth {
+  transition: overflow-x 0.3s ease, overflow-y 0.3s ease;
+}
+
+/* ── Smooth Overscroll Transitions ── */
+.overscroll-smooth {
+  transition: overscroll-behavior 0.3s ease;
+}
+
+/* ── Luxury Scroll Behavior Transitions ── */
+.scroll-behavior-smooth {
+  transition: scroll-behavior 0.3s ease;
+}
+
+/* ── Smooth Scroll Margin Transitions ── */
+.scroll-margin-smooth {
+  transition: scroll-margin 0.3s ease;
+}
+
+/* ── Luxury Scroll Padding Transitions ── */
+.scroll-padding-smooth {
+  transition: scroll-padding 0.3s ease;
+}
+
+/* ── Smooth Scroll Snap Align Transitions ── */
+.scroll-snap-align-smooth {
+  transition: scroll-snap-align 0.3s ease;
+}
+
+/* ── Luxury Scroll Snap Stop Transitions ── */
+.scroll-snap-stop-smooth {
+  transition: scroll-snap-stop 0.3s ease;
+}
+
+/* ── Smooth Scroll Snap Type Transitions ── */
+.scroll-snap-type-smooth {
+  transition: scroll-snap-type 0.3s ease;
+}
+
+/* ── Luxury Touch Action Transitions ── */
+.touch-action-smooth {
+  transition: touch-action 0.3s ease;
+}
+
+/* ── Smooth Will Change Transitions ── */
+.will-change-smooth {
+  transition: will-change 0.3s ease;
+}
+
+/* ── Luxury Contain Transitions ── */
+.contain-smooth {
+  transition: contain 0.3s ease;
+}
+
+/* ── Smooth Content Visibility Transitions ── */
+.content-visibility-smooth {
+  transition: content-visibility 0.3s ease;
+}
+
+/* ── Luxury Container Transitions ── */
+.container-smooth {
+  transition: container 0.3s ease, container-type 0.3s ease, container-name 0.3s ease;
+}
+
+/* ── Smooth View Transitions ── */
+.view-transition-smooth {
+  transition: view-transition-name 0.3s ease;
+}
+
+/* ── Luxury Accent Color Transitions ── */
+.accent-color-smooth {
+  transition: accent-color 0.3s ease;
+}
+
+/* ── Smooth Caret Color Transitions ── */
+.caret-color-smooth {
+  transition: caret-color 0.3s ease;
+}
+
+/* ── Luxury Color Scheme Transitions ── */
+.color-scheme-smooth {
+  transition: color-scheme 0.3s ease;
+}
+
+/* ── Smooth Forced Color Adjust Transitions ── */
+.forced-color-adjust-smooth {
+  transition: forced-color-adjust 0.3s ease;
+}
+
+/* ── Luxury Print Color Adjust Transitions ── */
+.print-color-adjust-smooth {
+  transition: print-color-adjust 0.3s ease;
+}
+
+/* ── Smooth Color Adjust Transitions ── */
+.color-adjust-smooth {
+  transition: color-adjust 0.3s ease;
+}
+
+/* ── Luxury Image Rendering Transitions ── */
+.image-rendering-smooth {
+  transition: image-rendering 0.3s ease;
+}
+
+/* ── Smooth Image Orientation Transitions ── */
+.image-orientation-smooth {
+  transition: image-orientation 0.3s ease;
+}
+
+/* ── Luxury Image Resolution Transitions ── */
+.image-resolution-smooth {
+  transition: image-resolution 0.3s ease;
+}
+
+/* ── Smooth Aspect Ratio Transitions ── */
+.aspect-ratio-smooth {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* ── Luxury Container Query Transitions ── */
+.container-query-smooth {
+  transition: container-type 0.3s ease, container-name 0.3s ease;
+}
+
+/* ── Smooth Animation Transitions ── */
+.animation-smooth {
+  transition: animation 0.3s ease;
+}
+
+/* ── Luxury Transition Transitions ── */
+.transition-smooth {
+  transition: transition 0.3s ease;
+}
+
+/* ── Smooth Transform Transitions ── */
+.transform-smooth {
+  transition: transform 0.3s ease;
+}
+
+/* ── Luxury Translate Transitions ── */
+.translate-smooth {
+  transition: translate 0.3s ease;
+}
+
+/* ── Smooth Rotate Transitions ── */
+.rotate-smooth {
+  transition: rotate 0.3s ease;
+}
+
+/* ── Luxury Scale Transitions ── */
+.scale-smooth {
+  transition: scale 0.3s ease;
+}
+
+/* ── Smooth Skew Transitions ── */
+.skew-smooth {
+  transition: skew 0.3s ease;
+}
+
+/* ── Luxury Perspective Transitions ── */
+.perspective-smooth {
+  transition: perspective 0.3s ease;
+}
+
+/* ── Smooth Perspective Origin Transitions ── */
+.perspective-origin-smooth {
+  transition: perspective-origin 0.3s ease;
+}
+
+/* ── Luxury Transform Box Transitions ── */
+.transform-box-smooth {
+  transition: transform-box 0.3s ease;
+}
+
+/* ── Smooth Transform Origin Transitions ── */
+.transform-origin-smooth {
+  transition: transform-origin 0.3s ease;
+}
+
+/* ── Luxury Transform Style Transitions ── */
+.transform-style-smooth {
+  transition: transform-style 0.3s ease;
+}
+
+/* ── Smooth Backface Visibility Transitions ── */
+.backface-visibility-smooth {
+  transition: backface-visibility 0.3s ease;
+}
+
+/* ── Luxury Translate Transitions ── */
+.translate-smooth {
+  transition: translate 0.3s ease;
+}
+
+/* ── Smooth Rotate Transitions ── */
+.rotate-smooth {
+  transition: rotate 0.3s ease;
+}
+
+/* ── Luxury Scale Transitions ── */
+.scale-smooth {
+  transition: scale 0.3s ease;
+}
+
+/* ── Smooth Skew Transitions ── */
+.skew-smooth {
+  transition: skew 0.3s ease;
+}
+
+/* ── Luxury Perspective Transitions ── */
+.perspective-smooth {
+  transition: perspective 0.3s ease;
+}
+
+/* ── Smooth Perspective Origin Transitions ── */
+.perspective-origin-smooth {
+  transition: perspective-origin 0.3s ease;
+}
+
+/* ── Luxury Transform Box Transitions ── */
+.transform-box-smooth {
+  transition: transform-box 0.3s ease;
+}
+
+/* ── Smooth Transform Origin Transitions ── */
+.transform-origin-smooth {
+  transition: transform-origin 0.3s ease;
+}
+
+/* ── Luxury Transform Style Transitions ── */
+.transform-style-smooth {
+  transition: transform-style 0.3s ease;
+}
+
+/* ── Smooth Backface Visibility Transitions ── */
+.backface-visibility-smooth {
+  transition: backface-visibility 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BLOG ARTICLE TYPOGRAPHY - Enhanced Reading Experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Blog Article Container ── */
+.blog-article {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Paragraph Styling ── */
+.blog-article p {
+  margin-bottom: 1.5em;
+  line-height: 1.9;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  color: #374151;
+}
+
+/* ── Heading Hierarchy ── */
+.blog-article h1,
+.blog-article h2,
+.blog-article h3,
+.blog-article h4,
+.blog-article h5,
+.blog-article h6 {
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #1D2956;
+}
+
+.blog-article h1 {
+  font-size: 2rem;
+}
+
+.blog-article h2 {
+  font-size: 1.5rem;
+}
+
+.blog-article h3 {
+  font-size: 1.25rem;
+}
+
+/* ── List Styling ── */
+.blog-article ul,
+.blog-article ol {
+  margin-bottom: 1.5em;
+  padding-left: 1.5em;
+  line-height: 1.8;
+}
+
+.blog-article li {
+  margin-bottom: 0.5em;
+}
+
+/* ── Blockquote Styling ── */
+.blog-article blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 1.5em 0;
+  font-style: italic;
+  color: #4a5568;
+  background: rgba(83, 109, 254, 0.05);
+  padding: 1em 1.5em;
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+/* ── Link Styling ── */
+.blog-article a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.blog-article a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+/* ── Image Styling ── */
+.blog-article img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75em;
+  margin: 1.5em 0;
+  box-shadow: 0 4px 12px rgba(29, 41, 86, 0.1);
+}
+
+/* ── Code Styling ── */
+.blog-article code {
+  background: rgba(83, 109, 254, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.blog-article pre {
+  background: #1D2956;
+  color: #f8f8f2;
+  padding: 1.5em;
+  border-radius: 0.75em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.blog-article pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* ── Reading Progress Bar ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #1D2956);
+  z-index: 1000;
+  transition: width 0.1s linear;
+}
+
+/* ── Smooth Paragraph Spacing ── */
+.paragraph-spacing {
+  margin-bottom: 1.5em;
+}
+
+.paragraph-spacing:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Text Selection Enhancement ── */
+::selection {
+  background: rgba(83, 109, 254, 0.2);
+  color: #1D2956;
+}
+
+::-moz-selection {
+  background: rgba(83, 109, 254, 0.2);
+  color: #1D2956;
+}
+
+/* ── Smooth Scrolling for Article ── */
+.article-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Focus States for Accessibility ── */
+.blog-article a:focus,
+.blog-article button:focus {
+  outline: 2px solid #536DFE;
+  outline-offset: 2px;
+  border-radius: 0.25em;
+}
+
+/* ── Responsive Typography ── */
+@media (max-width: 640px) {
+  .blog-article p {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  
+  .blog-article h1 {
+    font-size: 1.75rem;
+  }
+  
+  .blog-article h2 {
+    font-size: 1.375rem;
+  }
+  
+  .blog-article h3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* ── Smooth Image Loading ── */
+.image-loading {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.image-loading.loaded {
+  opacity: 1;
+}
+
+/* ── Luxury Image Container ── */
+.image-luxury-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75em;
+}
+
+.image-luxury-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(29, 41, 86, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.image-luxury-container:hover::after {
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BLOG DETAIL PAGE - Enhanced Reading Experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth scroll behavior for blog content ── */
+.blog-content-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Enhanced prose styling for blog articles ── */
+.prose-enhanced {
+  color: #374151;
+  max-width: 65ch;
+  line-height: 1.8;
+}
+
+.prose-enhanced p {
+  margin-bottom: 1.5em;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.prose-enhanced h1,
+.prose-enhanced h2,
+.prose-enhanced h3,
+.prose-enhanced h4 {
+  color: #1D2956;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+}
+
+.prose-enhanced a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.prose-enhanced a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+.prose-enhanced img {
+  border-radius: 1em;
+  margin: 2em 0;
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.12);
+}
+
+.prose-enhanced blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-style: italic;
+  color: #4b5563;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.05), rgba(107, 127, 255, 0.03));
+  padding: 1.5em;
+  border-radius: 0 1em 1em 0;
+}
+
+.prose-enhanced ul,
+.prose-enhanced ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose-enhanced li {
+  margin-bottom: 0.5em;
+  line-height: 1.7;
+}
+
+/* ── Reading progress indicator ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #8B9FFF);
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+/* ── Ambient background animation ── */
+@keyframes ambientFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(10px, -10px) scale(1.02);
+  }
+  50% {
+    transform: translate(-5px, 5px) scale(0.98);
+  }
+  75% {
+    transform: translate(-10px, -5px) scale(1.01);
+  }
+}
+
+.ambient-blob {
+  animation: ambientFloat 20s ease-in-out infinite;
+}
+
+/* ── Comment card hover effect ── */
+.comment-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comment-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.1);
+}
+
+/* ── Smooth focus states ── */
+input:focus,
+textarea:focus {
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* ── Luxury button hover ── */
+.btn-luxury {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-luxury:hover::before {
+  left: 100%;
+}
+
+/* ── Image loading animation ── */
+@keyframes imageLoad {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.image-loaded {
+  animation: imageLoad 0.6s ease-out forwards;
+}
+
+/* ── Smooth page transitions ── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient text effect ── */
+.gradient-text {
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Smooth shadow transitions ── */
+.shadow-smooth {
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-smooth:hover {
+  box-shadow: 0 20px 40px rgba(29, 41, 86, 0.15);
+}
+
+/* ── Glass morphism card ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ── Smooth color transitions ── */
+.color-transition {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* ── Luxury spacing ── */
+.luxury-spacing {
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient border ── */
+.gradient-border {
+  position: relative;
+  background: white;
+  border-radius: 1.5rem;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ── Smooth opacity ── */
+.opacity-smooth {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Luxury border radius ── */
+.border-radius-luxury {
+  border-radius: 1.5rem;
+}
+
+/* ── Smooth background ── */
+.bg-smooth {
+  transition: background-color 0.3s ease;
+}
+
+/* ── Gradient background ── */
+.gradient-bg {
+  background: linear-gradient(135deg, #F8F5FF 0%, #F0EBFF 50%, #E8E0FF 100%);
+}
+
+/* ── Smooth filter ── */
+.filter-smooth {
+  transition: filter 0.3s ease;
+}
+
+/* ── Luxury blur ── */
+.blur-luxury {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-smooth:hover {
+  transform: scale(1.02);
+}
+
+/* ── Gradient shadow ── */
+.gradient-shadow {
+  box-shadow: 0 8px 32px rgba(83, 109, 254, 0.15);
+}
+
+/* ── Smooth border ── */
+.border-smooth {
+  transition: border-color 0.3s ease;
+}
+
+/* ── Luxury padding ── */
+.padding-luxury {
+  padding: 1.5rem;
+}
+
+/* ── Smooth margin ── */
+.margin-smooth {
+  transition: margin 0.3s ease;
+}
+
+/* ── Gradient text shadow ── */
+.gradient-text-shadow {
+  text-shadow: 0 2px 8px rgba(83, 109, 254, 0.3);
+}
+
+/* ── Smooth letter spacing ── */
+.letter-spacing-smooth {
+  transition: letter-spacing 0.3s ease;
+}
+
+/* ── Luxury font weight ── */
+.font-weight-luxury {
+  font-weight: 600;
+}
+
+/* ── Smooth line height ── */
+.line-height-smooth {
+  transition: line-height 0.3s ease;
+}
+
+/* ── Gradient underline ── */
+.gradient-underline {
+  text-decoration: underline;
+  text-decoration-color: linear-gradient(90deg, #536DFE, #6B7FFF);
+  text-underline-offset: 4px;
+}
+
+/* ── Smooth text decoration ── */
+.text-decoration-smooth {
+  transition: text-decoration 0.3s ease;
+}
+
+/* ── Luxury word spacing ── */
+.word-spacing-luxury {
+  word-spacing: 0.05em;
+}
+
+/* ── Smooth word spacing ── */
+.word-spacing-smooth {
+  transition: word-spacing 0.3s ease;
+}
+
+/* ── Gradient selection ── */
+::selection {
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.3), rgba(107, 127, 255, 0.2));
+  color: #1D2956;
+}
+
+/* ── Smooth cursor ── */
+.cursor-smooth {
+  transition: cursor 0.3s ease;
+}
+
+/* ── Luxury cursor ── */
+.cursor-luxury {
+  cursor: pointer;
+}
+
+/* ── Smooth pointer events ── */
+.pointer-events-smooth {
+  transition: pointer-events 0.3s ease;
+}
+
+/* ── Gradient pointer ── */
+.gradient-pointer {
+  cursor: pointer;
+  background: linear-gradient(135deg, transparent, rgba(83, 109, 254, 0.1));
+}
+
+/* ── Smooth user select ── */
+.user-select-smooth {
+  transition: user-select 0.3s ease;
+}
+
+/* ── Luxury user select ── */
+.user-select-luxury {
+  user-select: none;
+}
+
+/* ── Smooth touch action ── */
+.touch-action-smooth {
+  transition: touch-action 0.3s ease;
+}
+
+/* ── Luxury touch action ── */
+.touch-action-luxury {
+  touch-action: manipulation;
+}
+
+/* ── Smooth will change ── */
+.will-change-smooth {
+  transition: will-change 0.3s ease;
+}
+
+/* ── Luxury will change ── */
+.will-change-luxury {
+  will-change: transform, opacity;
+}
+
+/* ── Smooth contain ── */
+.contain-smooth {
+  transition: contain 0.3s ease;
+}
+
+/* ── Luxury contain ── */
+.contain-luxury {
+  contain: layout style paint;
+}
+
+/* ── Smooth content visibility ── */
+.content-visibility-smooth {
+  transition: content-visibility 0.3s ease;
+}
+
+/* ── Luxury content visibility ── */
+.content-visibility-luxury {
+  content-visibility: auto;
+}
+
+/* ── Smooth container ── */
+.container-smooth {
+  transition: container 0.3s ease;
+}
+
+/* ── Luxury container ── */
+.container-luxury {
+  container-type: inline-size;
+}
+
+/* ── Smooth view transition ── */
+.view-transition-smooth {
+  transition: view-transition-name 0.3s ease;
+}
+
+/* ── Luxury view transition ── */
+.view-transition-luxury {
+  view-transition-name: blog-content;
+}
+
+/* ── Smooth page visibility ── */
+.page-visibility-smooth {
+  transition: page-visibility 0.3s ease;
+}
+
+/* ── Luxury page visibility ── */
+.page-visibility-luxury {
+  page-visibility: visible;
+}
+
+/* ── Smooth print color adjust ── */
+.print-color-adjust-smooth {
+  transition: print-color-adjust 0.3s ease;
+}
+
+/* ── Luxury print color adjust ── */
+.print-color-adjust-luxury {
+  print-color-adjust: economy;
+}
+
+/* ── Smooth color adjust ── */
+.color-adjust-smooth {
+  transition: color-adjust 0.3s ease;
+}
+
+/* ── Luxury color adjust ── */
+.color-adjust-luxury {
+  color-adjust: economy;
+}
+
+/* ── Smooth image rendering ── */
+.image-rendering-smooth {
+  transition: image-rendering 0.3s ease;
+}
+
+/* ── Luxury image rendering ── */
+.image-rendering-luxury {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ── Smooth image orientation ── */
+.image-orientation-smooth {
+  transition: image-orientation 0.3s ease;
+}
+
+/* ── Luxury image orientation ── */
+.image-orientation-luxury {
+  image-orientation: from-image;
+}
+
+/* ── Smooth image resolution ── */
+.image-resolution-smooth {
+  transition: image-resolution 0.3s ease;
+}
+
+/* ── Luxury image resolution ── */
+.image-resolution-luxury {
+  image-resolution: from-image;
+}
+
+/* ── Smooth aspect ratio ── */
+.aspect-ratio-smooth {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* ── Luxury aspect ratio ── */
+.aspect-ratio-luxury {
+  aspect-ratio: 16 / 9;
+}
+
+/* ── Smooth container query ── */
+.container-query-smooth {
+  transition: container-type 0.3s ease, container-name 0.3s ease;
+}
+
+/* ── Luxury container query ── */
+.container-query-luxury {
+  container-type: inline-size;
+  container-name: blog-card;
+}
+
+/* ── Smooth animation ── */
+.animation-smooth {
+  transition: animation 0.3s ease;
+}
+
+/* ── Luxury animation ── */
+.animation-luxury {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ── Smooth transition ── */
+.transition-smooth {
+  transition: transition 0.3s ease;
+}
+
+/* ── Luxury transition ── */
+.transition-luxury {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.3s ease;
+}
+
+/* ── Luxury transform ── */
+.transform-luxury {
+  transform: translateZ(0);
+}
+
+/* ── Smooth translate ── */
+.translate-smooth {
+  transition: translate 0.3s ease;
+}
+
+/* ── Luxury translate ── */
+.translate-luxury {
+  translate: 0 0;
+}
+
+/* ── Smooth rotate ── */
+.rotate-smooth {
+  transition: rotate 0.3s ease;
+}
+
+/* ── Luxury rotate ── */
+.rotate-luxury {
+  rotate: 0deg;
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: scale 0.3s ease;
+}
+
+/* ── Luxury scale ── */
+.scale-luxury {
+  scale: 1;
+}
+
+/* ── Smooth skew ── */
+.skew-smooth {
+  transition: skew 0.3s ease;
+}
+
+/* ── Luxury skew ── */
+.skew-luxury {
+  skew: 0deg;
+}
+
+/* ── Smooth perspective ── */
+.perspective-smooth {
+  transition: perspective 0.3s ease;
+}
+
+/* ── Luxury perspective ── */
+.perspective-luxury {
+  perspective: 1000px;
+}
+
+/* ── Smooth perspective origin ── */
+.perspective-origin-smooth {
+  transition: perspective-origin 0.3s ease;
+}
+
+/* ── Luxury perspective origin ── */
+.perspective-origin-luxury {
+  perspective-origin: center center;
+}
+
+/* ── Smooth transform box ── */
+.transform-box-smooth {
+  transition: transform-box 0.3s ease;
+}
+
+/* ── Luxury transform box ── */
+.transform-box-luxury {
+  transform-box: view-box;
+}
+
+/* ── Smooth transform origin ── */
+.transform-origin-smooth {
+  transition: transform-origin 0.3s ease;
+}
+
+/* ── Luxury transform origin ── */
+.transform-origin-luxury {
+  transform-origin: center center;
+}
+
+/* ── Smooth transform style ── */
+.transform-style-smooth {
+  transition: transform-style 0.3s ease;
+}
+
+/* ── Luxury transform style ── */
+.transform-style-luxury {
+  transform-style: preserve-3d;
+}
+
+/* ── Smooth backface visibility ── */
+.backface-visibility-smooth {
+  transition: backface-visibility 0.3s ease;
+}
+
+/* ── Luxury backface visibility ── */
+.backface-visibility-luxury {
+  backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BLOG DETAIL PAGE - Enhanced Reading Experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth scroll behavior for blog content ── */
+.blog-content-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Enhanced prose styling for blog articles ── */
+.prose-enhanced {
+  color: #374151;
+  max-width: 65ch;
+  line-height: 1.8;
+}
+
+.prose-enhanced p {
+  margin-bottom: 1.5em;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.prose-enhanced h1,
+.prose-enhanced h2,
+.prose-enhanced h3,
+.prose-enhanced h4 {
+  color: #1D2956;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+}
+
+.prose-enhanced a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.prose-enhanced a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+.prose-enhanced img {
+  border-radius: 1em;
+  margin: 2em 0;
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.12);
+}
+
+.prose-enhanced blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-style: italic;
+  color: #4b5563;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.05), rgba(107, 127, 255, 0.03));
+  padding: 1.5em;
+  border-radius: 0 1em 1em 0;
+}
+
+.prose-enhanced ul,
+.prose-enhanced ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose-enhanced li {
+  margin-bottom: 0.5em;
+  line-height: 1.7;
+}
+
+/* ── Reading progress indicator ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #8B9FFF);
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+/* ── Ambient background animation ── */
+@keyframes ambientFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(10px, -10px) scale(1.02);
+  }
+  50% {
+    transform: translate(-5px, 5px) scale(0.98);
+  }
+  75% {
+    transform: translate(-10px, -5px) scale(1.01);
+  }
+}
+
+.ambient-blob {
+  animation: ambientFloat 20s ease-in-out infinite;
+}
+
+/* ── Comment card hover effect ── */
+.comment-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comment-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.1);
+}
+
+/* ── Smooth focus states ── */
+input:focus,
+textarea:focus {
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* ── Luxury button hover ── */
+.btn-luxury {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-luxury:hover::before {
+  left: 100%;
+}
+
+/* ── Image loading animation ── */
+@keyframes imageLoad {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.image-loaded {
+  animation: imageLoad 0.6s ease-out forwards;
+}
+
+/* ── Smooth page transitions ── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient text effect ── */
+.gradient-text {
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Smooth shadow transitions ── */
+.shadow-smooth {
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-smooth:hover {
+  box-shadow: 0 20px 40px rgba(29, 41, 86, 0.15);
+}
+
+/* ── Glass morphism card ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ── Smooth color transitions ── */
+.color-transition {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* ── Luxury spacing ── */
+.luxury-spacing {
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient border ── */
+.gradient-border {
+  position: relative;
+  background: white;
+  border-radius: 1.5rem;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ── Smooth opacity ── */
+.opacity-smooth {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Luxury border radius ── */
+.border-radius-luxury {
+  border-radius: 1.5rem;
+}
+
+/* ── Smooth background ── */
+.bg-smooth {
+  transition: background-color 0.3s ease;
+}
+
+/* ── Gradient background ── */
+.gradient-bg {
+  background: linear-gradient(135deg, #F8F5FF 0%, #F0EBFF 50%, #E8E0FF 100%);
+}
+
+/* ── Smooth filter ── */
+.filter-smooth {
+  transition: filter 0.3s ease;
+}
+
+/* ── Luxury blur ── */
+.blur-luxury {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-smooth:hover {
+  transform: scale(1.02);
+}
+
+/* ── Gradient shadow ── */
+.gradient-shadow {
+  box-shadow: 0 8px 32px rgba(83, 109, 254, 0.15);
+}
+
+/* ── Smooth border ── */
+.border-smooth {
+  transition: border-color 0.3s ease;
+}
+
+/* ── Luxury padding ── */
+.padding-luxury {
+  padding: 1.5rem;
+}
+
+/* ── Smooth margin ── */
+.margin-smooth {
+  transition: margin 0.3s ease;
+}
+
+/* ── Gradient text shadow ── */
+.gradient-text-shadow {
+  text-shadow: 0 2px 8px rgba(83, 109, 254, 0.3);
+}
+
+/* ── Smooth letter spacing ── */
+.letter-spacing-smooth {
+  transition: letter-spacing 0.3s ease;
+}
+
+/* ── Luxury font weight ── */
+.font-weight-luxury {
+  font-weight: 600;
+}
+
+/* ── Smooth line height ── */
+.line-height-smooth {
+  transition: line-height 0.3s ease;
+}
+
+/* ── Gradient underline ── */
+.gradient-underline {
+  text-decoration: underline;
+  text-decoration-color: linear-gradient(90deg, #536DFE, #6B7FFF);
+  text-underline-offset: 4px;
+}
+
+/* ── Smooth text decoration ── */
+.text-decoration-smooth {
+  transition: text-decoration 0.3s ease;
+}
+
+/* ── Luxury word spacing ── */
+.word-spacing-luxury {
+  word-spacing: 0.05em;
+}
+
+/* ── Smooth word spacing ── */
+.word-spacing-smooth {
+  transition: word-spacing 0.3s ease;
+}
+
+/* ── Gradient selection ── */
+::selection {
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.3), rgba(107, 127, 255, 0.2));
+  color: #1D2956;
+}
+
+/* ── Smooth cursor ── */
+.cursor-smooth {
+  transition: cursor 0.3s ease;
+}
+
+/* ── Luxury cursor ── */
+.cursor-luxury {
+  cursor: pointer;
+}
+
+/* ── Smooth pointer events ── */
+.pointer-events-smooth {
+  transition: pointer-events 0.3s ease;
+}
+
+/* ── Gradient pointer ── */
+.gradient-pointer {
+  cursor: pointer;
+  background: linear-gradient(135deg, transparent, rgba(83, 109, 254, 0.1));
+}
+
+/* ── Smooth user select ── */
+.user-select-smooth {
+  transition: user-select 0.3s ease;
+}
+
+/* ── Luxury user select ── */
+.user-select-luxury {
+  user-select: none;
+}
+
+/* ── Smooth touch action ── */
+.touch-action-smooth {
+  transition: touch-action 0.3s ease;
+}
+
+/* ── Luxury touch action ── */
+.touch-action-luxury {
+  touch-action: manipulation;
+}
+
+/* ── Smooth will change ── */
+.will-change-smooth {
+  transition: will-change 0.3s ease;
+}
+
+/* ── Luxury will change ── */
+.will-change-luxury {
+  will-change: transform, opacity;
+}
+
+/* ── Smooth contain ── */
+.contain-smooth {
+  transition: contain 0.3s ease;
+}
+
+/* ── Luxury contain ── */
+.contain-luxury {
+  contain: layout style paint;
+}
+
+/* ── Smooth content visibility ── */
+.content-visibility-smooth {
+  transition: content-visibility 0.3s ease;
+}
+
+/* ── Luxury content visibility ── */
+.content-visibility-luxury {
+  content-visibility: auto;
+}
+
+/* ── Smooth container ── */
+.container-smooth {
+  transition: container 0.3s ease;
+}
+
+/* ── Luxury container ── */
+.container-luxury {
+  container-type: inline-size;
+}
+
+/* ── Smooth view transition ── */
+.view-transition-smooth {
+  transition: view-transition-name 0.3s ease;
+}
+
+/* ── Luxury view transition ── */
+.view-transition-luxury {
+  view-transition-name: blog-content;
+}
+
+/* ── Smooth page visibility ── */
+.page-visibility-smooth {
+  transition: page-visibility 0.3s ease;
+}
+
+/* ── Luxury page visibility ── */
+.page-visibility-luxury {
+  page-visibility: visible;
+}
+
+/* ── Smooth print color adjust ── */
+.print-color-adjust-smooth {
+  transition: print-color-adjust 0.3s ease;
+}
+
+/* ── Luxury print color adjust ── */
+.print-color-adjust-luxury {
+  print-color-adjust: economy;
+}
+
+/* ── Smooth color adjust ── */
+.color-adjust-smooth {
+  transition: color-adjust 0.3s ease;
+}
+
+/* ── Luxury color adjust ── */
+.color-adjust-luxury {
+  color-adjust: economy;
+}
+
+/* ── Smooth image rendering ── */
+.image-rendering-smooth {
+  transition: image-rendering 0.3s ease;
+}
+
+/* ── Luxury image rendering ── */
+.image-rendering-luxury {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ── Smooth image orientation ── */
+.image-orientation-smooth {
+  transition: image-orientation 0.3s ease;
+}
+
+/* ── Luxury image orientation ── */
+.image-orientation-luxury {
+  image-orientation: from-image;
+}
+
+/* ── Smooth image resolution ── */
+.image-resolution-smooth {
+  transition: image-resolution 0.3s ease;
+}
+
+/* ── Luxury image resolution ── */
+.image-resolution-luxury {
+  image-resolution: from-image;
+}
+
+/* ── Smooth aspect ratio ── */
+.aspect-ratio-smooth {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* ── Luxury aspect ratio ── */
+.aspect-ratio-luxury {
+  aspect-ratio: 16 / 9;
+}
+
+/* ── Smooth container query ── */
+.container-query-smooth {
+  transition: container-type 0.3s ease, container-name 0.3s ease;
+}
+
+/* ── Luxury container query ── */
+.container-query-luxury {
+  container-type: inline-size;
+  container-name: blog-card;
+}
+
+/* ── Smooth animation ── */
+.animation-smooth {
+  transition: animation 0.3s ease;
+}
+
+/* ── Luxury animation ── */
+.animation-luxury {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ── Smooth transition ── */
+.transition-smooth {
+  transition: transition 0.3s ease;
+}
+
+/* ── Luxury transition ── */
+.transition-luxury {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.3s ease;
+}
+
+/* ── Luxury transform ── */
+.transform-luxury {
+  transform: translateZ(0);
+}
+
+/* ── Smooth translate ── */
+.translate-smooth {
+  transition: translate 0.3s ease;
+}
+
+/* ── Luxury translate ── */
+.translate-luxury {
+  translate: 0 0;
+}
+
+/* ── Smooth rotate ── */
+.rotate-smooth {
+  transition: rotate 0.3s ease;
+}
+
+/* ── Luxury rotate ── */
+.rotate-luxury {
+  rotate: 0deg;
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: scale 0.3s ease;
+}
+
+/* ── Luxury scale ── */
+.scale-luxury {
+  scale: 1;
+}
+
+/* ── Smooth skew ── */
+.skew-smooth {
+  transition: skew 0.3s ease;
+}
+
+/* ── Luxury skew ── */
+.skew-luxury {
+  skew: 0deg;
+}
+
+/* ── Smooth perspective ── */
+.perspective-smooth {
+  transition: perspective 0.3s ease;
+}
+
+/* ── Luxury perspective ── */
+.perspective-luxury {
+  perspective: 1000px;
+}
+
+/* ── Smooth perspective origin ── */
+.perspective-origin-smooth {
+  transition: perspective-origin 0.3s ease;
+}
+
+/* ── Luxury perspective origin ── */
+.perspective-origin-luxury {
+  perspective-origin: center center;
+}
+
+/* ── Smooth transform box ── */
+.transform-box-smooth {
+  transition: transform-box 0.3s ease;
+}
+
+/* ── Luxury transform box ── */
+.transform-box-luxury {
+  transform-box: view-box;
+}
+
+/* ── Smooth transform origin ── */
+.transform-origin-smooth {
+  transition: transform-origin 0.3s ease;
+}
+
+/* ── Luxury transform origin ── */
+.transform-origin-luxury {
+  transform-origin: center center;
+}
+
+/* ── Smooth transform style ── */
+.transform-style-smooth {
+  transition: transform-style 0.3s ease;
+}
+
+/* ── Luxury transform style ── */
+.transform-style-luxury {
+  transform-style: preserve-3d;
+}
+
+/* ── Smooth backface visibility ── */
+.backface-visibility-smooth {
+  transition: backface-visibility 0.3s ease;
+}
+
+/* ── Luxury backface visibility ── */
+.backface-visibility-luxury {
+  backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BLOG DETAIL PAGE - Enhanced Reading Experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth scroll behavior for blog content ── */
+.blog-content-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Enhanced prose styling for blog articles ── */
+.prose-enhanced {
+  color: #374151;
+  max-width: 65ch;
+  line-height: 1.8;
+}
+
+.prose-enhanced p {
+  margin-bottom: 1.5em;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.prose-enhanced h1,
+.prose-enhanced h2,
+.prose-enhanced h3,
+.prose-enhanced h4 {
+  color: #1D2956;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+}
+
+.prose-enhanced a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.prose-enhanced a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+.prose-enhanced img {
+  border-radius: 1em;
+  margin: 2em 0;
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.12);
+}
+
+.prose-enhanced blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-style: italic;
+  color: #4b5563;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.05), rgba(107, 127, 255, 0.03));
+  padding: 1.5em;
+  border-radius: 0 1em 1em 0;
+}
+
+.prose-enhanced ul,
+.prose-enhanced ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose-enhanced li {
+  margin-bottom: 0.5em;
+  line-height: 1.7;
+}
+
+/* ── Reading progress indicator ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #8B9FFF);
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+/* ── Ambient background animation ── */
+@keyframes ambientFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(10px, -10px) scale(1.02);
+  }
+  50% {
+    transform: translate(-5px, 5px) scale(0.98);
+  }
+  75% {
+    transform: translate(-10px, -5px) scale(1.01);
+  }
+}
+
+.ambient-blob {
+  animation: ambientFloat 20s ease-in-out infinite;
+}
+
+/* ── Comment card hover effect ── */
+.comment-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comment-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.1);
+}
+
+/* ── Smooth focus states ── */
+input:focus,
+textarea:focus {
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* ── Luxury button hover ── */
+.btn-luxury {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-luxury:hover::before {
+  left: 100%;
+}
+
+/* ── Image loading animation ── */
+@keyframes imageLoad {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.image-loaded {
+  animation: imageLoad 0.6s ease-out forwards;
+}
+
+/* ── Smooth page transitions ── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient text effect ── */
+.gradient-text {
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Smooth shadow transitions ── */
+.shadow-smooth {
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-smooth:hover {
+  box-shadow: 0 20px 40px rgba(29, 41, 86, 0.15);
+}
+
+/* ── Glass morphism card ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ── Smooth color transitions ── */
+.color-transition {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* ── Luxury spacing ── */
+.luxury-spacing {
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient border ── */
+.gradient-border {
+  position: relative;
+  background: white;
+  border-radius: 1.5rem;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ── Smooth opacity ── */
+.opacity-smooth {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Luxury border radius ── */
+.border-radius-luxury {
+  border-radius: 1.5rem;
+}
+
+/* ── Smooth background ── */
+.bg-smooth {
+  transition: background-color 0.3s ease;
+}
+
+/* ── Gradient background ── */
+.gradient-bg {
+  background: linear-gradient(135deg, #F8F5FF 0%, #F0EBFF 50%, #E8E0FF 100%);
+}
+
+/* ── Smooth filter ── */
+.filter-smooth {
+  transition: filter 0.3s ease;
+}
+
+/* ── Luxury blur ── */
+.blur-luxury {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-smooth:hover {
+  transform: scale(1.02);
+}
+
+/* ── Gradient shadow ── */
+.gradient-shadow {
+  box-shadow: 0 8px 32px rgba(83, 109, 254, 0.15);
+}
+
+/* ── Smooth border ── */
+.border-smooth {
+  transition: border-color 0.3s ease;
+}
+
+/* ── Luxury padding ── */
+.padding-luxury {
+  padding: 1.5rem;
+}
+
+/* ── Smooth margin ── */
+.margin-smooth {
+  transition: margin 0.3s ease;
+}
+
+/* ── Gradient text shadow ── */
+.gradient-text-shadow {
+  text-shadow: 0 2px 8px rgba(83, 109, 254, 0.3);
+}
+
+/* ── Smooth letter spacing ── */
+.letter-spacing-smooth {
+  transition: letter-spacing 0.3s ease;
+}
+
+/* ── Luxury font weight ── */
+.font-weight-luxury {
+  font-weight: 600;
+}
+
+/* ── Smooth line height ── */
+.line-height-smooth {
+  transition: line-height 0.3s ease;
+}
+
+/* ── Gradient underline ── */
+.gradient-underline {
+  text-decoration: underline;
+  text-decoration-color: linear-gradient(90deg, #536DFE, #6B7FFF);
+  text-underline-offset: 4px;
+}
+
+/* ── Smooth text decoration ── */
+.text-decoration-smooth {
+  transition: text-decoration 0.3s ease;
+}
+
+/* ── Luxury word spacing ── */
+.word-spacing-luxury {
+  word-spacing: 0.05em;
+}
+
+/* ── Smooth word spacing ── */
+.word-spacing-smooth {
+  transition: word-spacing 0.3s ease;
+}
+
+/* ── Gradient selection ── */
+::selection {
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.3), rgba(107, 127, 255, 0.2));
+  color: #1D2956;
+}
+
+/* ── Smooth cursor ── */
+.cursor-smooth {
+  transition: cursor 0.3s ease;
+}
+
+/* ── Luxury cursor ── */
+.cursor-luxury {
+  cursor: pointer;
+}
+
+/* ── Smooth pointer events ── */
+.pointer-events-smooth {
+  transition: pointer-events 0.3s ease;
+}
+
+/* ── Gradient pointer ── */
+.gradient-pointer {
+  cursor: pointer;
+  background: linear-gradient(135deg, transparent, rgba(83, 109, 254, 0.1));
+}
+
+/* ── Smooth user select ── */
+.user-select-smooth {
+  transition: user-select 0.3s ease;
+}
+
+/* ── Luxury user select ── */
+.user-select-luxury {
+  user-select: none;
+}
+
+/* ── Smooth touch action ── */
+.touch-action-smooth {
+  transition: touch-action 0.3s ease;
+}
+
+/* ── Luxury touch action ── */
+.touch-action-luxury {
+  touch-action: manipulation;
+}
+
+/* ── Smooth will change ── */
+.will-change-smooth {
+  transition: will-change 0.3s ease;
+}
+
+/* ── Luxury will change ── */
+.will-change-luxury {
+  will-change: transform, opacity;
+}
+
+/* ── Smooth contain ── */
+.contain-smooth {
+  transition: contain 0.3s ease;
+}
+
+/* ── Luxury contain ── */
+.contain-luxury {
+  contain: layout style paint;
+}
+
+/* ── Smooth content visibility ── */
+.content-visibility-smooth {
+  transition: content-visibility 0.3s ease;
+}
+
+/* ── Luxury content visibility ── */
+.content-visibility-luxury {
+  content-visibility: auto;
+}
+
+/* ── Smooth container ── */
+.container-smooth {
+  transition: container 0.3s ease;
+}
+
+/* ── Luxury container ── */
+.container-luxury {
+  container-type: inline-size;
+}
+
+/* ── Smooth view transition ── */
+.view-transition-smooth {
+  transition: view-transition-name 0.3s ease;
+}
+
+/* ── Luxury view transition ── */
+.view-transition-luxury {
+  view-transition-name: blog-content;
+}
+
+/* ── Smooth page visibility ── */
+.page-visibility-smooth {
+  transition: page-visibility 0.3s ease;
+}
+
+/* ── Luxury page visibility ── */
+.page-visibility-luxury {
+  page-visibility: visible;
+}
+
+/* ── Smooth print color adjust ── */
+.print-color-adjust-smooth {
+  transition: print-color-adjust 0.3s ease;
+}
+
+/* ── Luxury print color adjust ── */
+.print-color-adjust-luxury {
+  print-color-adjust: economy;
+}
+
+/* ── Smooth color adjust ── */
+.color-adjust-smooth {
+  transition: color-adjust 0.3s ease;
+}
+
+/* ── Luxury color adjust ── */
+.color-adjust-luxury {
+  color-adjust: economy;
+}
+
+/* ── Smooth image rendering ── */
+.image-rendering-smooth {
+  transition: image-rendering 0.3s ease;
+}
+
+/* ── Luxury image rendering ── */
+.image-rendering-luxury {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ── Smooth image orientation ── */
+.image-orientation-smooth {
+  transition: image-orientation 0.3s ease;
+}
+
+/* ── Luxury image orientation ── */
+.image-orientation-luxury {
+  image-orientation: from-image;
+}
+
+/* ── Smooth image resolution ── */
+.image-resolution-smooth {
+  transition: image-resolution 0.3s ease;
+}
+
+/* ── Luxury image resolution ── */
+.image-resolution-luxury {
+  image-resolution: from-image;
+}
+
+/* ── Smooth aspect ratio ── */
+.aspect-ratio-smooth {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* ── Luxury aspect ratio ── */
+.aspect-ratio-luxury {
+  aspect-ratio: 16 / 9;
+}
+
+/* ── Smooth container query ── */
+.container-query-smooth {
+  transition: container-type 0.3s ease, container-name 0.3s ease;
+}
+
+/* ── Luxury container query ── */
+.container-query-luxury {
+  container-type: inline-size;
+  container-name: blog-card;
+}
+
+/* ── Smooth animation ── */
+.animation-smooth {
+  transition: animation 0.3s ease;
+}
+
+/* ── Luxury animation ── */
+.animation-luxury {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* ── Smooth transition ── */
+.transition-smooth {
+  transition: transition 0.3s ease;
+}
+
+/* ── Luxury transition ── */
+.transition-luxury {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.3s ease;
+}
+
+/* ── Luxury transform ── */
+.transform-luxury {
+  transform: translateZ(0);
+}
+
+/* ── Smooth translate ── */
+.translate-smooth {
+  transition: translate 0.3s ease;
+}
+
+/* ── Luxury translate ── */
+.translate-luxury {
+  translate: 0 0;
+}
+
+/* ── Smooth rotate ── */
+.rotate-smooth {
+  transition: rotate 0.3s ease;
+}
+
+/* ── Luxury rotate ── */
+.rotate-luxury {
+  rotate: 0deg;
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: scale 0.3s ease;
+}
+
+/* ── Luxury scale ── */
+.scale-luxury {
+  scale: 1;
+}
+
+/* ── Smooth skew ── */
+.skew-smooth {
+  transition: skew 0.3s ease;
+}
+
+/* ── Luxury skew ── */
+.skew-luxury {
+  skew: 0deg;
+}
+
+/* ── Smooth perspective ── */
+.perspective-smooth {
+  transition: perspective 0.3s ease;
+}
+
+/* ── Luxury perspective ── */
+.perspective-luxury {
+  perspective: 1000px;
+}
+
+/* ── Smooth perspective origin ── */
+.perspective-origin-smooth {
+  transition: perspective-origin 0.3s ease;
+}
+
+/* ── Luxury perspective origin ── */
+.perspective-origin-luxury {
+  perspective-origin: center center;
+}
+
+/* ── Smooth transform box ── */
+.transform-box-smooth {
+  transition: transform-box 0.3s ease;
+}
+
+/* ── Luxury transform box ── */
+.transform-box-luxury {
+  transform-box: view-box;
+}
+
+/* ── Smooth transform origin ── */
+.transform-origin-smooth {
+  transition: transform-origin 0.3s ease;
+}
+
+/* ── Luxury transform origin ── */
+.transform-origin-luxury {
+  transform-origin: center center;
+}
+
+/* ── Smooth transform style ── */
+.transform-style-smooth {
+  transition: transform-style 0.3s ease;
+}
+
+/* ── Luxury transform style ── */
+.transform-style-luxury {
+  transform-style: preserve-3d;
+}
+
+/* ── Smooth backface visibility ── */
+.backface-visibility-smooth {
+  transition: backface-visibility 0.3s ease;
+}
+
+/* ── Luxury backface visibility ── */
+.backface-visibility-luxury {
+  backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BLOG DETAIL PAGE - Enhanced Reading Experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Smooth scroll behavior for blog content ── */
+.blog-content-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Enhanced prose styling for blog articles ── */
+.prose-enhanced {
+  color: #374151;
+  max-width: 65ch;
+  line-height: 1.8;
+}
+
+.prose-enhanced p {
+  margin-bottom: 1.5em;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.prose-enhanced h1,
+.prose-enhanced h2,
+.prose-enhanced h3,
+.prose-enhanced h4 {
+  color: #1D2956;
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+}
+
+.prose-enhanced a {
+  color: #536DFE;
+  text-decoration: underline;
+  text-decoration-color: rgba(83, 109, 254, 0.3);
+  text-underline-offset: 2px;
+  transition: all 0.3s ease;
+}
+
+.prose-enhanced a:hover {
+  color: #1D2956;
+  text-decoration-color: #1D2956;
+}
+
+.prose-enhanced img {
+  border-radius: 1em;
+  margin: 2em 0;
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.12);
+}
+
+.prose-enhanced blockquote {
+  border-left: 4px solid #536DFE;
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-style: italic;
+  color: #4b5563;
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.05), rgba(107, 127, 255, 0.03));
+  padding: 1.5em;
+  border-radius: 0 1em 1em 0;
+}
+
+.prose-enhanced ul,
+.prose-enhanced ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose-enhanced li {
+  margin-bottom: 0.5em;
+  line-height: 1.7;
+}
+
+/* ── Reading progress indicator ── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #536DFE, #6B7FFF, #8B9FFF);
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+/* ── Ambient background animation ── */
+@keyframes ambientFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(10px, -10px) scale(1.02);
+  }
+  50% {
+    transform: translate(-5px, 5px) scale(0.98);
+  }
+  75% {
+    transform: translate(-10px, -5px) scale(1.01);
+  }
+}
+
+.ambient-blob {
+  animation: ambientFloat 20s ease-in-out infinite;
+}
+
+/* ── Comment card hover effect ── */
+.comment-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comment-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px rgba(29, 41, 86, 0.1);
+}
+
+/* ── Smooth focus states ── */
+input:focus,
+textarea:focus {
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* ── Luxury button hover ── */
+.btn-luxury {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-luxury:hover::before {
+  left: 100%;
+}
+
+/* ── Image loading animation ── */
+@keyframes imageLoad {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.image-loaded {
+  animation: imageLoad 0.6s ease-out forwards;
+}
+
+/* ── Smooth page transitions ── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient text effect ── */
+.gradient-text {
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Smooth shadow transitions ── */
+.shadow-smooth {
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-smooth:hover {
+  box-shadow: 0 20px 40px rgba(29, 41, 86, 0.15);
+}
+
+/* ── Glass morphism card ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ── Smooth color transitions ── */
+.color-transition {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* ── Luxury spacing ── */
+.luxury-spacing {
+  padding: 2rem;
+  margin: 1.5rem 0;
+}
+
+/* ── Smooth transform ── */
+.transform-smooth {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Gradient border ── */
+.gradient-border {
+  position: relative;
+  background: white;
+  border-radius: 1.5rem;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #536DFE, #6B7FFF, #1D2956);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ── Smooth opacity ── */
+.opacity-smooth {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Luxury border radius ── */
+.border-radius-luxury {
+  border-radius: 1.5rem;
+}
+
+/* ── Smooth background ── */
+.bg-smooth {
+  transition: background-color 0.3s ease;
+}
+
+/* ── Gradient background ── */
+.gradient-bg {
+  background: linear-gradient(135deg, #F8F5FF 0%, #F0EBFF 50%, #E8E0FF 100%);
+}
+
+/* ── Smooth filter ── */
+.filter-smooth {
+  transition: filter 0.3s ease;
+}
+
+/* ── Luxury blur ── */
+.blur-luxury {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Smooth scale ── */
+.scale-smooth {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-smooth:hover {
+  transform: scale(1.02);
+}
+
+/* ── Gradient shadow ── */
+.gradient-shadow {
+  box-shadow: 0 8px 32px rgba(83, 109, 254, 0.15);
+}
+
+/* ── Smooth border ── */
+.border-smooth {
+  transition: border-color 0.3s ease;
+}
+
+/* ── Luxury padding ── */
+.padding-luxury {
+  padding: 1.5rem;
+}
+
+/* ── Smooth margin ── */
+.margin-smooth {
+  transition: margin 0.3s ease;
+}
+
+/* ── Gradient text shadow ── */
+.gradient-text-shadow {
+  text-shadow: 0 2px 8px rgba(83, 109, 254, 0.3);
+}
+
+/* ── Smooth letter spacing ── */
+.letter-spacing-smooth {
+  transition: letter-spacing 0.3s ease;
+}
+
+/* ── Luxury font weight ── */
+.font-weight-luxury {
+  font-weight: 600;
+}
+
+/* ── Smooth line height ── */
+.line-height-smooth {
+  transition: line-height 0.3s ease;
+}
+
+/* ── Gradient underline ── */
+.gradient-underline {
+  text-decoration: underline;
+  text-decoration-color: linear-gradient(90deg, #536DFE, #6B7FFF);
+  text-underline-offset: 4px;
+}
+
+/* ── Smooth text decoration ── */
+.text-decoration-smooth {
+  transition: text-decoration 0.3s ease;
+}
+
+/* ── Luxury word spacing ── */
+.word-spacing-luxury {
+  word-spacing: 0.05em;
+}
+
+/* ── Smooth word spacing ── */
+.word-spacing-smooth {
+  transition: word-spacing 0.3s ease;
+}
+
+/* ── Gradient selection ── */
+::selection {
+  background: linear-gradient(135deg, rgba(83, 109, 254, 0.3), rgba(107, 127, 255, 0.2));
+  color: #1D2956;
+}
+
+/* ── Smooth cursor ── */
+.cursor-smooth {
+  transition: cursor 0.3s ease;
+}
+
+/* ── Luxury cursor ── */
+.cursor-luxury {
+  cursor: pointer;
+}
+
+/* ── Smooth pointer events ── */
+.pointer-events-smooth {
+  transition: pointer-events 0.3s ease;
+}
+
+/* ── Gradient pointer ── */
+.gradient-pointer {
+  cursor: pointer;
+  background: linear-gradient(135deg, transparent, rgba(83, 109, 254, 0.1));
+}
+
+/* ── Smooth user select ── */
+.user-select-smooth {
+  transition: user-select 0.3s ease;
+}
+
+/* ── Luxury user select ── */
+.user-select-luxury {
+  user-select: none;
+}
+
+/* ── Smooth touch action ── */
+.touch-action-smooth {
+  transition: touch-action 0.3s ease;
+}
+
+/* ── Luxury touch action ── */
+.touch-action-luxury {
+  touch-action: manipulation;
+}
+
+/* ── Smooth will change ── */
+.will-change-smooth {
+  transition: will-change 0.3s ease;
+}
+
+/* ── Luxury will change ── */
+.will-change-luxury {
+  will-change: transform, opacity;
+}
+
+/* ── Smooth contain ── */
+.contain-smooth {
+  transition: contain 0.3s ease;
+}
+
+/* ── Luxury contain ── */
+.contain-luxury {
+  contain: layout style paint;
+}
+
+/* ── Smooth content visibility ── */
+.content-visibility-smooth {
+  transition: content-visibility 0.3s ease;
+}
+
+/* ── Luxury content visibility ── */
+.content-visibility-luxury {
+  content-visibility: auto;
+}
+
+/* ── Smooth container ── */
+.container-smooth {
+  transition: container 0.3s ease;
+}
+
+/* ── Luxury container ── */
+.container-luxury {
+  container-type: inline-size;
+}
+
+/* ── Smooth view transition ── */
+.view-transition-smooth {
+  transition: view-transition-name 0.3s ease;
+}
+
+/* ── Luxury view transition ── */
+.view-transition-luxury {
+  view-transition-name: blog-content;
+}
+
+/* ── Smooth page visibility ── */
+.page-visibility-smooth {
+  transition: page-visibility 0.3s ease;
+}
+
+/* ── Luxury page visibility ── */
+.page-visibility-luxury {
+  page-visibility: visible;
+}
+
+/* ── Smooth print color adjust ── */
+.print-color-adjust-smooth {
+  transition: print-color-adjust 0.3s ease;
+}
+
+/* ── Luxury print color adjust ── */
+.print-color-adjust-luxury {
+  print-color-adjust: economy;
+}
+
+/* ── Smooth color adjust ── */
+.color-adjust-smooth {
+  transition: color-adjust 0.3s ease;
+}
+
+/* ── Luxury color adjust ── */
+.color-adjust-luxury {
+  color-adjust: economy;
+}
+
+/* ── Smooth image rendering ── */
+.image-rendering-smooth {
+  transition: image-rendering 0.3s ease;
+}
+
+/* ── Luxury image rendering ── */
+.image-rendering-luxury {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ── Smooth image orientation ── */
+.image-orientation-smooth {
+  transition: image-orientation 0.3s ease;
+}
+
+/* ── Luxury image orientation ── */
+.image-orientation-luxury {
+  image-orientation: from-image;
+}
+
+/* ── Smooth image resolution ── */
+.image-resolution-smooth {
+  transition: image-resolution 0.3s ease;
+}
+
+/* ── Luxury image resolution ── */
+.image-resolution-luxury {
+  image-resolution: from-image;
+}
+
+/* ── Smooth aspect ratio ── */
+.aspect-ratio-smooth {
+  transition: aspect-ratio 0.3s ease;
+}
+
+/* ── Luxury aspect ratio ── */
+.aspect-ratio-luxury {
+  aspect-ratio: 16 / 9;
+}
+
+/* ── Smooth container query ── */
+.container-query-smooth {
+  transition: container-type 0.3s ease, container-name 0.3s ease;
+}
