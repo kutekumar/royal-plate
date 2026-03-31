@@ -207,8 +207,8 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-[#1D2956]/98 via-[#0F172A]/98 to-black/98 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="h-full flex flex-col max-w-md mx-auto relative">
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-[#1D2956]/98 via-[#0F172A]/98 to-black/98 backdrop-blur-xl animate-in fade-in duration-300 overflow-hidden">
+      <div className="h-[100dvh] flex flex-col max-w-md mx-auto relative overflow-hidden">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-0 w-96 h-96 bg-[#536DFE]/10 rounded-full blur-3xl animate-pulse"></div>
@@ -253,7 +253,7 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
         </div>
 
         {/* Messages Area */}
-        <ScrollArea ref={scrollAreaRef} className="flex-1 px-4 py-6 relative">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-0 px-4 py-6 relative" style={{ backgroundColor: '#0F172A' }}>
           <div className="space-y-6 mb-4">
             {messages.map((message, index) => (
               <div
@@ -310,14 +310,14 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
                   </div>
 
                   <div className="flex items-center gap-2 mt-1.5 px-2">
-                    <span className="text-[10px] text-white/60 font-medium">
+                    <span className="text-[10px] text-white/80 font-medium">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     {message.sender === 'user' && (
-                      <span className="text-white/60">
+                      <span className="text-white/80">
                         {message.status === 'sending' && <Loader2 className="w-3 h-3 animate-spin" />}
                         {message.status === 'sent' && <Check className="w-3 h-3" />}
-                        {message.status === 'read' && <CheckCheck className="w-3 h-3 text-[#536DFE]" />}
+                        {message.status === 'read' && <CheckCheck className="w-3 h-3 text-cyan-300" />}
                       </span>
                     )}
                   </div>
@@ -351,9 +351,9 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
 
         {/* Quick Suggestions */}
         {messages.length === 1 && (
-          <div className="px-4 pb-3 relative">
-            <p className="text-xs text-white/70 mb-3 font-semibold flex items-center gap-2">
-              <Sparkles className="w-3 h-3" />
+          <div className="px-4 pb-3 relative flex-shrink-0">
+            <p className="text-xs text-white/90 mb-3 font-semibold flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-yellow-400" />
               Quick questions
             </p>
             <div className="flex flex-wrap gap-2">
@@ -367,7 +367,8 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
                   key={suggestion}
                   variant="outline"
                   size="sm"
-                  className="text-xs h-9 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40 hover:scale-105 transition-all duration-200 backdrop-blur-sm font-medium"
+                  className="text-xs h-9 bg-white/10 border-white/20 hover:bg-white/20 hover:border-white/40 hover:scale-105 transition-all duration-200 backdrop-blur-sm font-medium"
+                  style={{ color: 'white', borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.1)' }}
                   onClick={() => setInputMessage(suggestion)}
                 >
                   {suggestion}
@@ -379,7 +380,7 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
 
         {/* Image Preview */}
         {selectedImage && (
-          <div className="px-4 pb-3 relative">
+          <div className="px-4 pb-3 relative flex-shrink-0">
             <div className="relative inline-block">
               <img src={selectedImage} alt="Selected" className="h-20 w-20 object-cover rounded-xl border-2 border-[#536DFE]/50 shadow-lg" />
               <button
@@ -393,7 +394,7 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
         )}
 
         {/* Input Area */}
-        <div className="relative bg-gradient-to-r from-[#1D2956]/95 to-[#0F172A]/95 backdrop-blur-xl border-t border-white/10 shadow-2xl">
+        <div className="relative bg-gradient-to-r from-[#1D2956]/95 to-[#0F172A]/95 backdrop-blur-xl border-t border-white/10 shadow-2xl flex-shrink-0">
           <div className="px-4 py-4 flex gap-2 items-end">
             {/* Image Upload */}
             <input
@@ -434,7 +435,7 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-[#536DFE] focus:ring-2 focus:ring-[#536DFE]/30 rounded-2xl h-12 px-4 backdrop-blur-sm font-medium"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-[#536DFE] focus:ring-2 focus:ring-[#536DFE]/30 rounded-2xl h-12 px-4 backdrop-blur-sm font-medium"
               />
             </div>
 
@@ -450,8 +451,8 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
           </div>
 
           <div className="px-4 pb-3 pt-0">
-            <p className="text-[10px] text-white/50 text-center font-medium flex items-center justify-center gap-1">
-              <Sparkles className="w-3 h-3" />
+            <p className="text-[10px] text-white/70 text-center font-medium flex items-center justify-center gap-1">
+              <Sparkles className="w-3 h-3 text-yellow-400" />
               Powered by AI • We're here to make your experience exceptional
             </p>
           </div>

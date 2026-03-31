@@ -171,7 +171,7 @@ const Home = () => {
           ease: [0.22, 1, 0.36, 1],
           delay: 0.1
         }}
-        className="relative px-5 pt-8 pb-4 z-10 will-change-transform"
+        className="sticky top-0 z-50 px-5 pt-8 pb-4 will-change-transform"
       >
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white/30 to-transparent backdrop-blur-lg" />
@@ -313,33 +313,36 @@ const Home = () => {
         </div>
       )}
 
-      {/* ── Premium Search Bar ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration: 0.5,
-          ease: [0.22, 1, 0.36, 1],
-          delay: 0.4
-        }}
-        className="px-5 pb-5 z-10 will-change-transform"
-      >
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#536DFE]/20 to-[#6B7FFF]/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10 group-focus-within:text-[#536DFE] transition-colors" />
-          <Input
-            type="text"
-            placeholder="Search restaurants, cuisines..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="relative w-full h-14 pl-14 pr-4 bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl text-[#1D2956] text-sm placeholder-gray-500 focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 shadow-xl shadow-black/5 transition-all"
-            aria-label="Search restaurants and cuisines"
-          />
-        </div>
-      </motion.div>
+      {/* ── Scrollable Content ── */}
+      <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
 
-      {/* ── Premium Map Overview ── */}
-      {!searchQuery && restaurants.length > 0 && (
+        {/* ── Premium Search Bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.5,
+            ease: [0.22, 1, 0.36, 1],
+            delay: 0.4
+          }}
+          className="px-5 pb-5 will-change-transform"
+        >
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#536DFE]/20 to-[#6B7FFF]/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10 group-focus-within:text-[#536DFE] transition-colors" />
+            <Input
+              type="text"
+              placeholder="Search restaurants, cuisines..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="relative w-full h-14 pl-14 pr-4 bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl text-[#1D2956] text-sm placeholder-gray-500 focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 shadow-xl shadow-black/5 transition-all"
+              aria-label="Search restaurants and cuisines"
+            />
+          </div>
+        </motion.div>
+
+        {/* ── Premium Map Overview ── */}
+        {!searchQuery && restaurants.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -348,7 +351,7 @@ const Home = () => {
             ease: [0.22, 1, 0.36, 1],
             delay: 0.5
           }}
-          className="px-5 pb-6 z-10 will-change-transform"
+          className="px-5 pb-6 will-change-transform"
         >
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-5">
             <div className="flex items-center justify-between mb-4">
@@ -393,10 +396,7 @@ const Home = () => {
             </AnimatePresence>
           </div>
         </motion.div>
-      )}
-
-      {/* ── Scrollable Content ── */}
-      <div className="flex-1 overflow-y-auto pb-24 z-10 scrollbar-hide">
+        )}
 
         {/* ── Premium Featured Section ── */}
         {featuredRestaurants.length > 0 && (
