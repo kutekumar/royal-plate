@@ -17,14 +17,18 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Navigation,
 } from 'lucide-react';
 import RestaurantChatbot from '@/components/RestaurantChatbot';
 import { formatCurrency } from '@/utils/currency';
-import { getUserLocation, Coordinates } from '@/utils/location';
+import { getUserLocation, Coordinates, YANGON_CENTER } from '@/utils/location';
 import SingleRestaurantMap from '@/components/SingleRestaurantMap';
 import { motion, AnimatePresence } from 'framer-motion';
 import BrandLoader from '@/components/BrandLoader';
 import PageTransition from '@/components/PageTransition';
+import DirectionModal from '@/components/DirectionModal';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface MenuItem {
   id: string;
@@ -72,6 +76,8 @@ const RestaurantDetails = () => {
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [showDirectionModal, setShowDirectionModal] = useState(false);
+  const [directionRoute, setDirectionRoute] = useState<any>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const menuSectionRef = useRef<HTMLDivElement>(null);
@@ -349,6 +355,25 @@ const RestaurantDetails = () => {
               <p className="text-gray-400 text-[11px] font-medium mt-0.5">{restaurant.opening_hours}</p>
             </div>
           </div>
+          
+          {/* Get Direction Button */}
+          {restaurant.latitude && restaurant.longitude && (
+            <button
+              onClick={() => setShowDirectionModal(true)}
+              className="flex items-center gap-3.5 w-full text-left group"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-md">
+                <Navigation className="w-5 h-5 text-[#536DFE]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[#1D2956] text-sm font-semibold">Get Directions</p>
+                <p className="text-gray-400 text-[11px] font-medium mt-0.5">Navigate to restaurant</p>
+              </div>
+              <svg className="w-5 h-5 text-gray-300 group-hover:text-[#536DFE] group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Premium Map Display */}
@@ -803,6 +828,19 @@ const RestaurantDetails = () => {
         onClose={() => setShowChatbot(false)}
         restaurantName={restaurant?.name || ''}
         restaurantImage={restaurant?.image_url}
+      />
+
+      {/* Get Direction Full-Screen Modal */}
+      <DirectionModal
+        isOpen={showDirectionModal}
+        onClose={() => setShowDirectionModal(false)}
+        restaurantName={restaurant?.name || ''}
+        restaurantAddress={restaurant?.address || ''}
+        destination={{
+          lat: restaurant?.latitude || 0,
+          lng: restaurant?.longitude || 0,
+        }}
+        userLocation={userLocation ? { lat: userLocation.latitude, lng: userLocation.longitude } : null}
       />
     </div>
       </PageTransition>

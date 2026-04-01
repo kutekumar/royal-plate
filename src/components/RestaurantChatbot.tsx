@@ -288,25 +288,9 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
                     </div>
                   )}
                   <div className="relative group">
-                    <Card
-                      className={`px-4 py-3 shadow-xl border-0 transition-all duration-300 ${
-                        message.sender === 'bot'
-                          ? 'bg-gradient-to-br from-white/95 to-white/90 text-[#1D2956] backdrop-blur-sm'
-                          : 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/30'
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed font-medium">{message.content}</p>
-                    </Card>
-
-                    {/* Message Actions */}
-                    {message.sender === 'bot' && (
-                      <button
-                        onClick={() => isSpeaking ? stopSpeaking() : speakMessage(message.content)}
-                        className="absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-[#536DFE] text-white p-2 rounded-full shadow-lg hover:scale-110"
-                      >
-                        {isSpeaking ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-                      </button>
-                    )}
+                    <p className={`text-sm leading-relaxed font-medium ${
+                      message.sender === 'bot' ? 'text-white' : 'text-white'
+                    }`}>{message.content}</p>
                   </div>
 
                   <div className="flex items-center gap-2 mt-1.5 px-2">
@@ -337,13 +321,13 @@ const RestaurantChatbot = ({ isOpen, onClose, restaurantName, restaurantImage }:
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <Card className="px-5 py-3 bg-gradient-to-br from-white/95 to-white/90 backdrop-blur-sm border-0 shadow-xl">
+                <div className="px-5 py-3">
                   <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 bg-[#536DFE] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2.5 h-2.5 bg-[#536DFE] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2.5 h-2.5 bg-[#536DFE] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
-                </Card>
+                </div>
               </div>
             )}
           </div>
