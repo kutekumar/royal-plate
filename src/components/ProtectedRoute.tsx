@@ -57,12 +57,15 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   }
 
   if (allowedRoles && !userRole) {
-    if (user) return <Navigate to="/auth" replace />;
     return <Navigate to="/home" replace />;
   }
 
   if (!allowedRoles && userRole === 'admin') {
     return <Navigate to="/admin" replace />;
+  }
+
+  if (!allowedRoles && userRole === 'restaurant_owner') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

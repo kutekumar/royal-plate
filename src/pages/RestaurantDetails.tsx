@@ -378,7 +378,7 @@ const RestaurantDetails = () => {
         <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] max-w-[430px] mx-auto overflow-x-hidden font-poppins">
 
       {/* ── Cinematic Hero with Parallax ── */}
-      <div className="relative w-full h-[340px] overflow-hidden">
+      <div className="relative w-full h-[280px] overflow-hidden">
         {/* Parallax Image Layer */}
         <div ref={heroRef} className="absolute inset-0 w-full h-[120%] -top-[10%] brand-hero-filter" style={{ willChange: 'transform' }}>
           <img
@@ -427,18 +427,18 @@ const RestaurantDetails = () => {
         {/* Premium Back button with Gold accent */}
         <button
           onClick={() => { play('tap'); navigate(-1); }}
-          className="absolute top-6 left-5 z-10 w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center hover:bg-white/40 hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all shadow-xl group"
+          className="absolute top-4 left-4 z-10 w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center hover:bg-white/40 hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all shadow-xl group"
         >
-          <ArrowLeft className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+          <ArrowLeft className="w-4 h-4 text-white drop-shadow group-hover:scale-110 transition-transform" />
         </button>
 
         {/* Premium Chatbot button */}
         <button
           onClick={() => { play('tap'); setShowChatbot(!showChatbot); }}
-          className="absolute top-6 right-5 z-10 flex items-center gap-2.5 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white px-6 py-3.5 rounded-2xl shadow-2xl shadow-[#536DFE]/60 hover:shadow-[0_0_50px_rgba(83,109,254,0.8)] hover:scale-105 active:scale-[0.98] transition-all duration-300 border border-white/30 backdrop-blur-md"
+          className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white px-4 py-2.5 rounded-2xl shadow-2xl shadow-[#536DFE]/60 hover:shadow-[0_0_50px_rgba(83,109,254,0.8)] hover:scale-105 active:scale-[0.98] transition-all duration-300 border border-white/30 backdrop-blur-md"
         >
-          <MessageCircle className="w-5 h-5" />
-          <span className="text-sm font-bold tracking-wide">Concierge</span>
+          <MessageCircle className="w-4 h-4" />
+          <span className="text-[10px] font-bold tracking-wide">Concierge</span>
         </button>
 
         {/* Cinematic Centered Restaurant Name */}
@@ -450,14 +450,14 @@ const RestaurantDetails = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-black/50" />
           <div className="relative flex flex-col items-center">
-            <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#F59E0B]/60 to-transparent mb-5" />
+            <div className="w-8 h-[1px] bg-gradient-to-r from-transparent via-[#F59E0B]/60 to-transparent mb-4" />
             <h1
-              className="text-center text-[clamp(1.5rem,5.5vw,2.75rem)] font-bold leading-tight tracking-[0.06em] text-transparent bg-clip-text bg-gradient-to-b from-[#FFF8E7] via-[#F5E6C8] to-[#C9A84C] px-2"
+              className="text-center text-[clamp(1.2rem,4.5vw,2rem)] font-bold leading-tight tracking-[0.06em] text-transparent bg-clip-text bg-gradient-to-b from-[#FFF8E7] via-[#F5E6C8] to-[#C9A84C] px-2"
               style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5)) drop-shadow(0 8px 24px rgba(0,0,0,0.25))' }}
             >
               {restaurant.name}
             </h1>
-            <div className="w-20 h-[1px] bg-gradient-to-r from-transparent via-[#F59E0B]/50 to-transparent mt-5" />
+            <div className="w-14 h-[1px] bg-gradient-to-r from-transparent via-[#F59E0B]/50 to-transparent mt-4" />
           </div>
         </motion.div>
       </div>
@@ -468,80 +468,80 @@ const RestaurantDetails = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
         style={{ willChange: 'transform, opacity' }}
-        className="glass-premium mx-5 -mt-8 relative z-10 rounded-3xl shadow-2xl shadow-black/10 border border-white/60 p-6 mb-5">
+        className="glass-premium mx-5 -mt-12 relative z-10 rounded-3xl shadow-2xl shadow-black/10 border border-white/60 p-4 mb-4">
         
         {/* Cuisine, Status, Rating & Visit Row */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-1.5">
             {restaurant.cuisine_type && (
-              <span className="bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 text-[#536DFE] text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-[#536DFE]/20">
+              <span className="bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 text-[#536DFE] text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-[#536DFE]/20">
                 {restaurant.cuisine_type}
               </span>
             )}
             {visitCount > 1 && (
-              <span className="text-gray-400 text-[10px] font-medium tracking-tight">
+              <span className="text-gray-400 text-[8px] font-medium tracking-tight">
                 · #{visitCount}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
-              <span className="text-emerald-600 text-[10px] font-bold">Open</span>
+              <div className="w-1 h-1 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+              <span className="text-emerald-600 text-[8px] font-bold">Open</span>
             </div>
-            <div className="flex items-center gap-1 bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/10 rounded-lg px-2 py-0.5 border border-[#F59E0B]/20">
-              <Star className="w-3 h-3 text-[#F59E0B] fill-[#F59E0B]" />
-              <span className="text-[#F59E0B] text-[10px] font-bold">{restaurant.rating}</span>
+            <div className="flex items-center gap-1 bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/10 rounded-lg px-1.5 py-0.5 border border-[#F59E0B]/20">
+              <Star className="w-2.5 h-2.5 text-[#F59E0B] fill-[#F59E0B]" />
+              <span className="text-[#F59E0B] text-[8px] font-bold">{restaurant.rating}</span>
             </div>
-            <span className="text-gray-300 text-[10px]">·</span>
-            <span className="text-gray-400 text-[10px] font-medium">2.3 km</span>
+            <span className="text-gray-300 text-[8px]">·</span>
+            <span className="text-gray-400 text-[8px] font-medium">2.3 km</span>
           </div>
         </div>
         
-        <p className="text-gray-500 text-sm leading-relaxed">{restaurant.description}</p>
+        <p className="text-gray-500 text-[10px] leading-relaxed">{restaurant.description}</p>
 
         {/* Premium Contact row */}
-        <div className="mt-5 pt-5 border-t border-gray-100 space-y-4">
+        <div className="mt-3.5 pt-3.5 border-t border-gray-100 space-y-3">
           <button
             onClick={() => { play('tap'); setShowMap(!showMap); }}
-            className="flex items-center gap-3.5 w-full text-left group"
+            className="flex items-center gap-3 w-full text-left group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 group-hover:shadow-lg transition-all shadow-md">
-              <MapPin className="w-5 h-5 text-[#536DFE]" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 group-hover:shadow-lg transition-all shadow-md">
+              <MapPin className="w-4 h-4 text-[#536DFE]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#1D2956] text-sm font-semibold truncate">{restaurant.address}</p>
-              <p className="text-gray-400 text-[11px] font-medium mt-0.5">{showMap ? 'Tap to hide map' : 'Tap to view on map'}</p>
+              <p className="text-[#1D2956] text-[10px] font-semibold truncate">{restaurant.address}</p>
+              <p className="text-gray-400 text-[9px] font-medium mt-0.5">{showMap ? 'Tap to hide map' : 'Tap to view on map'}</p>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-[#536DFE]/10 transition-all">
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#536DFE] transition-colors" />
+            <div className="w-6 h-6 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-[#536DFE]/10 transition-all">
+              <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-[#536DFE] transition-colors" />
             </div>
           </button>
 
           {/* Hours Timeline */}
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/10 flex items-center justify-center flex-shrink-0 shadow-md">
-              <Clock className="w-5 h-5 text-[#F59E0B]" />
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/10 flex items-center justify-center flex-shrink-0 shadow-md">
+              <Clock className="w-4 h-4 text-[#F59E0B]" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className="text-[#1D2956] text-sm font-semibold">Open today</p>
-                <span className="text-emerald-600 text-[11px] font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Open now</span>
+                <p className="text-[#1D2956] text-[10px] font-semibold">Open today</p>
+                <span className="text-emerald-600 text-[9px] font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Open now</span>
               </div>
-              <p className="text-gray-400 text-[11px] font-medium mt-0.5">{restaurant.opening_hours}</p>
-              <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <p className="text-gray-400 text-[9px] font-medium mt-0.5">{restaurant.opening_hours}</p>
+              <div className="mt-1.5 h-1 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full w-3/5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 shadow-md">
-              <Phone className="w-5 h-5 text-[#536DFE]" />
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center flex-shrink-0 shadow-md">
+              <Phone className="w-4 h-4 text-[#536DFE]" />
             </div>
             <div className="flex-1">
-              <p className="text-[#1D2956] text-sm font-semibold">{restaurant.phone}</p>
-              <p className="text-gray-400 text-[11px] font-medium mt-0.5">Call to make a reservation</p>
+              <p className="text-[#1D2956] text-[10px] font-semibold">{restaurant.phone}</p>
+              <p className="text-gray-400 text-[9px] font-medium mt-0.5">Call to make a reservation</p>
             </div>
           </div>
           
@@ -549,17 +549,17 @@ const RestaurantDetails = () => {
           {restaurant.latitude && restaurant.longitude && (
             <button
               onClick={() => { play('tap'); setShowDirectionModal(true); }}
-              className="flex items-center gap-3.5 w-full text-left group"
+              className="flex items-center gap-3 w-full text-left group"
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400/10 to-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 group-hover:shadow-lg transition-all shadow-md">
-                <Navigation className="w-5 h-5 text-emerald-500" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400/10 to-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 group-hover:shadow-lg transition-all shadow-md">
+                <Navigation className="w-4 h-4 text-emerald-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[#1D2956] text-sm font-semibold">Get Directions</p>
-                <p className="text-gray-400 text-[11px] font-medium mt-0.5">Navigate to restaurant</p>
+                <p className="text-[#1D2956] text-[10px] font-semibold">Get Directions</p>
+                <p className="text-gray-400 text-[9px] font-medium mt-0.5">Navigate to restaurant</p>
               </div>
-              <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-emerald-50 transition-all">
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-500 transition-colors" />
+              <div className="w-6 h-6 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-emerald-50 transition-all">
+                <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-emerald-500 transition-colors" />
               </div>
             </button>
           )}
@@ -572,7 +572,7 @@ const RestaurantDetails = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4 }}
-            className="mt-5 rounded-2xl overflow-hidden border border-white/60 shadow-xl"
+            className="mt-4 rounded-2xl overflow-hidden border border-white/60 shadow-xl"
           >
             <SingleRestaurantMap
               name={restaurant.name}
@@ -581,7 +581,7 @@ const RestaurantDetails = () => {
                 latitude: restaurant.latitude,
                 longitude: restaurant.longitude,
               }}
-              height="250px"
+              height="180px"
               userLocation={userLocation}
             />
           </motion.div>
@@ -589,16 +589,16 @@ const RestaurantDetails = () => {
       </motion.div>
 
       {/* ── Premium Order Type Selection ── */}
-      <div className="px-5 pb-5">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-5">
-          <p className="text-[#1D2956] text-[11px] font-bold uppercase tracking-[0.25em] mb-4 flex items-center gap-2">
-            <div className="w-1 h-4 bg-gradient-to-b from-[#536DFE] to-[#6B7FFF] rounded-full" />
+      <div className="px-5 pb-4">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-4">
+          <p className="text-[#1D2956] text-[9px] font-bold uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+            <div className="w-1 h-3 bg-gradient-to-b from-[#536DFE] to-[#6B7FFF] rounded-full" />
             Order Type
           </p>
-          <div className="flex gap-3 p-1.5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200/50 shadow-inner">
+          <div className="flex gap-2 p-1 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200/50 shadow-inner">
             <button
               onClick={() => { play('tap'); setOrderType('dine_in'); }}
-              className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold transition-all ${
                 orderType === 'dine_in'
                   ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
                   : 'text-gray-500 hover:text-[#1D2956] hover:bg-white/50'
@@ -608,7 +608,7 @@ const RestaurantDetails = () => {
             </button>
             <button
               onClick={() => { play('tap'); setOrderType('takeaway'); }}
-              className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold transition-all ${
                 orderType === 'takeaway'
                   ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
                   : 'text-gray-500 hover:text-[#1D2956] hover:bg-white/50'
@@ -622,24 +622,22 @@ const RestaurantDetails = () => {
 
       {/* ── Premium Reservation Section ── */}
       {orderType === 'dine_in' && (
-        <div className="px-5 pb-5">
-          <div className="glass-premium rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-6">
+        <div className="px-5 pb-4">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-4">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <h3 className="text-[#1D2956] text-lg font-bold mb-6 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 flex items-center justify-center shadow-md">
-                  <Calendar className="w-5 h-5 text-[#536DFE]" />
-                </div>
-                Reserve Your Experience
-              </h3>
+              <p className="text-[#1D2956] text-[9px] font-bold uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                <div className="w-1 h-3 bg-gradient-to-b from-[#536DFE] to-[#6B7FFF] rounded-full" />
+                Reservation
+              </p>
 
               {/* Occasion Selection */}
-              <div className="mb-5">
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-3">Occasion</p>
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              <div className="mb-4">
+                <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.2em] mb-2">Occasion</p>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                   {occasions.map((occ) => {
                     const Icon = occ.icon;
                     const isSelected = occasion === occ.id;
@@ -647,13 +645,13 @@ const RestaurantDetails = () => {
                       <button
                         key={occ.id}
                         onClick={() => { play('select'); setOccasion(occ.id); }}
-                        className={`flex items-center gap-2 flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-2 rounded-xl text-[9px] font-bold transition-all ${
                           isSelected
                             ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-lg shadow-[#536DFE]/40 scale-105'
                             : 'bg-white/90 border border-gray-200 text-gray-500 hover:text-[#1D2956] hover:border-[#536DFE]/40 hover:shadow-md'
                         }`}
                       >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-3 h-3" />
                         {occ.label}
                       </button>
                     );
@@ -662,16 +660,16 @@ const RestaurantDetails = () => {
               </div>
 
               {/* Table Preference */}
-              <div className="mb-5">
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-3">Table Preference</p>
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              <div className="mb-4">
+                <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.2em] mb-2">Table Preference</p>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                   {tablePreferences.map((pref) => {
                     const isSelected = tablePreference === pref.id;
                     return (
                       <button
                         key={pref.id}
                         onClick={() => { play('select'); setTablePreference(pref.id); }}
-                        className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex-shrink-0 px-3 py-2 rounded-xl text-[9px] font-bold transition-all ${
                           isSelected
                             ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-lg shadow-[#536DFE]/40 scale-105'
                             : 'bg-white/90 border border-gray-200 text-gray-500 hover:text-[#1D2956] hover:border-[#536DFE]/40 hover:shadow-md'
@@ -685,42 +683,42 @@ const RestaurantDetails = () => {
               </div>
 
               {/* Premium Party Size */}
-              <div className="flex justify-between items-center bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] p-5 rounded-2xl mb-5 border border-gray-100/50 shadow-inner">
+              <div className="flex justify-between items-center bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] p-3.5 rounded-2xl mb-4 border border-gray-100/50 shadow-inner">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#536DFE]" />
-                    <p className="text-[#1D2956] text-sm font-bold">Party Size</p>
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3 h-3 text-[#536DFE]" />
+                    <p className="text-[#1D2956] text-[10px] font-bold">Party Size</p>
                   </div>
-                  <p className="text-gray-400 text-[11px] font-medium mt-0.5">Number of guests</p>
+                  <p className="text-gray-400 text-[8px] font-medium mt-0.5">Number of guests</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => { play('tap'); setPartySize(Math.max(1, partySize - 1)); }}
-                    className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:border-[#536DFE]/40 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md hover:shadow-lg active:scale-95"
+                    className="w-8 h-8 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:border-[#536DFE]/40 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md hover:shadow-lg active:scale-95"
                   >
-                    <Minus className="w-4.5 h-4.5 text-[#536DFE]" />
+                    <Minus className="w-3.5 h-3.5 text-[#536DFE]" />
                   </button>
                   <motion.span
                     key={partySize}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-[#1D2956] text-2xl font-bold w-8 text-center"
+                    className="text-[#1D2956] text-xl font-bold w-6 text-center"
                   >
                     {partySize}
                   </motion.span>
                   <button
                     onClick={() => { play('tap'); setPartySize(Math.min(20, partySize + 1)); }}
-                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-xl shadow-[#536DFE]/40 hover:shadow-2xl hover:scale-105 transition-all active:scale-95"
+                    className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-xl shadow-[#536DFE]/40 hover:shadow-2xl hover:scale-105 transition-all active:scale-95"
                   >
-                    <Plus className="w-4.5 h-4.5 text-white" />
+                    <Plus className="w-3.5 h-3.5 text-white" />
                   </button>
                 </div>
               </div>
 
               {/* Premium Date Selection */}
-              <div className="mb-5">
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4">Select Date</p>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="mb-4">
+                <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.2em] mb-3">Select Date</p>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {getAvailableDates().map((date) => {
                     const formatted = formatDate(date);
                     const isSelected = selectedDate === formatted.fullDate;
@@ -729,15 +727,15 @@ const RestaurantDetails = () => {
                         key={formatted.fullDate}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => { play('select'); setSelectedDate(formatted.fullDate); }}
-                        className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[76px] h-[88px] rounded-2xl transition-all shadow-lg ${
+                        className={`flex flex-col items-center justify-center flex-shrink-0 min-w-[64px] h-[72px] rounded-2xl transition-all shadow-lg ${
                           isSelected
                             ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/40 scale-105 border border-white/30'
                             : 'bg-white/90 backdrop-blur-md border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40 hover:shadow-xl shadow-black/5'
                         }`}
                       >
-                        <span className={`text-[9px] font-bold uppercase mb-0.5 ${isSelected ? 'text-white/70' : 'text-gray-400'}`}>{formatted.month}</span>
-                        <span className="text-2xl font-bold leading-none mb-0.5">{formatted.day}</span>
-                        <span className={`text-[9px] font-semibold ${isSelected ? 'text-white/60' : 'text-gray-400'}`}>{formatted.label}</span>
+                        <span className={`text-[7px] font-bold uppercase mb-0.5 ${isSelected ? 'text-white/70' : 'text-gray-400'}`}>{formatted.month}</span>
+                        <span className="text-lg font-bold leading-none mb-0.5">{formatted.day}</span>
+                        <span className={`text-[7px] font-semibold ${isSelected ? 'text-white/60' : 'text-gray-400'}`}>{formatted.label}</span>
                       </motion.button>
                     );
                   })}
@@ -745,9 +743,9 @@ const RestaurantDetails = () => {
               </div>
 
               {/* Premium Time Selection */}
-              <div className="mb-5">
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-4">Time Slots</p>
-                <div className="grid grid-cols-3 gap-3">
+              <div className="mb-4">
+                <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.2em] mb-3">Time Slots</p>
+                <div className="grid grid-cols-3 gap-2">
                   {timeSlots.map((time) => {
                     const isSelected = selectedTime === time;
                     const isPeak = time === '19:00' || time === '19:30' || time === '20:00';
@@ -755,7 +753,7 @@ const RestaurantDetails = () => {
                       <button
                         key={time}
                         onClick={() => { play('select'); setSelectedTime(time); }}
-                        className={`relative py-3.5 rounded-2xl text-sm font-bold transition-all shadow-lg ${
+                        className={`relative py-2.5 rounded-2xl text-[10px] font-bold transition-all shadow-lg ${
                           isSelected
                             ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/40 scale-105'
                             : 'bg-white/90 backdrop-blur-md border border-gray-200 text-[#1D2956] hover:border-[#536DFE]/40 hover:shadow-xl shadow-black/5'
@@ -763,7 +761,7 @@ const RestaurantDetails = () => {
                       >
                         {time}
                         {isPeak && !isSelected && (
-                          <span className="absolute -top-1.5 -right-1.5 bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
+                          <span className="absolute -top-1.5 -right-1.5 bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
                             Peak
                           </span>
                         )}
@@ -775,13 +773,13 @@ const RestaurantDetails = () => {
 
               {/* Special Requests */}
               <div>
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[0.25em] mb-3">Special Requests</p>
+                <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.2em] mb-2">Special Requests</p>
                 <textarea
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   placeholder="Allergies, celebrations, seating preferences..."
-                  rows={2}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] border border-gray-100 text-[#1D2956] text-sm placeholder-gray-400 focus:outline-none focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 transition-all shadow-inner resize-none"
+                  rows={1}
+                  className="w-full px-3 py-2.5 rounded-2xl bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] border border-gray-100 text-[#1D2956] text-[10px] placeholder-gray-400 focus:outline-none focus:border-[#536DFE]/40 focus:ring-4 focus:ring-[#536DFE]/10 transition-all shadow-inner resize-none"
                 />
               </div>
             </motion.div>
@@ -791,23 +789,21 @@ const RestaurantDetails = () => {
 
       {/* ── Premium Menu Preview Section ── */}
       <div className="px-5 pb-36">
-        <div className="glass-premium rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[#1D2956] text-lg font-bold flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 flex items-center justify-center shadow-md">
-                <ShoppingCart className="w-5 h-5 text-[#536DFE]" />
-              </div>
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl shadow-black/5 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[#1D2956] text-[9px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+              <div className="w-1 h-3 bg-gradient-to-b from-[#536DFE] to-[#6B7FFF] rounded-full" />
               Our Menu
-            </h3>
-            <span className="text-gray-400 text-[11px] font-semibold tracking-wide">{menuItems.length} selections</span>
+            </p>
+            <span className="text-gray-400 text-[8px] font-semibold tracking-wide">{menuItems.length} selections</span>
           </div>
 
-          <p className="text-gray-400 text-xs leading-relaxed mb-5">
-            Browse our curated selection of exquisite dishes, from artisanal appetizers to decadent desserts. Each dish is crafted with the finest ingredients.
+          <p className="text-gray-400 text-[9px] leading-relaxed mb-4">
+            Browse our curated selection of exquisite dishes, from artisanal appetizers to decadent desserts.
           </p>
 
           {/* Menu Preview Grid */}
-          <div className="grid grid-cols-3 gap-2 mb-5">
+          <div className="grid grid-cols-3 gap-1.5 mb-4">
             {menuItems.slice(0, 6).map((item) => (
               <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square shadow-md group">
                 <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
@@ -822,38 +818,38 @@ const RestaurantDetails = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => { play('tap'); navigate(`/restaurant/${id}/menu`); }}
-            className="w-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#536DFE]/50 hover:shadow-2xl hover:shadow-[#536DFE]/70 active:scale-[0.98] uppercase tracking-widest text-sm"
+            className="w-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#536DFE]/50 hover:shadow-2xl hover:shadow-[#536DFE]/70 active:scale-[0.98] uppercase tracking-widest text-[10px]"
           >
-            <UtensilsCrossed className="w-5 h-5" />
+            <UtensilsCrossed className="w-3.5 h-3.5" />
             Browse Full Menu
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3 h-3" />
           </motion.button>
 
           {/* Quick add-ons: Popular items */}
           {menuItems.length > 0 && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <div className="flex items-center gap-2 mb-4">
-                <Gem className="w-4 h-4 text-[#F59E0B]" />
-                <p className="text-[#1D2956] text-[11px] font-bold uppercase tracking-[0.2em]">Popular picks</p>
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-1.5 mb-3">
+                <Gem className="w-3 h-3 text-[#F59E0B]" />
+                <p className="text-[#1D2956] text-[8px] font-bold uppercase tracking-[0.2em]">Popular picks</p>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 {menuItems.slice(0, 5).map((item) => {
                   const cartItem = cart.find(c => c.id === item.id);
                   return (
                     <button
                       key={item.id}
                       onClick={() => addToCart(item)}
-                      className="flex-shrink-0 flex items-center gap-2.5 bg-white/90 rounded-2xl px-4 py-3 border border-gray-100 shadow-md hover:shadow-lg hover:border-[#536DFE]/30 transition-all"
+                      className="flex-shrink-0 flex items-center gap-2 bg-white/90 rounded-2xl px-3 py-2 border border-gray-100 shadow-md hover:shadow-lg hover:border-[#536DFE]/30 transition-all"
                     >
-                      <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded-xl object-cover shadow-sm" loading="lazy" />
+                      <img src={item.image_url} alt={item.name} className="w-8 h-8 rounded-xl object-cover shadow-sm" loading="lazy" />
                       <div className="text-left">
-                        <p className="text-[#1D2956] text-[11px] font-bold truncate max-w-[90px]">{item.name}</p>
-                        <p className="text-[#536DFE] text-[11px] font-bold">{formatCurrency(item.price)}</p>
+                        <p className="text-[#1D2956] text-[9px] font-bold truncate max-w-[80px]">{item.name}</p>
+                        <p className="text-[#536DFE] text-[9px] font-bold">{formatCurrency(item.price)}</p>
                       </div>
                       {cartItem ? (
-                        <span className="bg-[#536DFE]/10 text-[#536DFE] text-[9px] font-bold px-2 py-1 rounded-full">{cartItem.quantity}</span>
+                        <span className="bg-[#536DFE]/10 text-[#536DFE] text-[8px] font-bold px-1.5 py-0.5 rounded-full">{cartItem.quantity}</span>
                       ) : (
-                        <Plus className="w-4 h-4 text-[#536DFE] flex-shrink-0" />
+                        <Plus className="w-3 h-3 text-[#536DFE] flex-shrink-0" />
                       )}
                     </button>
                   );

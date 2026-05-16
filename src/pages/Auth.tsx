@@ -23,7 +23,7 @@ interface ConfettiParticle {
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingAuth, setPendingAuth] = useState(false);
-  const [authFallback, setAuthFallback] = useState(false);
+
   const [confetti, setConfetti] = useState<ConfettiParticle[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const { play } = useSoundContext();
@@ -36,6 +36,8 @@ const Auth = () => {
   const mouseY = useMotionValue(0.5);
   const springX = useSpring(mouseX, { stiffness: 60, damping: 35 });
   const springY = useSpring(mouseY, { stiffness: 60, damping: 35 });
+  const transformX = useTransform(springX, [0, 1], [-128, (typeof window !== 'undefined' ? window.innerWidth : 400) - 128]);
+  const transformY = useTransform(springY, [0, 1], [-128, (typeof window !== 'undefined' ? window.innerHeight : 800) - 128]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -65,18 +67,6 @@ const Auth = () => {
       navigate('/home', { replace: true });
     }
   }, [user, userRole, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-    if (userRole) return;
-    const id = setTimeout(() => setAuthFallback(true), 5000);
-    return () => clearTimeout(id);
-  }, [user, userRole]);
-
-  useEffect(() => {
-    if (!user || !authFallback) return;
-    navigate('/home', { replace: true });
-  }, [user, authFallback, navigate]);
 
   const [signUpData, setSignUpData] = useState({
     email: '',
@@ -185,6 +175,26 @@ const Auth = () => {
     play('tap');
     setMode(mode === 'signin' ? 'signup' : 'signin');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#F8F9FF] via-[#F0F2FF] to-[#E8ECFF] font-poppins">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#536DFE]/30 border-t-[#536DFE] rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (user && !pendingAuth) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#F8F9FF] via-[#F0F2FF] to-[#E8ECFF] font-poppins">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#536DFE]/30 border-t-[#536DFE] rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   if (pendingAuth && (user || showSuccess)) {
     return (
@@ -342,8 +352,8 @@ const Auth = () => {
         className="absolute w-64 h-64 rounded-full pointer-events-none will-change-transform"
         style={{
           background: 'radial-gradient(circle, rgba(83,109,254,0.07) 0%, rgba(107,127,255,0.03) 40%, transparent 70%)',
-          x: useTransform(springX, [0, 1], [-128, (typeof window !== 'undefined' ? window.innerWidth : 400) - 128]),
-          y: useTransform(springY, [0, 1], [-128, (typeof window !== 'undefined' ? window.innerHeight : 800) - 128])
+          x: transformX,
+          y: transformY
         }}
       />
 

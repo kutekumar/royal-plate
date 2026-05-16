@@ -128,12 +128,12 @@ const Orders = () => {
 
         <div className="relative flex items-center justify-between">
           <div>
-            <h1 className="text-[#1D2956] text-2xl font-bold tracking-tight leading-none mb-1">My Orders</h1>
-            <p className="text-gray-400 text-[11px] uppercase tracking-[0.3em] font-medium">Track your reservations</p>
+            <h1 className="text-[#1D2956] text-sm font-bold tracking-tight leading-none mb-0.5">My Orders</h1>
+            <p className="text-gray-400 text-[9px] uppercase tracking-[0.25em] font-medium">Track your reservations</p>
           </div>
-          <div className="flex items-center gap-2.5 bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 rounded-2xl px-4 py-2.5 border border-[#536DFE]/20 shadow-lg">
-            <ShoppingBag className="w-4.5 h-4.5 text-[#536DFE]" />
-            <span className="text-[#536DFE] text-sm font-bold">{orders.length}</span>
+          <div className="flex items-center gap-1.5 bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 rounded-2xl px-3 py-2 border border-[#536DFE]/20 shadow-lg">
+            <ShoppingBag className="w-3.5 h-3.5 text-[#536DFE]" />
+            <span className="text-[#536DFE] text-[10px] font-bold">{orders.length}</span>
           </div>
         </div>
       </div>
@@ -145,7 +145,7 @@ const Orders = () => {
             <button
               key={tab}
               onClick={() => { play('tap'); setFilter(tab); }}
-              className={`flex-1 py-3.5 text-sm font-bold rounded-xl transition-all ${
+              className={`flex-1 py-2.5 text-[10px] font-bold rounded-xl transition-all ${
                 filter === tab
                   ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
                   : 'text-gray-500 hover:text-[#1D2956] hover:bg-white/50'
@@ -153,7 +153,7 @@ const Orders = () => {
             >
               <span className="flex items-center justify-center gap-2">
                 {tab === 'upcoming' ? 'Active' : 'History'}
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                <span className={`text-[8px] px-2 py-0.5 rounded-full font-bold ${
                   filter === tab
                     ? 'bg-white/25 text-white'
                     : 'bg-gray-200 text-gray-600'
@@ -171,12 +171,12 @@ const Orders = () => {
         {filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center mb-6 shadow-xl shadow-black/5">
-              <ShoppingBag className="w-12 h-12 text-[#536DFE]/40" />
+              <ShoppingBag className="w-8 h-8 text-[#536DFE]/40" />
             </div>
-            <p className="text-[#1D2956] font-bold text-lg mb-2">
+            <p className="text-[#1D2956] font-bold text-sm mb-1">
               {filter === 'upcoming' ? 'No Active Orders' : 'No Order History'}
             </p>
-            <p className="text-gray-400 text-sm max-w-[220px] leading-relaxed">
+            <p className="text-gray-400 text-[10px] max-w-[220px] leading-relaxed">
               {filter === 'upcoming'
                 ? 'Your upcoming reservations will appear here'
                 : 'Completed orders will show up here'}
@@ -200,7 +200,7 @@ const Orders = () => {
                   {/* ── Background Image with Brand Filter ── */}
                   <div
                     onClick={() => { play('tap'); setSelectedOrder(order); }}
-                    className="relative h-48 brand-image-filter brand-shimmer cursor-pointer group"
+                    className="relative h-36 brand-image-filter brand-shimmer cursor-pointer group"
                   >
                     {order.restaurants?.image_url ? (
                       <img
@@ -222,7 +222,7 @@ const Orders = () => {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: index * 0.08 + 0.2, duration: 0.3 }}
-                        className={`flex items-center gap-2 px-3.5 py-2 rounded-full bg-gradient-to-r ${status.gradient} text-white text-[10px] font-bold uppercase tracking-wider shadow-xl border border-white/30`}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gradient-to-r ${status.gradient} text-white text-[8px] font-bold uppercase tracking-wider shadow-xl border border-white/30`}
                       >
                         <StatusIcon className="w-3.5 h-3.5" />
                         {status.label}
@@ -231,7 +231,7 @@ const Orders = () => {
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: index * 0.08 + 0.3, duration: 0.3 }}
-                        className="flex items-center gap-2 bg-white/20 backdrop-blur-xl text-white text-[10px] font-bold uppercase tracking-wide px-3.5 py-2 rounded-full border border-white/30 shadow-lg"
+                        className="flex items-center gap-1.5 bg-white/20 backdrop-blur-xl text-white text-[8px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-full border border-white/30 shadow-lg"
                       >
                         {isDineIn ? <UtensilsCrossed className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
                         {isDineIn ? 'Dine In' : 'Take Out'}
@@ -239,19 +239,19 @@ const Orders = () => {
                     </div>
 
                     {/* ── Bottom Content ── */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-white text-xl font-bold leading-tight drop-shadow-lg">
+                    <div className="absolute bottom-0 left-0 right-0 p-3.5">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <h3 className="text-white text-[11px] font-bold leading-tight drop-shadow-lg">
                           {order.restaurants?.name}
                         </h3>
                         {(restaurantOrderCounts[order.restaurant_id] >= 3 || (order.restaurants?.id && restaurantOrderCounts[order.restaurants.id] >= 3)) && (
-                          <span className="text-[9px] bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white font-extrabold px-2 py-0.5 rounded-full shadow-lg border border-white/30 animate-float-badge">
+                          <span className="text-[7px] bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white font-extrabold px-1.5 py-0.5 rounded-full shadow-lg border border-white/30 animate-float-badge">
                             Superfan
                           </span>
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 text-white/80 text-xs mb-3.5">
+                      <div className="flex flex-wrap items-center gap-2 text-white/80 text-[9px] mb-2">
                         {isDineIn && order.reservation_date ? (
                           <>
                             <span className="flex items-center gap-1.5 font-medium">
@@ -282,11 +282,11 @@ const Orders = () => {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <p className="text-white font-bold text-2xl drop-shadow-lg">
+                        <p className="text-white font-bold text-sm drop-shadow-lg">
                           {formatCurrency(order.total_amount)}
                         </p>
-                        <div className="flex items-center gap-2.5 bg-white/25 backdrop-blur-xl rounded-full px-4 py-2 border border-white/30 group-hover:bg-white/35 transition-all shadow-lg">
-                          <span className="text-white text-xs font-bold uppercase tracking-wider">View Details</span>
+                        <div className="flex items-center gap-2 bg-white/25 backdrop-blur-xl rounded-full px-3 py-1.5 border border-white/30 group-hover:bg-white/35 transition-all shadow-lg">
+                          <span className="text-white text-[9px] font-bold uppercase tracking-wider">View Details</span>
                           <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
@@ -302,7 +302,7 @@ const Orders = () => {
                       transition={{ delay: index * 0.08 + 0.5 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={(e) => { e.stopPropagation(); navigate(`/restaurant/${order.restaurant_id}/menu`); play('tap'); }}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-white to-gray-50 text-[#536DFE] text-[11px] font-bold border-t border-gray-100 hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all"
+                      className="w-full flex items-center justify-center gap-1.5 py-2 bg-gradient-to-br from-white to-gray-50 text-[#536DFE] text-[9px] font-bold border-t border-gray-100 hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
                       Redo Order

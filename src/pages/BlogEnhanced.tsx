@@ -103,7 +103,7 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
       {/* Hero Image */}
       {post.hero_image_url && (
         <div
-          className="blog-image-container relative h-36 overflow-hidden cursor-pointer"
+          className="blog-image-container relative h-28 overflow-hidden cursor-pointer"
           onClick={() => onToggleContent(post.id)}
         >
           <img
@@ -118,58 +118,58 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.3 }}
-              className="badge-shine absolute top-3 left-3 flex items-center gap-1 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-xl shadow-[#536DFE]/40"
+              className="badge-shine absolute top-2 left-2 flex items-center gap-1 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white text-[7px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xl shadow-[#536DFE]/40"
             >
-              <TrendingUp className="w-3 h-3" />
+              <TrendingUp className="w-2.5 h-2.5" />
               Featured
             </motion.div>
           )}
-          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
-              {post.restaurants?.image_url ? (
-                <img src={post.restaurants.image_url} alt="" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <span className="text-white text-[9px] font-bold">{initials}</span>
-              )}
-            </div>
-            <span className="text-white text-xs font-semibold drop-shadow">{post.restaurants?.name || 'Featured'}</span>
+            <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center">
+                {post.restaurants?.image_url ? (
+                  <img src={post.restaurants.image_url} alt="" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <span className="text-white text-[7px] font-bold">{initials}</span>
+                )}
+              </div>
+            <span className="text-white text-[10px] font-semibold drop-shadow">{post.restaurants?.name || 'Featured'}</span>
           </div>
         </div>
       )}
 
       {/* Content */}
-      <div className="p-3">
+      <div className="p-2.5">
         {!post.hero_image_url && (
-          <div className="flex items-center gap-3 mb-3">
-            <Avatar className="w-9 h-9 ring-1 ring-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Avatar className="w-7 h-7 ring-1 ring-gray-100 shadow-sm">
               {post.restaurants?.image_url && <AvatarImage src={post.restaurants.image_url} alt={post.restaurants?.name || ''} />}
-              <AvatarFallback className="bg-[#536DFE]/10 text-[#536DFE] text-[10px] font-bold">{initials}</AvatarFallback>
+              <AvatarFallback className="bg-[#536DFE]/10 text-[#536DFE] text-[8px] font-bold">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <p className="text-[#1D2956] text-xs font-bold">{post.restaurants?.name || 'Restaurant'}</p>
-              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+              <p className="text-[#1D2956] text-[10px] font-bold">{post.restaurants?.name || 'Restaurant'}</p>
+              <div className="flex items-center gap-1.5 text-[8px] text-gray-400">
                 <Clock className="w-3 h-3" />
                 {formatTimeAgo(post.created_at)}
               </div>
             </div>
             {post.is_pinned && (
-              <Badge className="bg-[#536DFE] text-white text-[9px] font-bold uppercase px-2 py-1 rounded-full">Featured</Badge>
+              <Badge className="bg-[#536DFE] text-white text-[7px] font-bold uppercase px-1.5 py-0.5 rounded-full">Featured</Badge>
             )}
           </div>
         )}
 
         <div className="cursor-pointer" onClick={() => onToggleContent(post.id)}>
-          <h2 className="text-[#1D2956] text-sm font-bold leading-tight mb-1.5 group-hover:text-[#536DFE] transition-colors">
+          <h2 className="text-[#1D2956] text-[11px] font-bold leading-tight mb-1 group-hover:text-[#536DFE] transition-colors">
             {post.title}
           </h2>
           {post.hero_image_url && (
-            <p className="text-gray-400 text-[10px] flex items-center gap-1 mb-2">
-              <Clock className="w-3 h-3" />
+            <p className="text-gray-400 text-[8px] flex items-center gap-1 mb-1.5">
+              <Clock className="w-2.5 h-2.5" />
               {formatTimeAgo(post.created_at)}
             </p>
           )}
           <div
-            className={`text-gray-500 text-sm leading-relaxed ${!expandedContentPostIds.has(post.id) ? 'line-clamp-2' : ''}`}
+            className={`text-gray-500 text-[10px] leading-relaxed ${!expandedContentPostIds.has(post.id) ? 'line-clamp-2' : ''}`}
             dangerouslySetInnerHTML={{
               __html: expandedContentPostIds.has(post.id)
                 ? post.content
@@ -179,48 +179,48 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-2.5">
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => onToggleComments(post.id)}
-              className="flex items-center gap-1.5 text-gray-400 hover:text-[#536DFE] transition-colors py-1 px-0.5"
+              className="flex items-center gap-1 text-gray-400 hover:text-[#536DFE] transition-colors py-1 px-0.5"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-xs font-semibold">{post.comments_count || 0}</span>
+              <MessageCircle className="w-3 h-3" />
+              <span className="text-[9px] font-semibold">{post.comments_count || 0}</span>
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => onToggleLike(post.id)}
-              className={`flex items-center gap-1.5 transition-colors py-1 px-0.5 ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}
+              className={`flex items-center gap-1 transition-colors py-1 px-0.5 ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}
             >
               <motion.div
                 animate={isLiked ? { scale: [1, 1.4, 1] } : { scale: 1 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
               </motion.div>
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => onToggleBookmark(post.id)}
-              className={`flex items-center gap-1.5 transition-colors py-1 px-0.5 ${isBookmarked ? 'text-[#536DFE]' : 'text-gray-400 hover:text-[#536DFE]'}`}
+              className={`flex items-center gap-1 transition-colors py-1 px-0.5 ${isBookmarked ? 'text-[#536DFE]' : 'text-gray-400 hover:text-[#536DFE]'}`}
             >
               <motion.div
                 animate={isBookmarked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                <Bookmark className={`w-3 h-3 ${isBookmarked ? 'fill-current' : ''}`} />
               </motion.div>
             </motion.button>
           </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => onToggleContent(post.id)}
-            className="text-[#536DFE] text-xs font-bold uppercase tracking-wider hover:text-[#536DFE]/70 transition-colors flex items-center gap-1"
+            className="text-[#536DFE] text-[9px] font-bold uppercase tracking-wider hover:text-[#536DFE]/70 transition-colors flex items-center gap-1"
           >
             {expandedContentPostIds.has(post.id) ? 'Less' : 'Read'}
-            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${expandedContentPostIds.has(post.id) ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-300 ${expandedContentPostIds.has(post.id) ? 'rotate-180' : ''}`} />
           </motion.button>
         </div>
       </div>
@@ -236,8 +236,8 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-gray-100 bg-gray-50/80 p-3 space-y-2.5">
-              <p className="text-[#1D2956] text-xs font-bold uppercase tracking-wider">Comments</p>
+            <div className="border-t border-gray-100 bg-gray-50/80 p-2.5 space-y-2">
+              <p className="text-[#1D2956] text-[9px] font-bold uppercase tracking-wider">Comments</p>
 
               {loadingComments[post.id] && (
                 <div className="flex items-center justify-center py-3">
@@ -246,7 +246,7 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
               )}
 
               {!loadingComments[post.id] && postComments.length === 0 && (
-                <p className="text-gray-400 text-xs">No comments yet. Be the first to share your thoughts.</p>
+                <p className="text-gray-400 text-[9px]">No comments yet. Be the first to share your thoughts.</p>
               )}
 
               {!loadingComments[post.id] && postComments.filter(c => !c.parent_comment_id).map((c) => {
@@ -258,34 +258,34 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="flex items-start gap-2.5 bg-white rounded-2xl p-3 border border-gray-100 shadow-sm"
+                    className="flex items-start gap-2 bg-white rounded-2xl p-2.5 border border-gray-100 shadow-sm"
                   >
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#536DFE] to-[#1D2956] text-[9px] flex items-center justify-center text-white font-bold shadow-sm flex-shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#536DFE] to-[#1D2956] text-[7px] flex items-center justify-center text-white font-bold shadow-sm flex-shrink-0">
                       {commentInitials}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <span className="text-[#1D2956] text-xs font-bold truncate">{displayName}</span>
-                        <span className="text-gray-400 text-[10px] whitespace-nowrap">{formatTimeAgo(c.created_at)}</span>
+                        <span className="text-[#1D2956] text-[9px] font-bold truncate">{displayName}</span>
+                        <span className="text-gray-400 text-[8px] whitespace-nowrap">{formatTimeAgo(c.created_at)}</span>
                       </div>
-                      <p className="text-gray-600 text-xs leading-relaxed">{c.content}</p>
+                      <p className="text-gray-600 text-[9px] leading-relaxed">{c.content}</p>
                     </div>
                   </motion.div>
                 );
               })}
 
-              <div className="pt-2">
+              <div className="pt-1.5">
                 <Textarea
                   placeholder={currentUserId ? 'Share your thoughts…' : 'Sign in to comment.'}
                   value={newComment[post.id] || ''}
                   onChange={(e) => onNewCommentChange(post.id, e.target.value)}
                   disabled={!currentUserId || !!submittingComment[post.id]}
-                  className="h-14 text-xs resize-none border-gray-200 bg-white text-[#1D2956] placeholder:text-gray-400 focus-visible:ring-[#536DFE]/40 rounded-2xl"
+                  className="min-h-[60px] text-base resize-none border-gray-200 bg-white text-[#1D2956] placeholder:text-gray-400 focus-visible:ring-[#536DFE]/40 rounded-2xl"
                 />
                 <div className="flex justify-end mt-2">
                   <Button
                     size="sm"
-                    className="h-7 px-3 text-[10px] rounded-xl bg-[#536DFE] hover:bg-[#536DFE]/90 text-white shadow-sm font-bold"
+                    className="h-6 px-2.5 text-[8px] rounded-xl bg-[#536DFE] hover:bg-[#536DFE]/90 text-white shadow-sm font-bold"
                     disabled={!currentUserId || !newComment[post.id]?.trim() || !!submittingComment[post.id]}
                     onClick={() => onSubmitComment(post.id)}
                   >
@@ -308,11 +308,11 @@ const PostCard = ({ post, index, likedPosts, bookmarkedPosts, expandedPostIds, e
 
 const SkeletonCard = () => (
   <div className="rounded-2xl bg-white overflow-hidden shadow-sm border border-gray-100/80">
-    <div className="h-36 skeleton-luxury" />
-    <div className="p-4 space-y-3">
-      <div className="h-3 skeleton-luxury rounded-full w-1/2" />
-      <div className="h-4 skeleton-luxury rounded-full w-3/4" />
-      <div className="h-3 skeleton-luxury rounded-full w-full" />
+    <div className="h-28 skeleton-luxury" />
+    <div className="p-3 space-y-2">
+      <div className="h-2.5 skeleton-luxury rounded-full w-1/2" />
+      <div className="h-3 skeleton-luxury rounded-full w-3/4" />
+      <div className="h-2.5 skeleton-luxury rounded-full w-full" />
     </div>
   </div>
 );
@@ -503,13 +503,13 @@ const BlogEnhanced = () => {
       {/* Header */}
       <div ref={headerRef} className="glass-header flex items-center justify-between px-4 pt-5 pb-2 z-10">
         <div>
-          <h1 className="text-[#1D2956] text-lg font-bold tracking-tight leading-none text-gradient-animated">Updates</h1>
-          <p className="text-gray-400 text-[10px] uppercase tracking-[0.25em] mt-0.5">Stories & Promotions</p>
+          <h1 className="text-[#1D2956] text-sm font-bold tracking-tight leading-none text-gradient-animated">Updates</h1>
+          <p className="text-gray-400 text-[9px] uppercase tracking-[0.2em] mt-0.5">Stories & Promotions</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border transition-all text-xs font-bold ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border transition-all text-[9px] font-bold ${
             showFilters || selectedRestaurant || sortBy !== 'newest'
               ? 'border-[#536DFE] bg-[#536DFE] text-white shadow-md shadow-[#536DFE]/30'
               : 'border-gray-200 bg-white text-[#1D2956] shadow-sm'
@@ -529,7 +529,7 @@ const BlogEnhanced = () => {
             placeholder="Search stories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 pl-10 pr-9 bg-white border border-gray-200 rounded-2xl text-[#1D2956] text-sm placeholder-gray-400 focus:border-[#536DFE] focus:ring-2 focus:ring-[#536DFE]/15 shadow-sm transition-all"
+            className="w-full h-9 pl-9 pr-8 bg-white border border-gray-200 rounded-2xl text-[#1D2956] text-base placeholder-gray-400 focus:border-[#536DFE] focus:ring-2 focus:ring-[#536DFE]/15 shadow-sm transition-all"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
@@ -549,21 +549,21 @@ const BlogEnhanced = () => {
             transition={{ duration: 0.3 }}
             className="mx-4 mb-3 p-3 glass-card rounded-2xl z-10 overflow-hidden"
           >
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <div>
-                <p className="text-[#1D2956] text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Restaurant</p>
+                <p className="text-[#1D2956] text-[9px] font-bold uppercase tracking-[0.2em] mb-1.5">Restaurant</p>
                 <select
                   value={selectedRestaurant}
                   onChange={(e) => setSelectedRestaurant(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-[#1D2956] text-sm focus:outline-none focus:border-[#536DFE] transition-all"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-white text-[#1D2956] text-base focus:outline-none focus:border-[#536DFE] transition-all"
                 >
                   <option value="">All Restaurants</option>
                   {restaurants.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
               <div>
-                <p className="text-[#1D2956] text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Sort By</p>
-                <div className="flex gap-2 flex-wrap">
+                <p className="text-[#1D2956] text-[9px] font-bold uppercase tracking-[0.2em] mb-1.5">Sort By</p>
+                <div className="flex gap-1.5 flex-wrap">
                   {[
                     { label: 'Newest', value: 'newest' },
                     { label: 'Oldest', value: 'oldest' },
@@ -571,7 +571,7 @@ const BlogEnhanced = () => {
                     <button
                       key={opt.value}
                       onClick={() => setSortBy(opt.value as typeof sortBy)}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
+                      className={`px-2.5 py-1.5 rounded-xl text-[9px] font-bold transition-all ${
                         sortBy === opt.value
                           ? 'bg-[#536DFE] text-white shadow-sm'
                           : 'bg-gray-50 border border-gray-200 text-gray-500 hover:border-[#536DFE]/40 hover:text-[#536DFE]'
@@ -585,7 +585,7 @@ const BlogEnhanced = () => {
               {(selectedRestaurant || sortBy !== 'newest') && (
                 <button
                   onClick={() => { setSelectedRestaurant(''); setSortBy('newest'); }}
-                  className="flex items-center gap-1 text-gray-400 hover:text-[#536DFE] text-[11px] font-semibold transition-colors"
+                  className="flex items-center gap-1 text-gray-400 hover:text-[#536DFE] text-[9px] font-semibold transition-colors"
                 >
                   <X className="w-3 h-3" /> Clear filters
                 </button>
@@ -597,9 +597,9 @@ const BlogEnhanced = () => {
 
       {/* Results Count */}
       <div className="px-4 pb-2 z-10">
-        <p className="text-gray-400 text-[11px] font-medium">
-          {loadingPosts ? 'Loading...' : `${sortedPosts.length} stor${sortedPosts.length !== 1 ? 'ies' : 'y'}`}
-        </p>
+            <p className="text-gray-400 text-[9px] font-medium">
+              {loadingPosts ? 'Loading...' : `${sortedPosts.length} stor${sortedPosts.length !== 1 ? 'ies' : 'y'}`}
+            </p>
       </div>
 
       {/* Post List */}
@@ -611,18 +611,18 @@ const BlogEnhanced = () => {
           </div>
         ) : sortedPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#1D2956]/10 flex items-center justify-center mb-4 shadow-inner floating">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#1D2956]/10 flex items-center justify-center mb-4 shadow-inner">
               <Newspaper className="w-8 h-8 text-[#536DFE]/40" />
             </div>
-            <p className="text-[#1D2956] font-bold text-base mb-1">No stories yet</p>
-            <p className="text-gray-400 text-sm max-w-[200px]">
+            <p className="text-[#1D2956] font-bold text-xs mb-1">No stories yet</p>
+            <p className="text-gray-400 text-[10px] max-w-[200px]">
               {posts.length === 0 ? 'Restaurants will share promotions and updates here' : 'No posts match your filters'}
             </p>
             {(searchQuery || selectedRestaurant) && (
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => { setSearchQuery(''); setSelectedRestaurant(''); }}
-                className="mt-4 px-4 py-2 bg-[#536DFE] text-white rounded-2xl text-xs font-bold shadow-md shadow-[#536DFE]/30 transition-all"
+                className="mt-3 px-3 py-1.5 bg-[#536DFE] text-white rounded-2xl text-[9px] font-bold shadow-md shadow-[#536DFE]/30 transition-all"
               >
                 Clear filters
               </motion.button>
