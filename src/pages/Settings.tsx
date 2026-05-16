@@ -23,15 +23,17 @@ import {
   X,
   Database,
   RefreshCw,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
-import BrandLoader from '@/components/BrandLoader';
-import PageTransition from '@/components/PageTransition';
+
 import LogoImg from '@/imgs/logo.png';
+import { useSoundContext } from '@/contexts/SoundContext';
 
 const Settings = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const { play, enabled: soundEnabled, setEnabled: setSoundEnabled } = useSoundContext();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
@@ -40,17 +42,15 @@ const Settings = () => {
   const [darkMode, setDarkMode] = useState(false);
 
   const handleSignOut = async () => {
-    setIsTransitioning(true);
+    play('success');
     setShowLogoutConfirm(false);
     try {
       await signOut();
       toast.success('Signed out successfully');
-      setTimeout(() => {
-        navigate('/auth');
-      }, 600);
+      navigate('/auth');
     } catch (error) {
+      play('error');
       toast.error('Failed to sign out');
-      setIsTransitioning(false);
     }
   };
 
@@ -131,6 +131,15 @@ const Settings = () => {
           desc: 'English (US)',
           action: () => toast.info('Language settings coming soon'),
           color: 'from-[#1D2956] to-[#2D3966]',
+        },
+        {
+          icon: soundEnabled ? Volume2 : VolumeX,
+          label: 'Sound Effects',
+          desc: soundEnabled ? 'Tap sounds enabled' : 'Tap sounds disabled',
+          action: () => { play('tap'); setSoundEnabled(!soundEnabled); },
+          toggle: true,
+          toggleValue: soundEnabled,
+          color: 'from-[#536DFE] to-[#6B7FFF]',
         },
       ],
     },
@@ -213,9 +222,8 @@ const Settings = () => {
 
   return (
     <>
-      <BrandLoader isLoading={isTransitioning || isClearingCache} />
-      <PageTransition>
-        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
+      
+        <div className="relative flex h-screen w-full max-w-sm mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
 
           {/* Header */}
           <motion.div
@@ -227,11 +235,11 @@ const Settings = () => {
               delay: 0.1
             }}
             style={{ willChange: 'transform, opacity' }}
-            className="relative px-5 pt-8 pb-4 z-10"
+            className="relative px-4 pt-6 pb-3 z-10"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-transparent backdrop-blur-xl" />
 
-            <div className="relative flex items-center gap-4">
+            <div className="relative flex items-center gap-3">
               <motion.button
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -239,9 +247,9 @@ const Settings = () => {
                 whileHover={{ scale: 1.05, x: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/profile')}
-                className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 hover:border-[#536DFE]/40 hover:shadow-xl transition-all shadow-lg shadow-black/5 flex items-center justify-center"
+                className="w-10 h-10 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 hover:border-[#536DFE]/40 hover:shadow-xl transition-all shadow-lg shadow-black/5 flex items-center justify-center"
               >
-                <ArrowLeft className="w-5 h-5 text-[#1D2956]" />
+                <ArrowLeft className="w-4 h-4 text-[#1D2956]" />
               </motion.button>
 
               <motion.div
@@ -249,10 +257,10 @@ const Settings = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <h1 className="text-[#1D2956] text-2xl font-bold tracking-tight leading-none mb-1">
+                <h1 className="text-[#1D2956] text-xl font-bold tracking-tight leading-none mb-1">
                   Settings
                 </h1>
-                <p className="text-gray-400 text-[11px] uppercase tracking-[0.3em] font-medium">
+                <p className="text-gray-400 text-[10px] uppercase tracking-[0.3em] font-medium">
                   Manage your preferences
                 </p>
               </motion.div>
@@ -260,7 +268,7 @@ const Settings = () => {
           </motion.div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide px-5 space-y-5">
+          <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide px-4 space-y-4">
             {/* Profile Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -270,9 +278,9 @@ const Settings = () => {
                 ease: [0.22, 1, 0.36, 1],
                 delay: 0.3
               }}
-              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl shadow-black/5 border border-white/60 p-5"
+              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl shadow-black/5 border border-white/60 p-4"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-lg shadow-[#536DFE]/30">
                   <span className="text-white text-xl font-bold">
                     {user?.email?.charAt(0).toUpperCase() || 'U'}
@@ -327,26 +335,26 @@ const Settings = () => {
                       whileHover={{ x: 4, backgroundColor: item.danger ? 'rgba(255, 107, 107, 0.05)' : 'rgba(83, 109, 254, 0.05)' }}
                       whileTap={{ scale: 0.98 }}
                       onClick={item.action}
-                      className={`w-full flex items-center gap-4 px-5 py-4 border-b border-gray-50 last:border-0 transition-all text-left ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0 transition-all text-left ${
                         item.danger ? 'hover:bg-red-50/50' : ''
                       }`}
                     >
-                      <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${
+                      <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${
                         item.danger
                           ? 'from-red-50 to-red-100'
                           : 'from-[#536DFE]/15 to-[#6B7FFF]/15'
                       } flex items-center justify-center flex-shrink-0 shadow-md`}>
-                        <item.icon className={`w-5 h-5 ${item.danger ? 'text-red-500' : 'text-[#536DFE]'}`} />
+                        <item.icon className={`w-4 h-4 ${item.danger ? 'text-red-500' : 'text-[#536DFE]'}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold ${item.danger ? 'text-red-500' : 'text-[#1D2956]'}`}>
+                        <p className={`text-xs font-bold ${item.danger ? 'text-red-500' : 'text-[#1D2956]'}`}>
                           {item.label}
                         </p>
-                        <p className="text-gray-400 text-[11px] mt-0.5">{item.desc}</p>
+                        <p className="text-gray-400 text-[10px] mt-0.5">{item.desc}</p>
                       </div>
                       {item.toggle ? (
                         <div
-                          className={`w-12 h-7 rounded-full transition-all duration-300 flex items-center px-0.5 ${
+                          className={`w-11 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${
                             item.toggleValue
                               ? 'bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] justify-end'
                               : 'bg-gray-200 justify-start'
@@ -354,12 +362,12 @@ const Settings = () => {
                         >
                           <motion.div
                             layout
-                            className="w-6 h-6 rounded-full bg-white shadow-lg"
+                            className="w-5 h-5 rounded-full bg-white shadow-lg"
                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                           />
                         </div>
                       ) : (
-                        <ChevronRight className={`w-5 h-5 flex-shrink-0 ${item.danger ? 'text-red-300' : 'text-gray-300'}`} />
+                        <ChevronRight className={`w-4 h-4 flex-shrink-0 ${item.danger ? 'text-red-300' : 'text-gray-300'}`} />
                       )}
                     </motion.button>
                   ))}
@@ -376,12 +384,12 @@ const Settings = () => {
                 ease: [0.22, 1, 0.36, 1],
                 delay: 1.0
               }}
-              className="text-center py-6"
+              className="text-center py-4"
             >
-              <img src={LogoImg} alt="Royal Plate" className="w-12 h-12 mx-auto mb-3 object-contain opacity-60" />
-              <p className="text-[#1D2956] text-sm font-bold">Royal Plate</p>
-              <p className="text-gray-400 text-xs mt-1">Version 1.0.0</p>
-              <p className="text-gray-300 text-[10px] mt-2">
+              <img src={LogoImg} alt="Royal Plate" className="w-10 h-10 mx-auto mb-2 object-contain opacity-60" />
+              <p className="text-[#1D2956] text-xs font-bold">Royal Plate</p>
+              <p className="text-gray-400 text-[10px] mt-1">Version 1.0.0</p>
+              <p className="text-gray-300 text-[9px] mt-1">
                 Powered by Mingalar Mon
               </p>
             </motion.div>
@@ -403,23 +411,23 @@ const Settings = () => {
                   exit={{ scale: 0.9, opacity: 0, y: 20 }}
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl"
+                  className="bg-white rounded-3xl p-4 w-full max-w-sm shadow-2xl"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center mx-auto mb-4">
-                    <LogOut className="w-8 h-8 text-red-500" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center mx-auto mb-3">
+                    <LogOut className="w-6 h-6 text-red-500" />
                   </div>
-                  <h3 className="text-[#1D2956] text-xl font-bold text-center mb-2">
+                  <h3 className="text-[#1D2956] text-lg font-bold text-center mb-2">
                     Sign Out?
                   </h3>
-                  <p className="text-gray-400 text-sm text-center mb-6">
+                  <p className="text-gray-400 text-xs text-center mb-4">
                     Are you sure you want to sign out of your account?
                   </p>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowLogoutConfirm(false)}
-                      className="flex-1 py-3.5 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all"
+                      className="flex-1 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-gray-200 transition-all"
                     >
                       Cancel
                     </motion.button>
@@ -427,7 +435,7 @@ const Settings = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={handleSignOut}
-                      className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-sm shadow-lg shadow-red-500/30 hover:shadow-xl transition-all"
+                      className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/30 hover:shadow-xl transition-all"
                     >
                       Sign Out
                     </motion.button>
@@ -453,23 +461,23 @@ const Settings = () => {
                   exit={{ scale: 0.9, opacity: 0, y: 20 }}
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl"
+                  className="bg-white rounded-3xl p-4 w-full max-w-sm shadow-2xl"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center mx-auto mb-4">
-                    <Database className="w-8 h-8 text-orange-500" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center mx-auto mb-3">
+                    <Database className="w-6 h-6 text-orange-500" />
                   </div>
-                  <h3 className="text-[#1D2956] text-xl font-bold text-center mb-2">
+                  <h3 className="text-[#1D2956] text-lg font-bold text-center mb-2">
                     Clear Cache?
                   </h3>
-                  <p className="text-gray-400 text-sm text-center mb-6">
+                  <p className="text-gray-400 text-xs text-center mb-4">
                     This will clear temporary data. Your account and orders will not be affected.
                   </p>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowClearCacheConfirm(false)}
-                      className="flex-1 py-3.5 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all"
+                      className="flex-1 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-gray-200 transition-all"
                     >
                       Cancel
                     </motion.button>
@@ -477,7 +485,7 @@ const Settings = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={handleClearCache}
-                      className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/30 hover:shadow-xl transition-all"
+                      className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-orange-500/30 hover:shadow-xl transition-all"
                     >
                       Clear Cache
                     </motion.button>
@@ -503,23 +511,23 @@ const Settings = () => {
                   exit={{ scale: 0.9, opacity: 0, y: 20 }}
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl"
+                  className="bg-white rounded-3xl p-4 w-full max-w-sm shadow-2xl"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center mx-auto mb-4">
-                    <AlertTriangle className="w-8 h-8 text-red-500" />
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center mx-auto mb-3">
+                    <AlertTriangle className="w-6 h-6 text-red-500" />
                   </div>
-                  <h3 className="text-[#1D2956] text-xl font-bold text-center mb-2">
+                  <h3 className="text-[#1D2956] text-lg font-bold text-center mb-2">
                     Delete Account?
                   </h3>
-                  <p className="text-gray-400 text-sm text-center mb-6">
+                  <p className="text-gray-400 text-xs text-center mb-4">
                     This action is permanent. All your data, orders, and rewards will be permanently deleted.
                   </p>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1 py-3.5 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all"
+                      className="flex-1 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-gray-200 transition-all"
                     >
                       Cancel
                     </motion.button>
@@ -527,7 +535,7 @@ const Settings = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={handleDeleteAccount}
-                      className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-sm shadow-lg shadow-red-500/30 hover:shadow-xl transition-all"
+                      className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/30 hover:shadow-xl transition-all"
                     >
                       Delete
                     </motion.button>
@@ -537,7 +545,6 @@ const Settings = () => {
             )}
           </AnimatePresence>
         </div>
-      </PageTransition>
     </>
   );
 };

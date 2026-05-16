@@ -1,15 +1,14 @@
-import { useEffect, useState, useRef } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSoundContext } from '@/contexts/SoundContext';
 import { Calendar, Clock, Users, X, Sparkles, ShoppingBag, MapPin, UtensilsCrossed, ChefHat, CheckCircle, XCircle, Timer, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { BottomNav } from '@/components/BottomNav';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import gsap from 'gsap';
 import { formatCurrency } from '@/utils/currency';
 import { motion, AnimatePresence } from 'framer-motion';
-import BrandLoader from '@/components/BrandLoader';
-import PageTransition from '@/components/PageTransition';
+
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: any; gradient: string }> = {
   pending:    { label: 'Pending',    color: 'text-amber-600',  bg: 'bg-amber-50 border-amber-200', icon: Timer, gradient: 'from-amber-400 to-amber-500' },
@@ -21,18 +20,38 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 };
 
 const Orders = () => {
+  const { user } = useAuth();
+  const { play } = useSoundContext();
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [fullscreenQR, setFullscreenQR] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
   const headerRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { fetchOrders(); }, []);
+  const fetchOrders = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, restaurants(name, image_url, address)')
+        .eq('customer_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (e: any) {
+      toast.error('Failed to load orders');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   // Entrance animations
   useEffect(() => {
@@ -64,24 +83,6 @@ const Orders = () => {
     }
   }, [orders, filter, loading]);
 
-  const fetchOrders = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error('Please sign in to view your orders'); setLoading(false); return; }
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*, restaurants(name, image_url, address)')
-        .eq('customer_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setOrders(data || []);
-    } catch (e: any) {
-      toast.error('Failed to load orders');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const formatTime = (d: string) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
@@ -95,18 +96,12 @@ const Orders = () => {
   const pastCount = orders.filter(o => o.status === 'completed' || o.status === 'cancelled').length;
 
   if (loading) {
-    return (
-      <>
-        <BrandLoader isLoading={true} />
-      </>
-    );
+    return null;
   }
 
   return (
     <>
-      <BrandLoader isLoading={isTransitioning} />
-      <PageTransition>
-        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
+        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
 
       {/* ── Premium Header ── */}
       <div ref={headerRef} className="relative px-5 pt-8 pb-4 z-10">
@@ -131,7 +126,7 @@ const Orders = () => {
           {(['upcoming', 'past'] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setFilter(tab)}
+              onClick={() => { play('tap'); setFilter(tab); }}
               className={`flex-1 py-3.5 text-sm font-bold rounded-xl transition-all ${
                 filter === tab
                   ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-xl shadow-[#536DFE]/40 scale-105'
@@ -182,7 +177,7 @@ const Orders = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08, duration: 0.4 }}
-                  onClick={() => setSelectedOrder(order)}
+                  onClick={() => { play('tap'); setSelectedOrder(order); }}
                   className="relative rounded-3xl overflow-hidden cursor-pointer group shadow-xl shadow-black/5 hover:shadow-2xl hover:shadow-[#536DFE]/20 transition-all duration-500 active:scale-[0.98] border border-white/60"
                 >
                   {/* ── Background Image with Brand Filter ── */}
@@ -279,145 +274,127 @@ const Orders = () => {
         )}
       </div>
 
-      {/* ── Order Details Dialog ── */}
-      <Dialog open={!!selectedOrder && !fullscreenQR} onOpenChange={(open) => { if (!open) { setSelectedOrder(null); setFullscreenQR(false); } }}>
-        <DialogContent className="max-w-[400px] max-h-[88vh] bg-white border-0 text-[#1D2956] p-0 overflow-hidden flex flex-col [&>button]:hidden rounded-3xl shadow-2xl">
-          {selectedOrder && (
-            <>
-              {/* Dialog hero image */}
-              <div className="relative h-40 flex-shrink-0 overflow-hidden">
-                {selectedOrder.restaurants?.image_url ? (
-                  <img src={selectedOrder.restaurants.image_url} alt={selectedOrder.restaurants?.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#1D2956] to-[#536DFE]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1D2956]/80 to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Sparkles className="w-3.5 h-3.5 text-white/70" />
-                      <span className="text-white/70 text-[10px] uppercase tracking-widest font-semibold">Order Details</span>
-                    </div>
-                    <h2 className="text-white text-lg font-bold">{selectedOrder.restaurants?.name}</h2>
-                  </div>
-                  <button onClick={() => setSelectedOrder(null)} className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 hover:bg-white/30 transition-all">
-                    <X className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              </div>
+    </div>
 
-              {/* Scrollable body */}
-              <div className="flex-1 overflow-y-auto">
-                {/* QR Code */}
-                <div className="p-5 border-b border-gray-100">
-                  <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-                    <button type="button" className="w-full" onClick={() => setFullscreenQR(true)}>
-                      <QRCodeSVG value={selectedOrder.qr_code} size={220} level="H" includeMargin className="w-full h-auto" />
+      <AnimatePresence>
+        {selectedOrder && !fullscreenQR && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => { setSelectedOrder(null); setFullscreenQR(false); }}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
+              style={{ maxHeight: '90vh' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+                <div className="w-10 h-1 rounded-full bg-gray-300" />
+              </div>
+              <div className="px-6 pb-3 flex items-center justify-between flex-shrink-0">
+                <div>
+                  <h2 className="text-[#1D2956] text-lg font-bold">{selectedOrder.restaurants?.name}</h2>
+                  <p className="text-gray-400 text-xs mt-0.5">Order #{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
+                </div>
+                <button onClick={() => { setSelectedOrder(null); setFullscreenQR(false); }} className="w-9 h-9 rounded-2xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-all active:scale-90">
+                  <X className="w-4.5 h-4.5 text-gray-500" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
+                <div className="mb-5">
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-200 rounded-3xl p-5">
+                    <button type="button" className="w-full" onClick={() => { play('tap'); setFullscreenQR(true); }}>
+                      <QRCodeSVG value={selectedOrder.qr_code} size={240} level="H" includeMargin className="w-full h-auto" />
                     </button>
                   </div>
-                  <p className="text-gray-400 text-[11px] text-center mt-2">Tap to enlarge · Show to restaurant staff</p>
+                  <p className="text-gray-400 text-[11px] text-center mt-2 font-medium">Tap QR to enlarge · Show to staff</p>
                 </div>
-
-                {/* Details */}
-                <div className="p-5 space-y-4">
-                  {/* Order type badge */}
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-2 bg-[#1D2956] text-white text-xs font-bold px-4 py-2 rounded-full">
-                      {selectedOrder.order_type === 'dine_in' ? <UtensilsCrossed className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-                      {selectedOrder.order_type === 'dine_in' ? 'Dine In' : 'Take Out'}
-                    </span>
-                    <span className={`text-xs font-bold px-3 py-1.5 rounded-full border ${(statusConfig[selectedOrder.status] || statusConfig.pending).bg} ${(statusConfig[selectedOrder.status] || statusConfig.pending).color}`}>
-                      {(statusConfig[selectedOrder.status] || statusConfig.pending).label}
-                    </span>
-                  </div>
-
-                  {/* Info rows */}
-                  <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden divide-y divide-gray-100">
-                    <div className="flex items-center justify-between px-4 py-3 text-sm">
-                      <span className="text-gray-400 font-medium">Order ID</span>
-                      <span className="text-[#1D2956] font-mono font-bold">#{selectedOrder.id.slice(0, 8).toUpperCase()}</span>
-                    </div>
-                    {selectedOrder.order_type === 'dine_in' && selectedOrder.reservation_date && (
-                      <>
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <span className="text-gray-400 flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-[#536DFE]" /> Date</span>
-                          <span className="text-[#1D2956] font-semibold">{formatDate(selectedOrder.reservation_date)}</span>
-                        </div>
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <span className="text-gray-400 flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#536DFE]" /> Time</span>
-                          <span className="text-[#1D2956] font-semibold">{selectedOrder.reservation_time}</span>
-                        </div>
-                        <div className="flex items-center justify-between px-4 py-3 text-sm">
-                          <span className="text-gray-400 flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#536DFE]" /> Party</span>
-                          <span className="text-[#1D2956] font-semibold">{selectedOrder.party_size} {selectedOrder.party_size === 1 ? 'Guest' : 'Guests'}</span>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex items-center justify-between px-4 py-3 text-sm">
-                      <span className="text-gray-400 font-medium">Payment</span>
-                      <span className="text-[#1D2956] font-semibold uppercase">{selectedOrder.payment_method}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-4 py-4 bg-[#536DFE]/5">
-                      <span className="text-[#1D2956] font-bold">Total</span>
-                      <span className="text-[#536DFE] text-xl font-bold">{formatCurrency(selectedOrder.total_amount)}</span>
-                    </div>
-                  </div>
-
-                  {/* Order Items */}
-                  {selectedOrder.order_items?.length > 0 && (
-                    <div>
-                      <h4 className="text-[#1D2956] text-xs font-bold uppercase tracking-wider mb-2">Items Ordered</h4>
-                      <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden divide-y divide-gray-100">
-                        {selectedOrder.order_items.map((item: any, i: number) => (
-                          <div key={i} className="flex items-center justify-between px-4 py-3 text-sm">
-                            <div>
-                              <p className="text-[#1D2956] font-semibold">{item.name}</p>
-                              <p className="text-gray-400 text-xs">Qty: {item.quantity}</p>
-                            </div>
-                            <p className="text-[#536DFE] font-bold">{formatCurrency(item.price * item.quantity)}</p>
-                          </div>
-                        ))}
-                      </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-sm ${(statusConfig[selectedOrder.status] || statusConfig.pending).bg}`}>
+                    {(statusConfig[selectedOrder.status] || statusConfig.pending).label}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D2956]/5 text-[#1D2956] text-xs font-bold">
+                    {selectedOrder.order_type === 'dine_in' ? <UtensilsCrossed className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                    {selectedOrder.order_type === 'dine_in' ? 'Dine In' : 'Take Out'}
+                  </span>
+                </div>
+                <div className="space-y-2 mb-4">
+                  {selectedOrder.order_type === 'dine_in' && selectedOrder.reservation_date && (
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-gray-50 rounded-2xl p-3 text-center"><Calendar className="w-4 h-4 text-[#536DFE] mx-auto mb-1" /><p className="text-[10px] text-gray-400 font-medium">Date</p><p className="text-[#1D2956] text-xs font-bold">{formatDate(selectedOrder.reservation_date)}</p></div>
+                      <div className="bg-gray-50 rounded-2xl p-3 text-center"><Clock className="w-4 h-4 text-[#536DFE] mx-auto mb-1" /><p className="text-[10px] text-gray-400 font-medium">Time</p><p className="text-[#1D2956] text-xs font-bold">{selectedOrder.reservation_time}</p></div>
+                      <div className="bg-gray-50 rounded-2xl p-3 text-center"><Users className="w-4 h-4 text-[#536DFE] mx-auto mb-1" /><p className="text-[10px] text-gray-400 font-medium">Party</p><p className="text-[#1D2956] text-xs font-bold">{selectedOrder.party_size}</p></div>
                     </div>
                   )}
-
-                  {/* Address */}
-                  {selectedOrder.restaurants?.address && (
-                    <div className="flex items-start gap-3 bg-[#536DFE]/5 border border-[#536DFE]/15 rounded-2xl p-4 text-sm">
-                      <MapPin className="w-4 h-4 text-[#536DFE] mt-0.5 shrink-0" />
-                      <p className="text-gray-500 leading-relaxed">{selectedOrder.restaurants.address}</p>
-                    </div>
-                  )}
+                  <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100">
+                    <div className="flex items-center justify-between px-4 py-3"><span className="text-gray-400 text-xs">Payment</span><span className="text-[#1D2956] text-xs font-bold uppercase">{selectedOrder.payment_method}</span></div>
+                    <div className="flex items-center justify-between px-4 py-4"><span className="text-[#1D2956] text-sm font-bold">Total</span><span className="text-[#536DFE] text-xl font-bold">{formatCurrency(selectedOrder.total_amount)}</span></div>
+                  </div>
                 </div>
+                {selectedOrder.order_items?.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-[#1D2956] text-xs font-bold uppercase tracking-wider mb-2">Items</h4>
+                    <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100">
+                      {selectedOrder.order_items.map((item: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between px-4 py-3">
+                          <div className="flex-1 min-w-0"><p className="text-[#1D2956] text-xs font-semibold truncate">{item.name}</p><p className="text-gray-400 text-[10px]">×{item.quantity}</p></div>
+                          <p className="text-[#536DFE] text-xs font-bold flex-shrink-0">{formatCurrency(item.price * item.quantity)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedOrder.restaurants?.address && (
+                  <div className="flex items-start gap-3 bg-gray-50 rounded-2xl p-4">
+                    <MapPin className="w-4 h-4 text-[#536DFE] mt-0.5 shrink-0" />
+                    <p className="text-gray-500 text-xs leading-relaxed">{selectedOrder.restaurants.address}</p>
+                  </div>
+                )}
               </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* ── Fullscreen QR ── */}
-      <Dialog open={!!selectedOrder && fullscreenQR} onOpenChange={(open) => { if (!open) setFullscreenQR(false); }}>
-        <DialogContent className="max-w-sm w-full bg-white border-0 p-6 flex flex-col items-center justify-center rounded-3xl shadow-2xl">
-          {selectedOrder && (
-            <div className="w-full flex flex-col items-center gap-4">
-              <p className="text-gray-400 text-xs text-center">Show this QR code to the restaurant staff</p>
-              <div className="bg-gray-50 rounded-2xl p-4 w-full flex justify-center border border-gray-200">
-                <QRCodeSVG value={selectedOrder.qr_code} size={280} level="H" includeMargin={false} />
+      <AnimatePresence>
+        {selectedOrder && fullscreenQR && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center"
+            onClick={() => setFullscreenQR(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-[320px] flex flex-col items-center p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Scan to verify</p>
+                <p className="text-[#1D2956] text-lg font-bold mt-1">{selectedOrder.restaurants?.name}</p>
+                <p className="text-gray-400 text-[11px] font-mono mt-1">#{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
               </div>
-              <button
-                onClick={() => setFullscreenQR(false)}
-                className="w-full bg-[#536DFE] hover:bg-[#536DFE]/90 text-white font-bold py-4 rounded-2xl uppercase tracking-widest text-sm transition-all shadow-md shadow-[#536DFE]/30"
-              >
-                Close
-              </button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <BottomNav />
-    </div>
-      </PageTransition>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 border-2 border-gray-200 shadow-lg w-full max-w-[260px]">
+                <QRCodeSVG value={selectedOrder.qr_code} size={260} level="H" includeMargin={false} className="w-full h-auto" />
+              </div>
+              <p className="text-gray-400 text-xs text-center mt-5 leading-relaxed max-w-[220px]">Present this code at the restaurant for order verification</p>
+              <button onClick={() => setFullscreenQR(false)} className="w-full mt-6 bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] hover:shadow-2xl hover:shadow-[#536DFE]/50 text-white font-bold py-4 rounded-2xl uppercase tracking-widest text-sm transition-all shadow-xl shadow-[#536DFE]/40 active:scale-[0.98]">Close</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

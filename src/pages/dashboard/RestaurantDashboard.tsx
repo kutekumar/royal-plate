@@ -1,42 +1,41 @@
- import { useState, useEffect } from 'react';
- import { useAuth } from '@/contexts/AuthContext';
- import { useNavigate, useLocation } from 'react-router-dom';
- import { Button } from '@/components/ui/button';
- import {
-   LogOut,
-   UtensilsCrossed,
-   Receipt,
-   ScanLine,
-   LayoutList,
-   Settings,
-   Bell,
-   BellDot,
-   CheckCircle2,
-   BookOpenText
- } from 'lucide-react';
- import OrdersManagement from '@/components/dashboard/OrdersManagement';
- import QRScanner from '@/components/dashboard/QRScanner';
- import MenuManagement from '@/components/dashboard/MenuManagement';
- import RestaurantSettings from '@/components/dashboard/RestaurantSettings';
- import RestaurantBlogManagement from '@/components/dashboard/RestaurantBlogManagement';
- import { useOrderNotifications, OrderNotification } from '@/hooks/useOrderNotifications';
- import { useRestaurantBlogNotifications, RestaurantBlogNotification } from '@/hooks/useRestaurantBlogNotifications';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from '@/components/ui/dialog';
+  LogOut,
+  UtensilsCrossed,
+  Receipt,
+  ScanLine,
+  LayoutList,
+  Settings,
+  Bell,
+  BellDot,
+  BookOpenText,
+  TrendingUp,
+  DollarSign,
+  Clock,
+  ChefHat,
+  ShoppingBag,
+  Users,
+  X,
+  ChevronRight,
+  Menu,
+  Crown,
+  Circle,
+  CheckCircle2,
+  MessageCircle
+} from 'lucide-react';
+import OrdersManagement from '@/components/dashboard/OrdersManagement';
+import QRScanner from '@/components/dashboard/QRScanner';
+import MenuManagement from '@/components/dashboard/MenuManagement';
+import RestaurantSettings from '@/components/dashboard/RestaurantSettings';
+import RestaurantBlogManagement from '@/components/dashboard/RestaurantBlogManagement';
+import { useOrderNotifications, OrderNotification } from '@/hooks/useOrderNotifications';
+import { toast } from 'sonner';
+import { useRestaurantBlogNotifications, RestaurantBlogNotification } from '@/hooks/useRestaurantBlogNotifications';
+import { motion, AnimatePresence, useMotionValue, useTransform, useInView, animate } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OrderDetail extends OrderNotification {
   customer_display_name?: string | null;
@@ -45,20 +44,115 @@ interface OrderDetail extends OrderNotification {
   order_items?: any[];
 }
 
-const RestaurantDashboard = () => {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'orders' | 'scanner' | 'menu' | 'blog' | 'settings'>('orders');
+const tabs = [
+  { id: 'orders' as const, label: 'Orders', icon: Receipt, desc: 'Manage incoming orders' },
+  { id: 'scanner' as const, label: 'QR Scanner', icon: ScanLine, desc: 'Verify customer QR codes' },
+  { id: 'menu' as const, label: 'Menu', icon: LayoutList, desc: 'Manage your menu items' },
+  { id: 'blog' as const, label: 'Blog', icon: BookOpenText, desc: 'Create & publish posts' },
+  { id: 'settings' as const, label: 'Settings', icon: Settings, desc: 'Restaurant profile' },
+];
+
+const AnimatedCounter = ({ value }: { value: number }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '0px 0px -50px 0px' });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
-    // Read tab from URL parameters
+    if (isInView) {
+      const controls = animate(count, value, { duration: 1.5, ease: [0.22, 1, 0.36, 1] });
+      const unsubscribe = rounded.on('change', (latest) => setDisplayValue(latest));
+      return () => { controls.stop(); unsubscribe(); };
+    }
+  }, [isInView, value]);
+
+  return <span ref={ref}>{displayValue.toLocaleString()}</span>;
+};
+
+const RestaurantDashboard = () => {
+  const { signOut, user, userRole, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!loading && (!user || userRole !== 'restaurant_owner')) {
+      toast.error('Restaurant owner access required');
+      if (!user) navigate('/auth', { replace: true });
+      else if (userRole === 'admin') navigate('/admin', { replace: true });
+      else navigate('/home', { replace: true });
+    }
+  }, [user, userRole, loading, navigate]);
+
+  if (loading || !user || userRole !== 'restaurant_owner') {
+    return (
+      <div className="min-h-screen bg-[#F8F7F4] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-2 border-royal-blue/20 border-t-royal-blue rounded-full animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-3 h-3 bg-royal-blue rounded-full animate-pulse-soft" />
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 font-medium tracking-wide">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const [activeTab, setActiveTab] = useState<'orders' | 'scanner' | 'menu' | 'blog' | 'settings'>('orders');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState({
+    todayOrders: 0,
+    todayRevenue: 0,
+    activeOrders: 0,
+    totalMenuItems: 0,
+  });
+
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const tab = params.get('tab') as 'orders' | 'scanner' | 'menu' | 'blog' | 'settings' | null;
-    if (tab && ['orders', 'scanner', 'menu', 'blog', 'settings'].includes(tab)) {
+    const tab = params.get('tab') as typeof activeTab | null;
+    if (tab && tabs.some(t => t.id === tab)) {
       setActiveTab(tab);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data: restaurant } = await supabase
+          .from('restaurants')
+          .select('id')
+          .eq('owner_id', user?.id)
+          .single();
+
+        if (!restaurant) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const [{ count: todayOrders }, { data: todayRevenueData }, { count: activeOrders }, { count: menuItems }] = await Promise.all([
+          supabase.from('orders').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurant.id).gte('created_at', today.toISOString()),
+          supabase.from('orders').select('total_amount').eq('restaurant_id', restaurant.id).gte('created_at', today.toISOString()),
+          supabase.from('orders').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurant.id).in('status', ['paid', 'preparing', 'ready']),
+          supabase.from('menu_items').select('*', { count: 'exact', head: true }).eq('restaurant_id', restaurant.id),
+        ]);
+
+        const revenue = (todayRevenueData || []).reduce((sum, o: any) => sum + Number(o.total_amount || 0), 0);
+
+        setStats({
+          todayOrders: todayOrders || 0,
+          todayRevenue: revenue,
+          activeOrders: activeOrders || 0,
+          totalMenuItems: menuItems || 0,
+        });
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+      }
+    };
+
+    fetchStats();
+  }, [user]);
 
   const {
     restaurantId,
@@ -69,45 +163,25 @@ const RestaurantDashboard = () => {
     markAsRead: markOrderAsRead,
   } = useOrderNotifications({ limit: 50, enableSound: true });
 
-  const {
-    notifications: blogNotifications,
-    unreadCount: blogUnreadCount,
-    loading: blogNotificationsLoading,
-    markAllAsRead: markAllBlogAsRead,
-    markAsRead: markBlogAsRead,
-  } = useRestaurantBlogNotifications({ limit: 50, enableSound: true });
+  const { notifications: blogNotifications, unreadCount: blogUnreadCount, loading: blogNotificationsLoading, markAllAsRead: markAllBlogAsRead, markAsRead: markBlogAsRead } = useRestaurantBlogNotifications({ limit: 50, enableSound: true });
 
-  // Combine notifications and counts
   const notifications = [...orderNotifications, ...blogNotifications];
-  
-  // Sort notifications with newest first (unread notifications should appear at the top)
   const sortedNotifications = [...notifications].sort((a, b) => {
-    // First sort by unread status (unread first)
-    if (a.status !== b.status) {
-      return a.status === 'unread' ? -1 : 1;
-    }
-    // Then sort by creation date (newest first)
+    if (a.status !== b.status) return a.status === 'unread' ? -1 : 1;
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
-  
+
   const unreadCount = orderUnreadCount + blogUnreadCount;
   const notificationsLoading = orderNotificationsLoading || blogNotificationsLoading;
-  
+
   const markAllAsRead = async () => {
-    await Promise.all([
-      markAllOrdersAsRead(),
-      markAllBlogAsRead()
-    ]);
+    await Promise.all([markAllOrdersAsRead(), markAllBlogAsRead()]);
   };
 
   const markAsRead = async (id: string) => {
-    // Try order notifications first, then blog notifications
     const orderNotification = orderNotifications.find(n => n.id === id);
-    if (orderNotification) {
-      await markOrderAsRead(id);
-    } else {
-      await markBlogAsRead(id);
-    }
+    if (orderNotification) await markOrderAsRead(id);
+    else await markBlogAsRead(id);
   };
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -125,530 +199,530 @@ const RestaurantDashboard = () => {
     setOrderDetail(null);
     setOrderDetailOpen(true);
 
-    // Mark this notification as read optimistically
-    if (notification.id) {
-      markAsRead(notification.id);
-    }
+    if (notification.id) markAsRead(notification.id);
 
-    // Lazy-load specific order details for modal
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
-
-      // 1) Fetch the order
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .select(
-          `
-          id,
-          order_items,
-          total_amount,
-          status,
-          created_at,
-          order_type,
-          customer_id
-        `
-        )
+        .select('id, order_items, total_amount, status, created_at, order_type, customer_id')
         .eq('id', notification.order_id)
         .single();
 
-      if (orderError || !orderData) {
-        console.error('Failed to load order detail for notification:', orderError);
-        return;
-      }
+      if (orderError || !orderData) return;
 
-      // 2) Fetch customer profile exactly like OrdersManagement does (get_order_customers)
       let customerName: string | null = null;
       let customerPhone: string | null = null;
 
       if (orderData.customer_id) {
-        const { data: customers, error: customersError } = await supabase.rpc(
-          'get_order_customers',
-          { customer_ids: [orderData.customer_id] }
-        );
-
-        if (customersError) {
-          console.error('Failed to load customer details for modal:', customersError);
-        } else if (customers && customers.length > 0) {
-          const customer = customers[0];
-          customerName =
-            (customer.full_name && String(customer.full_name).trim()) || null;
-          customerPhone =
-            (customer.phone && String(customer.phone).trim()) || null;
+        const { data: customers } = await supabase.rpc('get_order_customers', { customer_ids: [orderData.customer_id] });
+        if (customers?.length > 0) {
+          customerName = customers[0].full_name?.trim() || null;
+          customerPhone = customers[0].phone?.trim() || null;
         }
       }
 
-      // 3) Also respect enriched name from notification if present
-      if (
-        !customerName &&
-        notification.customer_name &&
-        typeof notification.customer_name === 'string' &&
-        notification.customer_name.trim()
-      ) {
+      if (!customerName && notification.customer_name?.trim()) {
         customerName = notification.customer_name.trim();
       }
 
-      setOrderDetail({
-        ...orderData,
-        customer_display_name: customerName,
-        customer_display_phone: customerPhone,
-      });
+      setOrderDetail({ ...orderData, customer_display_name: customerName, customer_display_phone: customerPhone });
     } catch (err) {
-      console.error('Error loading order detail module:', err);
+      console.error('Error loading order detail:', err);
     }
   };
 
-  const handleOpenNotificationBlog = async (notification: RestaurantBlogNotification) => {
-    if (!notification?.blog_post_id) return;
-    
-    // Mark this notification as read
-    if (notification.id) {
-      markAsRead(notification.id);
-    }
-
-    // Navigate to blog management tab and scroll to the specific post if possible
+  const handleOpenNotificationBlog = (notification: RestaurantBlogNotification) => {
+    if (notification.id) markAsRead(notification.id);
     navigate('/dashboard?tab=blog');
-    
-    // Optional: You could add logic here to highlight the specific blog post
-    // or scroll to it, but for now we just navigate to the blog tab
   };
+
+  const tabsList = [
+    { id: 'orders', label: 'Orders', icon: Receipt, count: stats.activeOrders },
+    { id: 'scanner', label: 'Scan', icon: ScanLine },
+    { id: 'menu', label: 'Menu', icon: LayoutList },
+    { id: 'blog', label: 'Blog', icon: BookOpenText },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  const statCards = [
+    { label: "Today's Revenue", gradient: 'from-emerald-400 to-emerald-600', icon: DollarSign, isCurrency: true },
+    { label: 'Today Orders', gradient: 'from-blue-400 to-blue-600', icon: ShoppingBag, isCurrency: false },
+    { label: 'Active Orders', gradient: 'from-amber-400 to-amber-600', icon: Clock, isCurrency: false },
+    { label: 'Menu Items', gradient: 'from-violet-400 to-violet-600', icon: ChefHat, isCurrency: false },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-background pb-20">
-      {/* Enhanced Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl luxury-gradient flex items-center justify-center shadow-gold">
-                <UtensilsCrossed className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Restaurant Dashboard</h1>
-                <p className="text-sm text-gray-500 font-medium">
-                  Manage your restaurant
-                  {restaurantId && (
-                    <span className="inline-flex items-center gap-1 ml-2">
-                      <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                      <span className="text-success">Live notifications active</span>
-                    </span>
-                  )}
-                </p>
+    <div className="min-h-screen bg-[#F8F7F4]">
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100/80 shadow-xs">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:text-royal-blue hover:bg-gray-100 transition-all"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <div className="hidden sm:flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-royal-blue to-royal-blue-dark flex items-center justify-center shadow-lg shadow-royal-blue/20">
+                  <Crown className="w-5 h-5 text-gold" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-royal-blue tracking-tight font-montserrat">Royal Plate</h1>
+                  <p className="text-[11px] text-gray-500 font-medium -mt-0.5">Owner Dashboard</p>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Enhanced Notification Bell */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="relative inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 active-scale"
-                  >
-                    <Bell className="w-5 h-5 text-gray-700" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1.5 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center shadow-lg">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-[380px] max-h-[480px] p-0 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden"
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full border border-emerald-200/50">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft" />
+                <span className="text-[11px] font-medium text-emerald-700 tracking-wide">Live</span>
+              </div>
+
+              {/* Notification Bell */}
+              <div className="relative group">
+                <button
+                  onClick={() => {}} 
+                  className="relative w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 hover:border-gray-200 flex items-center justify-center transition-all"
                 >
-                <DropdownMenuLabel className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-                  <div className="flex flex-col">
-                    <span className="text-base font-bold text-gray-900">Notifications</span>
-                    <span className="text-sm text-gray-500">
-                      {notificationsLoading
-                        ? 'Loading...'
-                        : notifications.length === 0
-                        ? 'No notifications yet'
-                        : `${unreadCount} unread of ${notifications.length} total`}
-                    </span>
-                  </div>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        markAllAsRead();
-                      }}
-                      className="text-sm font-medium text-royal-blue hover:text-royal-blue/80 transition-colors"
-                    >
-                      Mark all read
-                    </button>
+                  {unreadCount > 0 ? (
+                    <BellDot className="w-[18px] h-[18px] text-gray-600" />
+                  ) : (
+                    <Bell className="w-[18px] h-[18px] text-gray-600" />
                   )}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {/* Enhanced Scrollable notification list */}
-                <ScrollArea className="max-h-[380px]">
-                  <div className="max-h-[380px] overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="px-6 py-8 text-center">
-                        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Bell className="w-6 h-6 text-gray-400" />
-                        </div>
-                        <p className="text-sm text-gray-500">You'll see new orders and blog comments here</p>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-[9px] font-bold text-white flex items-center justify-center shadow-lg shadow-red-500/30">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Dropdown */}
+                <div className="absolute right-0 top-12 w-[400px] sm:w-[440px] opacity-0 invisible group-focus-within:opacity-100 group-focus-within:visible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-2 group-hover:translate-y-0 group-focus-within:translate-y-0 z-50">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-900/10 overflow-hidden">
+                    <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                        <p className="text-[11px] text-gray-500">
+                          {notificationsLoading ? 'Loading...' : notifications.length === 0 ? 'No notifications yet' : `${unreadCount} unread of ${notifications.length} total`}
+                        </p>
                       </div>
-                    ) : (
-                      sortedNotifications.map((n) => {
-                        // Handle both order and blog comment notifications
-                        const isBlogNotification = 'blog_post_id' in n;
-                        
-                        let title = '';
-                        if (isBlogNotification) {
-                          title = n.message || `${n.customer_name || 'Someone'} commented on your blog post`;
-                        } else {
-                          title = n.message && n.message.trim().length > 0
-                            ? n.message
-                            : n.customer_name && n.total_amount
-                            ? `${n.customer_name} placed an order worth $${Number(
-                                n.total_amount
-                              ).toFixed(2)}`
-                            : 'New order received';
-                        }
+                      {unreadCount > 0 && (
+                        <button onClick={markAllAsRead} className="text-[11px] font-semibold text-royal-blue hover:text-royal-blue/70 transition-colors">
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
 
-                        const handleNotificationClick = () => {
-                          if (isBlogNotification) {
-                            handleOpenNotificationBlog(n);
-                          } else {
-                            handleOpenNotificationOrder(n);
-                          }
-                        };
+                    <ScrollArea className="max-h-[400px]">
+                      {notifications.length === 0 ? (
+                        <div className="px-5 py-12 text-center">
+                          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+                            <Bell className="w-6 h-6 text-gray-300" />
+                          </div>
+                          <p className="text-sm text-gray-500 font-medium">All caught up!</p>
+                          <p className="text-[11px] text-gray-400 mt-1">New orders and blog comments will appear here</p>
+                        </div>
+                      ) : (
+                        <div className="py-2">
+                          {sortedNotifications.map((n, idx) => {
+                            const isBlogNotification = 'blog_post_id' in n;
+                            let title = '';
+                            if (isBlogNotification) {
+                              title = n.message || `${n.customer_name || 'Someone'} commented on your blog post`;
+                            } else {
+                              title = n.message?.trim() || (n.customer_name && n.total_amount ? `${n.customer_name} placed an order worth ${Number(n.total_amount).toLocaleString()} MMK` : 'New order received');
+                            }
 
-                        return (
-                          <DropdownMenuItem
-                            key={n.id}
-                            onClick={handleNotificationClick}
-                            className={`
-                              w-full px-6 py-4 flex items-start gap-3
-                              cursor-pointer transition-all duration-200 border-b border-gray-50 last:border-b-0
-                              ${
-                                n.status === 'unread'
-                                  ? 'bg-blue-50/50 hover:bg-blue-50/80'
-                                  : 'hover:bg-gray-50'
-                              }
-                            `}
-                          >
-                            {/* Read/unread indicator */}
-                            <div className="mt-1 w-2.5 h-2.5 flex-shrink-0">
-                              {n.status === 'unread' ? (
-                                <span className="block w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span>
-                              ) : (
-                                <span className="block w-2.5 h-2.5 rounded-full border border-gray-300 bg-transparent"></span>
-                              )}
-                            </div>
-
-                            {/* Text content */}
-                            <div className="flex-1 min-w-0 flex flex-col gap-1">
-                              <div
-                                className={`
-                                  text-sm text-left leading-relaxed
-                                  ${
-                                    n.status === 'unread'
-                                      ? 'font-semibold text-gray-900'
-                                      : 'font-normal text-gray-700'
-                                  }
-                                `}
+                            return (
+                              <button
+                                key={n.id}
+                                onClick={() => isBlogNotification ? handleOpenNotificationBlog(n) : handleOpenNotificationOrder(n)}
+                                className={`w-full px-5 py-3.5 flex items-start gap-3 text-left transition-all duration-150 border-b border-gray-50 last:border-b-0 ${n.status === 'unread' ? 'bg-blue-50/40 hover:bg-blue-50/60' : 'hover:bg-gray-50/50'}`}
                               >
-                                {title}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {(() => {
-                                  const d = new Date(n.created_at);
-                                  const now = new Date();
-                                  const diffMs = now.getTime() - d.getTime();
-                                  const diffMins = Math.floor(diffMs / 60000);
-                                  const diffHours = Math.floor(diffMs / 3600000);
-                                  const diffDays = Math.floor(diffMs / 86400000);
-                                  
-                                  if (diffMins < 1) return 'Just now';
-                                  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-                                  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-                                  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-                                  
-                                  return d.toLocaleDateString();
-                                })()}
-                              </div>
-                            </div>
-                            
-                            {/* Type indicator */}
-                            {isBlogNotification ? (
-                              <div className="flex-shrink-0">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                  Blog
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex-shrink-0">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                                  Order
-                                </span>
-                              </div>
-                            )}
-                          </DropdownMenuItem>
-                        );
-                      })
-                    )}
+                                <div className="mt-1 flex-shrink-0">
+                                  {isBlogNotification ? (
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-sm">
+                                      <MessageCircle className="w-4 h-4 text-white" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-royal-blue to-brand-blue flex items-center justify-center shadow-sm">
+                                      <ShoppingBag className="w-4 h-4 text-white" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-[13px] leading-snug ${n.status === 'unread' ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>{title}</p>
+                                  <p className="text-[11px] text-gray-400 mt-1">
+                                    {(() => {
+                                      const d = new Date(n.created_at);
+                                      const now = new Date();
+                                      const diffMs = now.getTime() - d.getTime();
+                                      const diffMins = Math.floor(diffMs / 60000);
+                                      const diffHours = Math.floor(diffMs / 3600000);
+                                      const diffDays = Math.floor(diffMs / 86400000);
+                                      if (diffMins < 1) return 'Just now';
+                                      if (diffMins < 60) return `${diffMins}m ago`;
+                                      if (diffHours < 24) return `${diffHours}h ago`;
+                                      if (diffDays < 7) return `${diffDays}d ago`;
+                                      return d.toLocaleDateString();
+                                    })()}
+                                  </p>
+                                </div>
+                                {n.status === 'unread' && (
+                                  <div className="w-2 h-2 rounded-full bg-royal-blue flex-shrink-0 mt-2 shadow-sm shadow-royal-blue/30" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </ScrollArea>
                   </div>
-                </ScrollArea>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </div>
+              </div>
 
-            {/* Enhanced Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 active-scale flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+              {/* Avatar + Logout */}
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-royal-blue to-brand-blue flex items-center justify-center">
+                    <span className="text-[9px] font-bold text-white">{user.email?.[0]?.toUpperCase() || 'O'}</span>
+                  </div>
+                  <span className="text-[11px] font-medium text-gray-600 max-w-[100px] truncate">{user.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-10 h-10 rounded-xl bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 flex items-center justify-center transition-all group"
+                >
+                  <LogOut className="w-[16px] h-[16px] text-gray-500 group-hover:text-red-500 transition-colors" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       </header>
 
-      {/* Enhanced Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'orders' && <OrdersManagement />}
-        {activeTab === 'scanner' && <QRScanner />}
-        {activeTab === 'menu' && <MenuManagement />}
-        {activeTab === 'blog' && <RestaurantBlogManagement />}
-        {activeTab === 'settings' && <RestaurantSettings />}
-
-        {/* Order Detail Modal for notifications */}
-        <Dialog open={orderDetailOpen} onOpenChange={setOrderDetailOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Order Details</DialogTitle>
-              <DialogDescription>
-                View details for this order from your notifications.
-              </DialogDescription>
-            </DialogHeader>
-            {!orderDetail ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                Loading order details...
-              </div>
-            ) : (
-              <div className="space-y-3 text-sm">
-                {/* Order ID */}
-                <div className="flex justify-between">
-                  <span className="font-medium">Order ID</span>
-                  <span className="font-mono text-xs">
-                    {String(orderDetail.id).substring(0, 8)}
-                  </span>
-                </div>
-
-                {/* Customer info: use same mechanism as OrdersManagement (get_order_customers) */}
-                <div className="flex justify-between">
-                  <span className="font-medium">Customer</span>
-                  <span>
-                    {(() => {
-                      const name =
-                        (orderDetail.customer_display_name &&
-                          String(orderDetail.customer_display_name).trim()) ||
-                        null;
-                      const phone =
-                        (orderDetail.customer_display_phone &&
-                          String(orderDetail.customer_display_phone).trim()) ||
-                        null;
-
-                      if (name && phone) return `${name} • ${phone}`;
-                      if (name) return name;
-                      if (phone) return phone;
-
-                      // If everything fails, neutral fallback:
-                      return 'Customer';
-                    })()}
-                  </span>
-                </div>
-
-                {/* Total */}
-                <div className="flex justify-between">
-                  <span className="font-medium">Total Amount</span>
-                  <span className="font-semibold">
-                    {Number(orderDetail.total_amount || 0).toLocaleString()} MMK
-                  </span>
-                </div>
-
-                {/* Status with inline updater that syncs Orders list */}
-                <div className="flex justify-between items-center gap-3">
-                  <span className="font-medium">Status</span>
-                  <select
-                    className="text-xs px-2 py-1 border border-border rounded-md bg-background capitalize"
-                    value={orderDetail.status || 'paid'}
-                    onChange={async (e) => {
-                      const newStatus = e.target.value;
-                      try {
-                        const { supabase } = await import('@/integrations/supabase/client');
-                        const { error } = await supabase
-                          .from('orders')
-                          .update({ status: newStatus })
-                          .eq('id', orderDetail.id);
-
-                        if (error) {
-                          console.error('Failed to update order status from modal:', error);
-                          return;
-                        }
-
-                        // Update local modal state so UI reflects change
-                        setOrderDetail((prev: any) =>
-                          prev ? { ...prev, status: newStatus } : prev
-                        );
-
-                        // Broadcast to OrdersManagement so it updates in-memory without reload
-                        if (typeof window !== 'undefined') {
-                          window.dispatchEvent(
-                            new CustomEvent('orderStatusUpdated', {
-                              detail: { orderId: orderDetail.id, status: newStatus },
-                            })
-                          );
-                        }
-                      } catch (err) {
-                        console.error('Error updating order status from modal:', err);
-                      }
-                    }}
-                  >
-                    <option value="paid">Paid</option>
-                    <option value="preparing">Preparing</option>
-                    <option value="ready">Ready</option>
-                    <option value="served">Served</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Type</span>
-                  <span className="capitalize">
-                    {orderDetail.order_type || 'dine_in'}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Placed At</span>
-                  <div className="text-xs text-muted-foreground">
-                    {orderDetail.created_at
-                      ? (() => {
-                          const d = new Date(orderDetail.created_at);
-                          const day = String(d.getDate()).padStart(2, '0');
-                          const month = String(d.getMonth() + 1).padStart(2, '0');
-                          const year = d.getFullYear();
-                          let hours = d.getHours();
-                          const minutes = String(d.getMinutes()).padStart(2, '0');
-                          const ampm = hours >= 12 ? 'PM' : 'AM';
-                          hours = hours % 12 || 12;
-                          return `${day}/${month}/${year} - ${hours}:${minutes} ${ampm}`;
-                        })()
-                      : ''}
+      <div className="flex">
+        {/* Sidebar - Desktop */}
+        <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-gray-100 min-h-[calc(100vh-5rem)] sticky top-20">
+          <nav className="flex-1 px-3 py-6 space-y-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    navigate(`/dashboard?tab=${tab.id}`);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group ${
+                    isActive
+                      ? 'bg-gradient-to-r from-royal-blue/10 to-royal-blue/5 text-royal-blue shadow-sm border border-royal-blue/10'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                    isActive ? 'bg-gradient-to-br from-royal-blue to-brand-blue shadow-sm shadow-royal-blue/20' : 'bg-gray-50 group-hover:bg-gray-100'
+                  }`}>
+                    <Icon className={`w-[16px] h-[16px] ${isActive ? 'text-white' : 'text-gray-500'}`} />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold ${isActive ? 'text-royal-blue' : 'text-gray-700'}`}>{tab.label}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{tab.desc}</p>
+                  </div>
+                  {isActive && (
+                    <div className="w-1 h-6 rounded-full bg-gradient-to-b from-royal-blue to-brand-blue" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="px-3 pb-6">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-royal-blue/5 to-gold/5 border border-royal-blue/10">
+              <Crown className="w-5 h-5 text-gold mb-2" />
+              <p className="text-[11px] font-medium text-royal-blue">Premium Dashboard</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Manage your restaurant with elegance</p>
+            </div>
+          </div>
+        </aside>
+
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                className="fixed left-0 top-0 bottom-0 w-72 bg-white shadow-2xl z-50 lg:hidden"
+              >
+                <div className="flex items-center justify-between px-4 h-16 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-royal-blue to-royal-blue-dark flex items-center justify-center">
+                      <Crown className="w-4 h-4 text-gold" />
+                    </div>
+                    <span className="font-bold text-royal-blue font-montserrat">Royal Plate</span>
+                  </div>
+                  <button onClick={() => setSidebarOpen(false)} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <X className="w-4 h-4 text-gray-500" />
+                  </button>
                 </div>
-                <div>
-                  <span className="font-medium">Items</span>
-                  <ul className="mt-1 space-y-0.5">
-                    {(orderDetail.order_items || []).map(
-                      (item: any, idx: number) => (
-                        <li
-                          key={idx}
-                          className="flex justify-between text-xs text-muted-foreground"
-                        >
-                          <span>
-                            {item.quantity}x {item.name}
-                          </span>
-                          {item.price && (
-                            <span>
-                              {Number(item.price * item.quantity).toLocaleString()}{' '}
-                              MMK
-                            </span>
-                          )}
-                        </li>
-                      )
-                    )}
-                  </ul>
+                <nav className="px-3 py-4 space-y-1">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          navigate(`/dashboard?tab=${tab.id}`);
+                          setSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all ${
+                          isActive ? 'bg-gradient-to-r from-royal-blue/10 to-royal-blue/5 text-royal-blue border border-royal-blue/10' : 'text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                          isActive ? 'bg-gradient-to-br from-royal-blue to-brand-blue' : 'bg-gray-50'
+                        }`}>
+                          <Icon className={`w-[16px] h-[16px] ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-semibold ${isActive ? 'text-royal-blue' : 'text-gray-700'}`}>{tab.label}</p>
+                          <p className="text-[10px] text-gray-400">{tab.desc}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 pb-24 lg:pb-8">
+          <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {statCards.map((card, idx) => {
+                const Icon = card.icon;
+                const cardValue = idx === 0 ? stats.todayRevenue : idx === 1 ? stats.todayOrders : idx === 2 ? stats.activeOrders : stats.totalMenuItems;
+                return (
+                  <motion.div
+                    key={card.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(83,109,254,0.15)' }}
+                    className="relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-xl border border-white/60 p-5 shadow-lg"
+                  >
+                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`} />
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} bg-opacity-10 flex items-center justify-center mb-3 shadow-lg`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <p className="text-3xl font-bold text-[#1D2956] font-montserrat">
+                      {card.isCurrency && <span className="text-lg text-gray-400 mr-1">MMK</span>}
+                      <AnimatedCounter value={cardValue} />
+                    </p>
+                    <p className="text-gray-500 text-xs font-medium mt-1">{card.label}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {activeTab === 'orders' && <OrdersManagement />}
+                {activeTab === 'scanner' && <QRScanner />}
+                {activeTab === 'menu' && <MenuManagement />}
+                {activeTab === 'blog' && <RestaurantBlogManagement />}
+                {activeTab === 'settings' && <RestaurantSettings />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </main>
+      </div>
+
+      {/* Premium Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-2xl shadow-gray-900/10 z-40 lg:hidden pb-safe">
+        <div className="flex items-center justify-around h-[72px] px-2">
+          {tabsList.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  navigate(`/dashboard?tab=${tab.id}`);
+                }}
+                className={`relative flex flex-col items-center justify-center flex-1 py-1.5 px-2 rounded-xl transition-all duration-200 ${
+                  isActive ? 'text-royal-blue' : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                  isActive ? 'bg-gradient-to-br from-royal-blue/10 to-royal-blue/5' : ''
+                }`}>
+                  <Icon className={`w-[18px] h-[18px] transition-all duration-200 ${
+                    isActive ? 'text-royal-blue' : ''
+                  }`} />
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-[8px] font-bold text-white flex items-center justify-center shadow-sm">
+                      {tab.count > 9 ? '9+' : tab.count}
+                    </span>
+                  )}
                 </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </main>
-
-      {/* Enhanced Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pb-safe">
-        <div className="max-w-md mx-auto flex justify-around items-center h-20 px-2">
-          <button
-            onClick={() => {
-              setActiveTab('orders');
-              navigate('/dashboard?tab=orders');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 active-scale ${
-              activeTab === 'orders' 
-                ? 'bg-royal-blue/10 text-royal-blue shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <Receipt className="h-6 w-6 mb-1" />
-            <span className="text-xs font-semibold">Orders</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('scanner');
-              navigate('/dashboard?tab=scanner');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 active-scale ${
-              activeTab === 'scanner' 
-                ? 'bg-royal-blue/10 text-royal-blue shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <ScanLine className="h-6 w-6 mb-1" />
-            <span className="text-xs font-semibold">QR Scanner</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('menu');
-              navigate('/dashboard?tab=menu');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 active-scale ${
-              activeTab === 'menu' 
-                ? 'bg-royal-blue/10 text-royal-blue shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <LayoutList className="h-6 w-6 mb-1" />
-            <span className="text-xs font-semibold">Menu</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('blog');
-              navigate('/dashboard?tab=blog');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 active-scale ${
-              activeTab === 'blog' 
-                ? 'bg-royal-blue/10 text-royal-blue shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <BookOpenText className="h-6 w-6 mb-1" />
-            <span className="text-xs font-semibold">Blog</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('settings');
-              navigate('/dashboard?tab=settings');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 active-scale ${
-              activeTab === 'settings' 
-                ? 'bg-royal-blue/10 text-royal-blue shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <Settings className="h-6 w-6 mb-1" />
-            <span className="text-xs font-semibold">Settings</span>
-          </button>
+                <span className={`text-[10px] font-semibold tracking-wide ${
+                  isActive ? 'text-royal-blue' : 'text-gray-400'
+                }`}>{tab.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-royal-blue to-brand-blue"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </nav>
+
+      {/* Order Detail Modal */}
+      <AnimatePresence>
+        {orderDetailOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setOrderDetailOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-royal-blue font-montserrat">Order Details</h3>
+                  <p className="text-[11px] text-gray-500">View and manage this order</p>
+                </div>
+                <button onClick={() => setOrderDetailOpen(false)} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="px-6 py-5">
+                {!orderDetail ? (
+                  <div className="py-8 text-center">
+                    <div className="w-8 h-8 border-2 border-royal-blue/20 border-t-royal-blue rounded-full animate-spin mx-auto" />
+                    <p className="text-sm text-gray-500 mt-3">Loading order details...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Order ID</p>
+                        <p className="text-xs font-mono font-semibold text-gray-900 mt-1">#{String(orderDetail.id).substring(0, 8)}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Type</p>
+                        <p className="text-xs font-semibold text-gray-900 mt-1 capitalize">{orderDetail.order_type || 'dine_in'}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-royal-blue/5 border border-royal-blue/10">
+                      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Customer</p>
+                      <p className="text-sm font-semibold text-royal-blue mt-1">
+                        {(() => {
+                          const name = orderDetail.customer_display_name?.trim() || null;
+                          const phone = orderDetail.customer_display_phone?.trim() || null;
+                          if (name && phone) return `${name}  ${phone}`;
+                          if (name) return name;
+                          if (phone) return phone;
+                          return 'Customer';
+                        })()}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Status</p>
+                      <select
+                        className="mt-1 w-full text-sm font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer text-gray-900"
+                        value={orderDetail.status || 'paid'}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          try {
+                            const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderDetail.id);
+                            if (error) return;
+                            setOrderDetail((prev: any) => prev ? { ...prev, status: newStatus } : prev);
+                            window.dispatchEvent(new CustomEvent('orderStatusUpdated', { detail: { orderId: orderDetail.id, status: newStatus } }));
+                          } catch (err) { console.error(err); }
+                        }}
+                      >
+                        {['paid', 'preparing', 'ready', 'served', 'completed', 'cancelled'].map(s => (
+                          <option key={s} value={s} className="capitalize">{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Total Amount</p>
+                      <p className="text-lg font-bold text-royal-blue font-montserrat mt-1">{Number(orderDetail.total_amount || 0).toLocaleString()} MMK</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Placed At</p>
+                      <p className="text-xs font-semibold text-gray-700 mt-1">
+                        {orderDetail.created_at ? (() => {
+                          const d = new Date(orderDetail.created_at);
+                          return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} - ${d.getHours() % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')} ${d.getHours() >= 12 ? 'PM' : 'AM'}`;
+                        })() : ''}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide mb-2">Items</p>
+                      <ul className="space-y-1.5">
+                        {(orderDetail.order_items || []).map((item: any, idx: number) => (
+                          <li key={idx} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700"><span className="font-semibold text-gray-900">{item.quantity}x</span> {item.name}</span>
+                            <span className="font-semibold text-gray-900">{Number(item.price * item.quantity).toLocaleString()} MMK</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

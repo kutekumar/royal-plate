@@ -5,10 +5,13 @@ import "leaflet/dist/leaflet.css";
 import "./styles/brand-filters.css";
 import { registerServiceWorker, setupPWAPrompt } from "./utils/pwa";
 
-// Register service worker for PWA functionality
 registerServiceWorker();
-
-// Setup PWA install prompt
 setupPWAPrompt();
 
-createRoot(document.getElementById("root")!).render(<App />);
+const root = document.getElementById("root")!;
+
+if (root.hasChildNodes()) {
+  createRoot(root);
+} else {
+  createRoot(root).render(<App />);
+}

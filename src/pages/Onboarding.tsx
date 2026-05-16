@@ -1,16 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Sparkles, Crown, MapPin } from 'lucide-react';
 import LogoImg from '@/imgs/logo.png';
 import MascotImg from '@/imgs/mascot.png';
-import BrandLoader from '@/components/BrandLoader';
-import PageTransition from '@/components/PageTransition';
+import { useSoundContext } from '@/contexts/SoundContext';
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { play } = useSoundContext();
   const [currentScreen, setCurrentScreen] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -54,37 +53,33 @@ const Onboarding = () => {
   const currentScreenData = screens[currentScreen];
   const IconComponent = currentScreenData.icon;
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
+    play('tap');
     if (currentScreen < screens.length - 1) {
       setCurrentScreen(currentScreen + 1);
     } else {
       handleGetStarted();
     }
-  };
+  }, [currentScreen, play]);
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
+    play('tap');
     handleGetStarted();
-  };
+  }, [play]);
 
-  const handleGetStarted = async () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      navigate('/auth?mode=signup');
-    }, 600);
-  };
+  const handleGetStarted = useCallback(() => {
+    play('success');
+    navigate('/auth?mode=signup');
+  }, [navigate, play]);
 
-  const handleSignIn = async () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      navigate('/auth?mode=signin');
-    }, 600);
-  };
+  const handleSignIn = useCallback(() => {
+    play('tap');
+    navigate('/auth?mode=signin');
+  }, [navigate, play]);
 
   return (
     <>
-      <BrandLoader isLoading={isTransitioning} />
-      <PageTransition>
-        <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F8FAFF] via-[#F0F4FF] to-[#E8EDFF] font-poppins">
+      <div className="relative flex h-screen w-full max-w-md mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F8FAFF] via-[#F0F4FF] to-[#E8EDFF] font-poppins">
           
           {/* ── Subtle Top Bar with Gradient ── */}
           <motion.div
@@ -492,10 +487,10 @@ const Onboarding = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="flex items-center justify-center gap-2.5"
               >
-                {screens.map((_, index) => (
+                  {screens.map((_, index) => (
                   <motion.button
                     key={index}
-                    onClick={() => setCurrentScreen(index)}
+                    onClick={() => { play('tap'); setCurrentScreen(index); }}
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
                     className="relative"
@@ -705,7 +700,6 @@ const Onboarding = () => {
             </AnimatePresence>
           </div>
         </div>
-      </PageTransition>
     </>
   );
 };

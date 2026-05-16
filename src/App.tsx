@@ -1,74 +1,150 @@
+import React, { lazy, Suspense, useMemo } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, HashRouter } from "react-router-dom";
+import { Routes, Route, HashRouter, useLocation, matchPath } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "./contexts/AuthContext";
-import Onboarding from "./pages/Onboarding";
-import Auth from "./pages/Auth";
-import Home from "./pages/Home";
-import RestaurantDetails from "./pages/RestaurantDetails";
-import Payment from "./pages/Payment";
-import Confirmation from "./pages/Confirmation";
-import Orders from "./pages/Orders";
-import Profile from "./pages/Profile";
-import BlogEnhanced from "./pages/BlogEnhanced";
-import BlogPostDetail from "./pages/BlogPostDetail";
-import Food from "./pages/Food";
-import Settings from "./pages/Settings";
-import RestaurantDashboard from "./pages/dashboard/RestaurantDashboard";
-import BlogEditor from "./pages/dashboard/BlogEditor";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminRestaurants from "./pages/admin/AdminRestaurants";
-import AdminOwners from "./pages/admin/AdminOwners";
-import AdminOrders from "./pages/admin/AdminOrders";
-import AdminUsers from "./pages/admin/AdminUsers";
-import NotFound from "./pages/NotFound";
+import { SoundProvider } from "./contexts/SoundContext";
+import { NavigationProvider, useNavigationContext } from "./contexts/NavigationContext";
+import PageShell from "./components/PageShell";
+import { BottomNav } from "./components/BottomNav";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const NAV_ROUTES = ['/home', '/food', '/orders', '/blog', '/profile', '/settings'];
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+      refetchOnWindowFocus: false,
+      gcTime: 1000 * 60 * 30,
+    },
+  },
+});
+
+const PageSkeleton = () => (
+  <div className="h-full w-full bg-[#F5F5F7]" />
+);
+
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Home = lazy(() => import("./pages/Home"));
+const RestaurantDetails = lazy(() => import("./pages/RestaurantDetails"));
+const RestaurantMenu = lazy(() => import("./pages/RestaurantMenu"));
+const Payment = lazy(() => import("./pages/Payment"));
+const Confirmation = lazy(() => import("./pages/Confirmation"));
+const Orders = lazy(() => import("./pages/Orders"));
+const Profile = lazy(() => import("./pages/Profile"));
+const BlogEnhanced = lazy(() => import("./pages/BlogEnhanced"));
+const BlogPostDetail = lazy(() => import("./pages/BlogPostDetail"));
+const Food = lazy(() => import("./pages/Food"));
+const Settings = lazy(() => import("./pages/Settings"));
+const RestaurantDashboard = lazy(() => import("./pages/dashboard/RestaurantDashboard"));
+const BlogEditor = lazy(() => import("./pages/dashboard/BlogEditor"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminRestaurants = lazy(() => import("./pages/admin/AdminRestaurants"));
+const AdminOwners = lazy(() => import("./pages/admin/AdminOwners"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AllRestaurants = lazy(() => import("./pages/AllRestaurants"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+interface RouteConfig {
+  path: string;
+  element: React.ReactNode;
+  requiresAuth?: boolean;
+  allowedRoles?: Array<'customer' | 'restaurant_owner' | 'admin'>;
+}
+
+const routes: RouteConfig[] = [
+  { path: "/", element: <Onboarding /> },
+  { path: "/auth", element: <Auth /> },
+  { path: "/home", element: <Home />, requiresAuth: true },
+  { path: "/orders", element: <Orders />, requiresAuth: true },
+  { path: "/blog", element: <BlogEnhanced /> },
+  { path: "/blog/:postId", element: <BlogPostDetail /> },
+  { path: "/food", element: <Food />, requiresAuth: true },
+  { path: "/profile", element: <Profile />, requiresAuth: true },
+  { path: "/settings", element: <Settings />, requiresAuth: true },
+  { path: "/restaurants", element: <AllRestaurants /> },
+  { path: "/restaurant/:id", element: <RestaurantDetails /> },
+  { path: "/restaurant/:id/menu", element: <RestaurantMenu /> },
+  { path: "/payment", element: <Payment />, requiresAuth: true },
+  { path: "/confirmation", element: <Confirmation />, requiresAuth: true },
+  { path: "/dashboard", element: <RestaurantDashboard />, requiresAuth: true, allowedRoles: ['restaurant_owner'] },
+  { path: "/dashboard/blog/new", element: <BlogEditor />, requiresAuth: true, allowedRoles: ['restaurant_owner'] },
+  { path: "/dashboard/blog/edit/:postId", element: <BlogEditor />, requiresAuth: true, allowedRoles: ['restaurant_owner'] },
+  { path: "/admin", element: <AdminDashboard />, requiresAuth: true, allowedRoles: ['admin'] },
+  { path: "/admin/restaurants", element: <AdminRestaurants />, requiresAuth: true, allowedRoles: ['admin'] },
+  { path: "/admin/owners", element: <AdminOwners />, requiresAuth: true, allowedRoles: ['admin'] },
+  { path: "/admin/orders", element: <AdminOrders />, requiresAuth: true, allowedRoles: ['admin'] },
+  { path: "/admin/users", element: <AdminUsers />, requiresAuth: true, allowedRoles: ['admin'] },
+  { path: "*", element: <NotFound /> },
+];
+
+const AppRoutes = () => {
+  const location = useLocation();
+  const { direction } = useNavigationContext();
+
+  const showNav = useMemo(() =>
+    NAV_ROUTES.some((path) =>
+      matchPath({ path, end: true }, location.pathname)
+    ),
+    [location.pathname]
+  );
+
+  return (
+    <>
+      <AnimatePresence mode="popLayout">
+        <Routes location={location} key={location.pathname}>
+          {routes.map((route) => {
+            let content = route.element;
+            if (route.requiresAuth) {
+              content = (
+                <ProtectedRoute allowedRoles={route.allowedRoles}>
+                  {content}
+                </ProtectedRoute>
+              );
+            }
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <PageShell direction={direction}>
+                    <Suspense fallback={<PageSkeleton />}>
+                      {content}
+                    </Suspense>
+                  </PageShell>
+                }
+              />
+            );
+          })}
+        </Routes>
+      </AnimatePresence>
+      {showNav && <BottomNav />}
+    </>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <HashRouter>
-          <Routes>
-            {/* Public / auth */}
-            <Route path="/" element={<Onboarding />} />
-            <Route path="/auth" element={<Auth />} />
-
-            {/* Customer-facing */}
-            <Route path="/home" element={<Home />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/blog" element={<BlogEnhanced />} />
-            <Route path="/blog/:postId" element={<BlogPostDetail />} />
-            <Route path="/food" element={<Food />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/restaurant/:id" element={<RestaurantDetails />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/confirmation" element={<Confirmation />} />
-
-            {/* Restaurant owner dashboard */}
-            <Route path="/dashboard" element={<RestaurantDashboard />} />
-            <Route path="/dashboard/blog/new" element={<BlogEditor />} />
-            <Route path="/dashboard/blog/edit/:postId" element={<BlogEditor />} />
-
-            {/* Admin */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/restaurants" element={<AdminRestaurants />} />
-            <Route path="/admin/owners" element={<AdminOwners />} />
-            <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-
-            {/* Fallback */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </HashRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <SoundProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <NavigationProvider>
+            <Toaster />
+            <Sonner />
+            <HashRouter>
+              <AppRoutes />
+            </HashRouter>
+          </NavigationProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </SoundProvider>
   </QueryClientProvider>
 );
 

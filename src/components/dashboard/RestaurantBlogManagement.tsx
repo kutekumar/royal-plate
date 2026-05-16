@@ -1,51 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Sparkles,
-  BookOpenText,
-  Plus,
-  Image as ImageIcon,
-  Trash2,
-  Edit2,
-  Pin,
-  PinOff,
-  Calendar,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sparkles, BookOpenText, Plus, Image as ImageIcon, Trash2, Edit2, Pin, PinOff, Calendar, Loader2, CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Star, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RestaurantBlogPostDetail } from "./RestaurantBlogPostDetail";
+import { motion, AnimatePresence } from "framer-motion";
 
-type MenuItem = {
-  id: string;
-  name: string;
-  image_url: string | null;
-  price?: number | null;
-};
+type MenuItem = { id: string; name: string; image_url: string | null; price?: number | null };
 
 type BlogPost = {
-  id: string;
-  restaurant_id: string;
-  author_id: string;
-  title: string;
-  content: string;
-  excerpt: string | null;
-  hero_image_url: string | null;
-  is_published: boolean;
-  is_pinned: boolean;
-  created_at: string;
-  updated_at: string;
-  linked_menu_items?: MenuItem[];
+  id: string; restaurant_id: string; author_id: string; title: string; content: string;
+  excerpt: string | null; hero_image_url: string | null; is_published: boolean;
+  is_pinned: boolean; created_at: string; updated_at: string; linked_menu_items?: MenuItem[];
 };
 
 const RestaurantBlogManagement = () => {
@@ -58,321 +29,149 @@ const RestaurantBlogManagement = () => {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-  
-  // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'published' | 'drafts' | 'pinned'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [blogPage, setBlogPage] = useState(1);
+  const POSTS_PER_PAGE = 9;
 
-  // Derive hero suggestions: from menu items that have an image
-  const heroSuggestions = useMemo(
-    () => menuItems.filter((m) => m.image_url),
-    [menuItems]
-  );
+  const heroSuggestions = useMemo(() => menuItems.filter((m) => m.image_url), [menuItems]);
 
   useEffect(() => {
     const init = async () => {
-      if (!user) {
-        setLoadingInitial(false);
-        return;
-      }
+      if (!user) { setLoadingInitial(false); return; }
 
-      // 1) Try get restaurant_id from profiles if it exists (non-breaking).
-      let restaurantIdFromProfile: string | null = null;
+      let resolvedRestaurantId: string | null = null;
       try {
-        const { data: ownerProfile, error: ownerError } = await supabase
-          .from("profiles")
-          .select("restaurant_id")
-          .eq("id", user.id)
-          .maybeSingle();
+        const { data: ownerProfile } = await supabase.from("profiles").select("restaurant_id").eq("id", user.id).maybeSingle();
+        if (ownerProfile?.restaurant_id) resolvedRestaurantId = ownerProfile.restaurant_id as string;
+      } catch { }
 
-        if (!ownerError && ownerProfile && ownerProfile.restaurant_id) {
-          restaurantIdFromProfile = ownerProfile.restaurant_id as string;
-        }
-      } catch (e) {
-        console.warn("profiles.restaurant_id lookup skipped or failed", e);
-      }
-
-      // 2) If not found, resolve via restaurants.owner_id (matches common pattern in this app).
-      let resolvedRestaurantId = restaurantIdFromProfile;
       if (!resolvedRestaurantId) {
         try {
-          const { data: restaurantRow, error: restaurantError } = await supabase
-            .from("restaurants")
-            .select("id")
-            .eq("owner_id", user.id)
-            .maybeSingle();
-
-          if (!restaurantError && restaurantRow?.id) {
-            resolvedRestaurantId = restaurantRow.id as string;
-          }
-        } catch (e) {
-          console.warn("restaurants.owner_id lookup failed", e);
-        }
+          const { data: restaurantRow } = await supabase.from("restaurants").select("id").eq("owner_id", user.id).maybeSingle();
+          if (restaurantRow?.id) resolvedRestaurantId = restaurantRow.id as string;
+        } catch { }
       }
 
-      if (!resolvedRestaurantId) {
-        console.warn(
-          "No restaurant associated with this owner. Ensure either profiles.restaurant_id or restaurants.owner_id is set."
-        );
-        setLoadingInitial(false);
-        return;
-      }
-
+      if (!resolvedRestaurantId) { setLoadingInitial(false); return; }
       setRestaurantId(resolvedRestaurantId);
-
-      await Promise.all([
-        loadMenuItems(resolvedRestaurantId),
-        loadPosts(resolvedRestaurantId),
-      ]);
-
+      await Promise.all([loadMenuItems(resolvedRestaurantId), loadPosts(resolvedRestaurantId)]);
       setLoadingInitial(false);
     };
-
     void init();
   }, [user]);
 
-  // Check for view parameter in URL to automatically select a post
   useEffect(() => {
     if (posts.length > 0) {
       const params = new URLSearchParams(location.search);
       const viewPostId = params.get('view');
-      
       if (viewPostId) {
         const postToView = posts.find(post => post.id === viewPostId);
-        if (postToView) {
-          setSelectedPost(postToView);
-          // Clear the view parameter from URL to prevent re-selection on refresh
-          navigate('/dashboard?tab=blog', { replace: true });
-        }
+        if (postToView) { setSelectedPost(postToView); navigate('/dashboard?tab=blog', { replace: true }); }
       }
     }
   }, [posts, location.search, navigate]);
 
   const loadMenuItems = async (rId: string) => {
-    const { data, error } = await supabase
-      .from("menu_items")
-      .select("id, name, image_url, price")
-      .eq("restaurant_id", rId)
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error("Error loading menu items", error);
-      return;
-    }
-
+    const { data } = await supabase.from("menu_items").select("id, name, image_url, price").eq("restaurant_id", rId).order("name");
     setMenuItems((data as MenuItem[]) || []);
   };
 
   const loadPosts = async (rId: string) => {
     try {
-      let query = supabase
-        .from("blog_posts")
-        .select("*")
-        .eq("restaurant_id", rId);
+      let query = supabase.from("blog_posts").select("*").eq("restaurant_id", rId);
+      if (filterBy === 'published') query = query.eq('is_published', true);
+      else if (filterBy === 'drafts') query = query.eq('is_published', false);
+      else if (filterBy === 'pinned') query = query.eq('is_pinned', true);
+      if (searchQuery.trim()) query = query.ilike('title', `%${searchQuery.trim()}%`);
+      if (sortBy === 'oldest') query = query.order("is_pinned", { ascending: false }).order("created_at", { ascending: true });
+      else if (sortBy === 'title') query = query.order("is_pinned", { ascending: false }).order("title", { ascending: true });
+      else query = query.order("is_pinned", { ascending: false }).order("created_at", { ascending: false });
 
-      // Apply filters
-      switch (filterBy) {
-        case 'published':
-          query = query.eq('is_published', true);
-          break;
-        case 'drafts':
-          query = query.eq('is_published', false);
-          break;
-        case 'pinned':
-          query = query.eq('is_pinned', true);
-          break;
-      }
-
-      // Apply search filter
-      if (searchQuery.trim()) {
-        query = query.ilike('title', `%${searchQuery.trim()}%`);
-      }
-
-      // Apply sorting
-      switch (sortBy) {
-        case 'oldest':
-          query = query.order("is_pinned", { ascending: false })
-                   .order("created_at", { ascending: true });
-          break;
-        case 'title':
-          query = query.order("is_pinned", { ascending: false })
-                   .order("title", { ascending: true });
-          break;
-        default:
-          query = query.order("is_pinned", { ascending: false })
-                   .order("created_at", { ascending: false });
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error loading blog posts", error);
-        return;
-      }
-
+      const { data } = await query;
       const postsData = (data as BlogPost[]) || [];
 
-      // Fetch linked menu items per post via blog_post_menu_items
       if (postsData.length > 0) {
-        const ids = postsData.map((p) => p.id);
-        const { data: links, error: linksError } = await supabase
-          .from("blog_post_menu_items")
-          .select("blog_post_id, menu_item_id")
-          .in("blog_post_id", ids);
-
-        if (linksError) {
-          console.error("Error loading blog_post_menu_items", linksError);
-          setPosts(postsData);
-          return;
-        }
-
+        const ids = postsData.map(p => p.id);
+        const { data: links } = await supabase.from("blog_post_menu_items").select("blog_post_id, menu_item_id").in("blog_post_id", ids);
         const linkByPost: Record<string, string[]> = {};
-        (links || []).forEach((l: any) => {
-          if (!linkByPost[l.blog_post_id]) linkByPost[l.blog_post_id] = [];
-          linkByPost[l.blog_post_id].push(l.menu_item_id);
-        });
-
+        (links || []).forEach((l: any) => { if (!linkByPost[l.blog_post_id]) linkByPost[l.blog_post_id] = []; linkByPost[l.blog_post_id].push(l.menu_item_id); });
         const menuMap: Record<string, MenuItem> = {};
-        menuItems.forEach((m) => {
-          menuMap[m.id] = m;
-        });
-
-        const enriched = postsData.map((p) => {
-          const linkedIds = linkByPost[p.id] || [];
-          return {
-            ...p,
-            linked_menu_items: linkedIds
-              .map((id) => menuMap[id])
-              .filter(Boolean) as MenuItem[],
-          };
-        });
-
-        setPosts(enriched);
-      } else {
-        setPosts([]);
-      }
-    } catch (err) {
-      console.error('Unexpected error loading blog posts', err);
-      setPosts([]);
-    }
+        menuItems.forEach(m => { menuMap[m.id] = m; });
+        setPosts(postsData.map(p => ({ ...p, linked_menu_items: (linkByPost[p.id] || []).map(id => menuMap[id]).filter(Boolean) as MenuItem[] })));
+      } else setPosts([]);
+    } catch { setPosts([]); }
   };
 
-  const openCreate = () => {
-    navigate("/dashboard/blog/new");
-  };
-
-  const openEdit = (post: BlogPost) => {
-    navigate(`/dashboard/blog/edit/${post.id}`);
-  };
+  const openCreate = () => navigate("/dashboard/blog/new");
+  const openEdit = (post: BlogPost) => navigate(`/dashboard/blog/edit/${post.id}`);
 
   const handleTogglePin = async (post: BlogPost) => {
     if (!restaurantId) return;
     try {
-      const { error } = await supabase
-        .from("blog_posts")
-        .update({ is_pinned: !post.is_pinned })
-        .eq("id", post.id)
-        .eq("restaurant_id", restaurantId);
-
-      if (error) throw error;
-
-      // Refresh but keep elegant optimistic UI
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === post.id ? { ...p, is_pinned: !p.is_pinned } : p
-        )
-      );
-    } catch (err) {
-      console.error("Failed to toggle pin", err);
-    }
+      await supabase.from("blog_posts").update({ is_pinned: !post.is_pinned }).eq("id", post.id).eq("restaurant_id", restaurantId);
+      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_pinned: !p.is_pinned } : p));
+    } catch (err) { console.error("Failed to toggle pin", err); }
   };
 
   const handleDelete = async (postId: string) => {
     if (!restaurantId) return;
     setDeletingId(postId);
     try {
-      const { error } = await supabase
-        .from("blog_posts")
-        .delete()
-        .eq("id", postId)
-        .eq("restaurant_id", restaurantId);
-
-      if (error) throw error;
-
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-    } catch (err) {
-      console.error("Failed to delete blog post", err);
-    } finally {
-      setDeletingId(null);
-    }
+      await supabase.from("blog_posts").delete().eq("id", postId).eq("restaurant_id", restaurantId);
+      setPosts(prev => prev.filter(p => p.id !== postId));
+    } catch { } finally { setDeletingId(null); }
   };
 
   if (loadingInitial) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-xs text-muted-foreground">
-            Loading your blog studio...
-          </span>
+          <Sparkles className="w-4 h-4 text-royal-blue" />
+          <span className="text-xs text-gray-500">Loading your blog studio...</span>
         </div>
-        <Card className="p-3 sm:p-4 bg-card/80 border-border/40 animate-pulse">
-          <div className="h-2.5 sm:h-3 w-20 sm:w-24 bg-muted/70 rounded mb-2" />
-          <div className="h-2.5 sm:h-3 w-32 sm:w-40 bg-muted/60 rounded mb-1" />
-          <div className="h-2.5 sm:h-3 w-24 sm:w-32 bg-muted/50 rounded" />
-        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse">
+              <div className="h-3 w-24 bg-gray-100 rounded mb-3" />
+              <div className="h-2.5 w-full bg-gray-100 rounded mb-2" />
+              <div className="h-2.5 w-3/4 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!restaurantId) {
     return (
-      <Card className="p-4 bg-card/80 border-dashed border-border/50">
-        <p className="text-xs text-muted-foreground">
-          No restaurant is associated with this account yet. Once your restaurant
-          profile is connected, you'll be able to publish elegant blog posts
-          and promotions here.
-        </p>
-      </Card>
+      <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-6">
+        <p className="text-sm text-gray-500">No restaurant associated with this account. Once connected, you'll be able to publish posts here.</p>
+      </div>
     );
   }
 
-  // Filter and sort posts for display
   const filteredAndSortedPosts = posts.filter(post => {
-    // Search filter
-    if (searchQuery.trim() && !post.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    // Status filter
+    if (searchQuery.trim() && !post.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     switch (filterBy) {
-      case 'published':
-        return post.is_published;
-      case 'drafts':
-        return !post.is_published;
-      case 'pinned':
-        return post.is_pinned;
-      default:
-        return true;
+      case 'published': return post.is_published;
+      case 'drafts': return !post.is_published;
+      case 'pinned': return post.is_pinned;
+      default: return true;
     }
   }).sort((a, b) => {
-    // Sort by pinned status first (pinned posts always on top)
-    if (a.is_pinned !== b.is_pinned) {
-      return b.is_pinned ? 1 : -1;
-    }
-    
-    // Then sort by selected criteria
-    switch (sortBy) {
-      case 'oldest':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'title':
-        return a.title.localeCompare(b.title);
-      default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
+    if (a.is_pinned !== b.is_pinned) return b.is_pinned ? 1 : -1;
+    if (sortBy === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sortBy === 'title') return a.title.localeCompare(b.title);
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+
+  const totalBlogPages = Math.max(1, Math.ceil(filteredAndSortedPosts.length / POSTS_PER_PAGE));
+  const paginatedPosts = filteredAndSortedPosts.slice((blogPage - 1) * POSTS_PER_PAGE, blogPage * POSTS_PER_PAGE);
+
+  const filterCount = [searchQuery, filterBy !== 'all' ? filterBy : ''].filter(Boolean).length;
 
   return (
     <div className="space-y-5">
@@ -380,361 +179,249 @@ const RestaurantBlogManagement = () => {
         <RestaurantBlogPostDetail
           post={selectedPost}
           onBack={() => setSelectedPost(null)}
-          onEdit={(post) => {
-            setSelectedPost(null);
-            openEdit(post);
-          }}
-          onDelete={(postId) => {
-            setSelectedPost(null);
-            handleDelete(postId);
-          }}
-          onTogglePin={(post) => {
-            handleTogglePin(post);
-            // Update the selected post if it's still open
-            if (selectedPost && selectedPost.id === post.id) {
-              setSelectedPost(post);
-            }
-          }}
+          onEdit={(post) => { setSelectedPost(null); openEdit(post); }}
+          onDelete={(postId) => { setSelectedPost(null); handleDelete(postId); }}
+          onTogglePin={(post) => { handleTogglePin(post); if (selectedPost?.id === post.id) setSelectedPost(post); }}
         />
       ) : (
         <>
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2">
-                <BookOpenText className="w-4 h-4 text-primary" />
-                <span className="text-[10px] uppercase tracking-[0.16em] text-primary/80">
-                  Blog & Promotions Studio
-                </span>
+                <BookOpenText className="w-4 h-4 text-royal-blue" />
+                <span className="text-[10px] uppercase tracking-[0.16em] text-royal-blue/80 font-semibold">Blog Studio</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
-                Tell your food story
-              </h2>
-              <p className="text-[10px] sm:text-[11px] text-muted-foreground max-w-md">
-                Create minimalist, elegant posts to highlight your signature dishes,
-                seasonal menus, and special offers. Customers read these on the Blog tab.
-              </p>
+              <h2 className="text-xl sm:text-2xl font-bold text-royal-blue font-montserrat">Tell your food story</h2>
+              <p className="text-sm text-gray-500 max-w-lg">Create elegant posts to highlight signature dishes, seasonal menus, and special offers.</p>
             </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 self-start sm:self-auto"
                 onClick={() => setShowFilters(!showFilters)}
+                className={`gap-2 rounded-xl border-gray-200 h-9 text-xs font-semibold ${showFilters || filterCount > 0 ? 'bg-royal-blue text-white border-royal-blue' : ''}`}
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span className="text-[10px]">Filter</span>
+                <Filter className="w-3.5 h-3.5" />
+                Filter
+                {filterCount > 0 && <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-bold">{filterCount}</span>}
               </Button>
-              <Button
-                size="sm"
-                className="gap-2 rounded-full bg-primary/90 hover:bg-primary shadow-sm self-start sm:self-auto"
-                onClick={openCreate}
-              >
-                <Plus className="w-3 h-3" />
-                <span className="text-[10px] font-medium">New Post</span>
+              <Button size="sm" onClick={openCreate} className="gap-2 rounded-xl bg-gradient-to-br from-royal-blue to-royal-blue-dark text-white shadow-sm shadow-royal-blue/20 h-9 text-xs font-semibold">
+                <Plus className="w-3.5 h-3.5" />
+                New Post
               </Button>
             </div>
           </div>
 
-          {/* Search and Filter Section */}
-          {showFilters && (
-            <div className="border-t border-border/40 pt-4">
-              <div className="space-y-3">
-                {/* Search Input */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Search your blog posts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-background/60 border border-border/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-
-                {/* Filter Options */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <button
-                    onClick={() => setFilterBy('all')}
-                    className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-                      filterBy === 'all'
-                        ? 'bg-primary/20 text-primary'
-                        : 'bg-background/60 text-muted-foreground hover:bg-background/80'
-                    }`}
-                  >
-                    All ({posts.length})
-                  </button>
-                  <button
-                    onClick={() => setFilterBy('published')}
-                    className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-                      filterBy === 'published'
-                        ? 'bg-emerald-500/20 text-emerald-500'
-                        : 'bg-background/60 text-muted-foreground hover:bg-background/80'
-                    }`}
-                  >
-                    Published ({posts.filter(p => p.is_published).length})
-                  </button>
-                  <button
-                    onClick={() => setFilterBy('drafts')}
-                    className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-                      filterBy === 'drafts'
-                        ? 'bg-yellow-500/20 text-yellow-500'
-                        : 'bg-background/60 text-muted-foreground hover:bg-background/80'
-                    }`}
-                  >
-                    Drafts ({posts.filter(p => !p.is_published).length})
-                  </button>
-                  <button
-                    onClick={() => setFilterBy('pinned')}
-                    className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-                      filterBy === 'pinned'
-                        ? 'bg-amber-500/20 text-amber-500'
-                        : 'bg-background/60 text-muted-foreground hover:bg-background/80'
-                    }`}
-                  >
-                    Pinned ({posts.filter(p => p.is_pinned).length})
-                  </button>
-                </div>
-
-                {/* Sort Options */}
-                <div className="flex gap-2">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                    className="flex-1 px-3 py-2 text-xs bg-background/60 border border-border/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="title">By Title</option>
-                  </select>
-                </div>
-
-                {/* Filter Summary */}
-                {(searchQuery.trim() || filterBy !== 'all') && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Showing {filteredAndSortedPosts.length} of {posts.length} posts</span>
-                    {searchQuery.trim() && (
-                      <span className="px-2 py-1 bg-primary/10 text-primary rounded-full">
-                        Search: "{searchQuery}"
-                      </span>
-                    )}
-                    {filterBy !== 'all' && (
-                      <span className={`px-2 py-1 rounded-full ${
-                        filterBy === 'published' ? 'bg-emerald-500/10 text-emerald-500' :
-                        filterBy === 'drafts' ? 'bg-yellow-500/10 text-yellow-500' :
-                        'bg-amber-500/10 text-amber-500'
-                      }`}>
-                        {filterBy.charAt(0).toUpperCase() + filterBy.slice(1)}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => {
-                        setSearchQuery('');
-                        setFilterBy('all');
-                        setSortBy('newest');
-                      }}
-                      className="ml-1 text-primary hover:text-primary/80"
-                    >
-                      Clear
-                    </button>
+          {/* Filters */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <input
+                      type="text" placeholder="Search posts..." value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setBlogPage(1); }}
+                      className="w-full h-9 pl-9 pr-3 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-royal-blue/20 focus:border-royal-blue/40 transition-all"
+                    />
                   </div>
-                )}
+                  <div className="flex flex-wrap gap-2">
+                    {(['all', 'published', 'drafts', 'pinned'] as const).map(f => (
+                      <button key={f} onClick={() => { setFilterBy(f); setBlogPage(1); }}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all ${
+                          filterBy === f ? 'bg-royal-blue text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-100'
+                        }`}
+                      >
+                        {f.charAt(0).toUpperCase() + f.slice(1)} ({f === 'all' ? posts.length : posts.filter(p => f === 'published' ? p.is_published : f === 'drafts' ? !p.is_published : p.is_pinned).length})
+                      </button>
+                    ))}
+                    <div className="flex-1" />
+                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                      className="px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-royal-blue/20"
+                    >
+                      <option value="newest">Newest</option>
+                      <option value="oldest">Oldest</option>
+                      <option value="title">By Title</option>
+                    </select>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Posts Grid */}
+          {filteredAndSortedPosts.length === 0 && posts.length === 0 && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-dashed border-gray-200 py-16 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+                <BookOpenText className="w-7 h-7 text-gray-300" />
               </div>
+              <p className="text-base font-semibold text-gray-700">No blog posts yet</p>
+              <p className="text-sm text-gray-400 mt-1">Create your first post to showcase your restaurant's story</p>
+              <Button onClick={openCreate} className="mt-4 bg-gradient-to-br from-royal-blue to-royal-blue-dark text-white shadow-sm rounded-xl h-9 text-xs font-semibold gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                Create Post
+              </Button>
+            </motion.div>
+          )}
+
+          {filteredAndSortedPosts.length === 0 && posts.length > 0 && (
+            <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-6 text-center">
+              <p className="text-sm text-gray-500">No posts match your filters.</p>
+              <button onClick={() => { setSearchQuery(''); setFilterBy('all'); setSortBy('newest'); }} className="text-xs text-royal-blue font-semibold mt-2 hover:underline">Clear filters</button>
             </div>
           )}
 
-          {/* Existing posts */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {filteredAndSortedPosts.length === 0 && posts.length === 0 && (
-          <Card className="p-3 sm:p-4 bg-card/80 border-dashed border-border/60">
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground">
-              You haven't published any stories yet. Create your first post to
-              showcase your restaurant's personality and promotions.
-            </p>
-          </Card>
-        )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AnimatePresence>
+              {paginatedPosts.map((post, idx) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.04, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="group bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:shadow-gray-200/40 transition-all duration-300 overflow-hidden cursor-pointer"
+                  onClick={() => setSelectedPost(post)}
+                >
+                  {/* Pinned indicator */}
+                  {post.is_pinned && (
+                    <div className="h-1 bg-gradient-to-r from-royal-blue via-gold to-royal-blue/70" />
+                  )}
 
-        {filteredAndSortedPosts.length === 0 && posts.length > 0 && (
-          <Card className="p-3 sm:p-4 bg-card/80 border-dashed border-border/60">
-            <div className="space-y-2">
-              <p className="text-[10px] sm:text-[11px] text-muted-foreground">
-                No blog posts match your current filters.
-              </p>
+                  {/* Hero Image */}
+                  {post.hero_image_url && (
+                    <div className="relative h-40 overflow-hidden bg-gray-50">
+                      <img src={post.hero_image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                    </div>
+                  )}
+
+                  <div className="p-4 sm:p-5 space-y-3">
+                    {/* Title + Badges */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-bold text-gray-900 truncate">{post.title}</h3>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {post.is_published ? (
+                            <Badge className="h-5 px-2 text-[8px] bg-emerald-50 text-emerald-700 border-emerald-200/50 font-semibold flex items-center gap-1 rounded-full">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              Live
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="h-5 px-2 text-[8px] border-gray-200 text-gray-500 font-semibold rounded-full">
+                              <EyeOff className="w-2.5 h-2.5 mr-0.5" />
+                              Draft
+                            </Badge>
+                          )}
+                          {post.is_pinned && (
+                            <Badge className="h-5 px-2 text-[8px] bg-amber-50 text-amber-700 border-amber-200/50 font-semibold flex items-center gap-1 rounded-full">
+                              <Star className="w-2.5 h-2.5" />
+                              Highlight
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Excerpt */}
+                    <p
+                      className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: post.excerpt || (post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content)
+                      }}
+                    />
+
+                    {/* Linked menu items */}
+                    {post.linked_menu_items && post.linked_menu_items.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {post.linked_menu_items.map(mi => (
+                          <span key={mi.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-royal-blue/5 border border-royal-blue/10 text-[9px] text-royal-blue font-medium">
+                            <ImageIcon className="w-2.5 h-2.5" />
+                            {mi.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={(e) => { e.stopPropagation(); handleTogglePin(post); }}
+                          className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all ${
+                            post.is_pinned ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-gray-50 border-gray-100 text-gray-400 hover:text-amber-500 hover:border-amber-200'
+                          }`}
+                        >
+                          {post.is_pinned ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(post); }}
+                          className="w-7 h-7 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:text-royal-blue hover:border-royal-blue/20 transition-all"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(post.id); }} disabled={deletingId === post.id}
+                          className="w-7 h-7 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 transition-all disabled:opacity-50"
+                        >
+                          {deletingId === post.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Pagination */}
+          {totalBlogPages > 1 && (
+            <div className="flex items-center justify-center gap-2 py-6">
               <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setFilterBy('all');
-                  setSortBy('newest');
-                }}
-                className="text-primary hover:text-primary/80 text-xs"
+                onClick={() => setBlogPage(p => Math.max(1, p - 1))}
+                disabled={blogPage === 1}
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/60 bg-white/90 backdrop-blur-md text-[#1D2956] disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#536DFE]/50 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md"
               >
-                Clear all filters
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: totalBlogPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalBlogPages || Math.abs(p - blogPage) <= 1)
+                .map((p, idx, arr) => (
+                  <Fragment key={p}>
+                    {idx > 0 && arr[idx - 1] !== p - 1 && (
+                      <span className="text-gray-400 text-xs">...</span>
+                    )}
+                    <button
+                      onClick={() => setBlogPage(p)}
+                      className={`w-9 h-9 rounded-xl text-[11px] font-bold transition-all shadow-md ${
+                        blogPage === p
+                          ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/30 scale-105'
+                          : 'border border-white/60 bg-white/90 backdrop-blur-md text-gray-600 hover:border-[#536DFE]/50 hover:text-[#536DFE] hover:shadow-lg'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </Fragment>
+                ))}
+              <button
+                onClick={() => setBlogPage(p => Math.min(totalBlogPages, p + 1))}
+                disabled={blogPage === totalBlogPages}
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/60 bg-white/90 backdrop-blur-md text-[#1D2956] disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#536DFE]/50 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md"
+              >
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-          </Card>
-        )}
-
-        {filteredAndSortedPosts.map((post) => (
-          <Card
-            key={post.id}
-            className={cn(
-              "relative overflow-hidden bg-card/90 border-border/40 group cursor-pointer",
-              "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(15,23,42,0.16)]"
-            )}
-            onClick={() => setSelectedPost(post)}
-          >
-            {post.is_pinned && (
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-primary via-amber-400 to-primary/70" />
-            )}
-
-            <div className="p-3 sm:p-3.5 space-y-2 sm:space-y-2.5">
-              <div className="flex items-start justify-between gap-2 sm:gap-3">
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate">
-                      {post.title}
-                    </h3>
-                    {post.is_published ? (
-                      <Badge className="h-4 sm:h-5 px-1.5 sm:px-2 text-[7px] sm:text-[8px] bg-emerald-500/10 text-emerald-500 border-emerald-500/30 flex items-center gap-1">
-                        <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span className="hidden sm:inline">Live</span>
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="h-4 sm:h-5 px-1.5 sm:px-2 text-[7px] sm:text-[8px] border-muted-foreground/40 text-muted-foreground"
-                      >
-                        Draft
-                      </Badge>
-                    )}
-                    {post.is_pinned && (
-                      <Badge
-                        variant="outline"
-                        className="h-4 sm:h-5 px-1.5 sm:px-2 text-[7px] sm:text-[8px] border-amber-400/60 text-amber-400 bg-amber-400/5 flex items-center gap-1"
-                      >
-                        <Pin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span className="hidden sm:inline">Highlight</span>
-                      </Badge>
-                    )}
-                  </div>
-                  <div
-                    className="text-[8px] sm:text-[9px] text-muted-foreground line-clamp-2"
-                    dangerouslySetInnerHTML={{
-                      __html: post.excerpt ||
-                        (post.content.length > 120
-                          ? post.content.slice(0, 120) + '...'
-                          : post.content)
-                    }}
-                  />
-                  <div className="flex items-center gap-2 text-[7px] sm:text-[8px] text-muted-foreground/80">
-                    <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                    <span>
-                      {new Date(post.created_at).toLocaleDateString()}
-                    </span>
-                    <span className="mx-1">•</span>
-                    <span className="hidden sm:inline">{post.is_published ? "Visible in customer Blog" : "Not visible to customers"}</span>
-                    <span className="sm:hidden">{post.is_published ? "Visible" : "Hidden"}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end gap-1">
-                  {/* Pin toggle */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => handleTogglePin(post)}
-                        className={cn(
-                          "w-6 h-6 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center transition-colors",
-                          post.is_pinned
-                            ? "bg-amber-400/10 border-amber-400/60 text-amber-400"
-                            : "bg-card/80 border-border/60 text-muted-foreground hover:text-primary hover:border-primary/40"
-                        )}
-                      >
-                        {post.is_pinned ? (
-                          <Pin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        ) : (
-                          <PinOff className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-[9px]">
-                      {post.is_pinned
-                        ? "Unpin from top of customer blog"
-                        : "Pin as highlight on customer blog"}
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Edit */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => openEdit(post)}
-                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-border/60 bg-card/80 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                      >
-                        <Edit2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-[9px]">
-                      Edit post
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Delete */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => handleDelete(post.id)}
-                        disabled={deletingId === post.id}
-                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-border/60 bg-card/80 flex items-center justify-center text-destructive/80 hover:bg-destructive/5 hover:border-destructive/40 transition-colors disabled:opacity-60"
-                      >
-                        {deletingId === post.id ? (
-                          <Loader2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="text-[9px]">
-                      Delete post
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-
-              {/* Linked menu preview */}
-              {post.linked_menu_items &&
-                post.linked_menu_items.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {post.linked_menu_items.map((mi) => (
-                      <div
-                        key={mi.id}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/5 border border-primary/15 text-[6px] sm:text-[7px] text-primary/80"
-                      >
-                        <ImageIcon className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-                        <span className="truncate max-w-[60px] sm:max-w-[80px]">
-                          {mi.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-              {/* Hero thumbnail */}
-              {post.hero_image_url && (
-                <div className="mt-1 overflow-hidden rounded-lg border border-border/40 bg-muted/40">
-                  <img
-                    src={post.hero_image_url}
-                    alt={post.title}
-                    className="w-full h-16 sm:h-20 object-cover transform transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
-                </div>
-              )}
-            </div>
-          </Card>
-        ))}
-      </div>
-      </>
+          )}
+        </>
       )}
     </div>
   );

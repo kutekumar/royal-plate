@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
     <!-- Primary Meta Tags -->
     <title>Royal Plate - Premium Restaurant Booking & Pre-Payment Platform</title>
     <meta name="title" content="Royal Plate - Premium Restaurant Booking & Pre-Payment Platform">
@@ -13,7 +13,7 @@
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
     <meta name="revisit-after" content="7 days">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://mingalarmon.com/">
@@ -22,20 +22,29 @@
     <meta property="og:image" content="https://mingalarmon.com/og-image.jpg">
     <meta property="og:site_name" content="Royal Plate">
     <meta property="og:locale" content="en_US">
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://mingalarmon.com/">
     <meta name="twitter:title" content="Royal Plate - Premium Restaurant Booking & Pre-Payment Platform">
     <meta name="twitter:description" content="Experience luxury dining in Yangon. Book premium restaurants, prepay for your meals, and enjoy exclusive dining experiences with Royal Plate.">
     <meta name="twitter:image" content="https://mingalarmon.com/twitter-image.jpg">
-    
-    <!-- Fonts -->
+
+    <!-- Preload Critical Resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://mtwburwdescvdngmzcmu.supabase.co" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
@@ -47,8 +56,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Royal Plate" />
-</head>
 
+    <!-- Performance: hint to browser about critical resources -->
+    <link rel="preload" href="/src/index.css" as="style" />
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

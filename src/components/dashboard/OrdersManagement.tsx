@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, Fragment } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, User, ShoppingBag, UtensilsCrossed, Loader2, XCircle, Users, Calendar } from 'lucide-react';
+import { Clock, User, ShoppingBag, UtensilsCrossed, Loader2, XCircle, Users, Calendar, ArrowRight, Search, Filter, SlidersHorizontal, ChevronLeft, ChevronRight, Timer, Phone, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type OrderStatus = 'paid' | 'preparing' | 'ready' | 'completed' | 'cancelled' | 'served';
 
@@ -25,6 +25,15 @@ interface Order {
   reservation_time?: string;
 }
 
+const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; dot: string }> = {
+  paid: { label: 'Paid', color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-200/50', dot: 'bg-purple-500' },
+  preparing: { label: 'Preparing', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200/50', dot: 'bg-blue-500' },
+  ready: { label: 'Ready', color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200/50', dot: 'bg-green-500' },
+  completed: { label: 'Completed', color: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200/50', dot: 'bg-slate-400' },
+  cancelled: { label: 'Cancelled', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200/50', dot: 'bg-red-500' },
+  served: { label: 'Served', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200/50', dot: 'bg-emerald-500' },
+};
+
 const OrdersManagement = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -33,55 +42,31 @@ const OrdersManagement = () => {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
-  const ORDERS_PER_PAGE = 6;
+  const ORDERS_PER_PAGE = 9;
 
   useEffect(() => {
-    if (user) {
-      fetchOrders();
-    }
+    if (user) fetchOrders();
   }, [user]);
 
   const fetchOrders = async () => {
     try {
-      // First get the restaurant owned by this user
-      const { data: restaurant, error: restaurantError } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('owner_id', user?.id)
-        .single();
+      const { data: restaurant } = await supabase.from('restaurants').select('id').eq('owner_id', user?.id).single();
+      if (!restaurant) return;
 
-      if (restaurantError) throw restaurantError;
+      const { data } = await supabase.from('orders').select('*').eq('restaurant_id', restaurant.id).order('created_at', { ascending: false });
+      if (!data) return;
 
-      // Then get orders for this restaurant
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .order('created_at', { ascending: false });
+      const customerIds = [...new Set(data.map(o => o.customer_id))];
+      const { data: customers } = await supabase.rpc('get_order_customers', { customer_ids: customerIds });
 
-      if (error) throw error;
-      
-      // Fetch customer details using secure function
-      const customerIds = [...new Set((data || []).map(o => o.customer_id))];
-      const { data: customers, error: customersError } = await supabase.rpc('get_order_customers', {
-        customer_ids: customerIds
+      const enrichedOrders: Order[] = data.map(order => {
+        const customer = customers?.find((c: any) => c.user_id === order.customer_id);
+        return { ...order, customer_name: customer?.full_name || 'Customer', customer_phone: customer?.phone || null };
       });
 
-      if (customersError) {
-        console.error('Failed to load customer details:', customersError);
-      }
-
-      const enrichedOrders: Order[] = (data || []).map(order => {
-        const customer = customers?.find(c => c.user_id === order.customer_id);
-        
-        return {
-          ...order,
-          customer_name: customer?.full_name || 'Customer',
-          customer_phone: customer?.phone || null,
-        };
-      });
-      
       setOrders(enrichedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -91,456 +76,343 @@ const OrdersManagement = () => {
     }
   };
 
-  // Expose a stable updater so external actions (like the notification modal)
-  // can trigger an in-memory update via window.dispatchEvent.
   const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
+      const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
       if (error) throw error;
-
-      setOrders(prev =>
-        prev.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
+      setOrders(prev => prev.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
       toast.success('Order status updated');
-
-      // Loyalty + notification logic is handled in DB trigger:
-      // - trg_order_completed_loyalty on public.orders
-      // - public.handle_order_completed_loyalty()
-      // This keeps frontend minimal and consistent.
     } catch (error) {
       console.error('Error updating order:', error);
       toast.error('Failed to update order status');
     }
   };
 
-  // Listen for status updates coming from other parts of the app (e.g., notification modal)
-  // so OrdersManagement reflects changes without a full page reload.
-  // Event is dispatched as: window.dispatchEvent(new CustomEvent('orderStatusUpdated', { detail: { orderId, status } }))
   useEffect(() => {
     const handler = (event: Event) => {
       const custom = event as CustomEvent<{ orderId: string; status: OrderStatus }>;
       const { orderId, status } = custom.detail || ({} as any);
       if (!orderId || !status) return;
-
-      setOrders(prev =>
-        prev.map(order =>
-          order.id === orderId ? { ...order, status } : order
-        )
-      );
+      setOrders(prev => prev.map(order => order.id === orderId ? { ...order, status } : order));
     };
-
     window.addEventListener('orderStatusUpdated', handler as EventListener);
-
-    return () => {
-      window.removeEventListener('orderStatusUpdated', handler as EventListener);
-    };
+    return () => window.removeEventListener('orderStatusUpdated', handler as EventListener);
   }, []);
 
   const clearFilters = () => {
     setTypeFilter('all');
     setStatusFilter('all');
     setDateFilter('');
+    setSearchQuery('');
     setCurrentPage(1);
   };
 
-  const getStatusBadge = (status: OrderStatus) => {
-    const badges = {
-      paid: {
-        label: 'Paid',
-        className:
-          'bg-purple-500/10 text-purple-700 border-purple-500/10'
-      },
-      preparing: {
-        label: 'Preparing',
-        className:
-          'bg-blue-500/10 text-blue-700 border-blue-500/10'
-      },
-      ready: {
-        label: 'Ready',
-        className:
-          'bg-green-500/10 text-green-700 border-green-500/10'
-      },
-      completed: {
-        label: 'Completed',
-        className:
-          'bg-slate-500/10 text-slate-700 border-slate-500/10'
-      },
-      cancelled: {
-        label: 'Cancelled',
-        className:
-          'bg-red-500/10 text-red-700 border-red-500/10'
-      },
-      served: {
-        label: 'Served',
-        className:
-          'bg-emerald-500/10 text-emerald-700 border-emerald-500/10'
-      }
-    };
-    return badges[status] || badges.paid;
-  };
-
-  const getStatusCardClasses = (status: OrderStatus) => {
-    // subtle, low-saturation backgrounds for cards
-    switch (status) {
-      case 'paid':
-        return 'bg-purple-50/60';
-      case 'preparing':
-        return 'bg-blue-50/60';
-      case 'ready':
-        return 'bg-green-50/60';
-      case 'completed':
-        return 'bg-slate-50/60';
-      case 'served':
-        return 'bg-emerald-50/60';
-      case 'cancelled':
-        return 'bg-red-50/40';
-      default:
-        return 'bg-card';
-    }
-  };
+  const filterCount = [typeFilter, statusFilter, dateFilter, searchQuery].filter(v => v !== 'all' && v !== '').length;
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
-    
-    if (diffInMinutes < 60) return `${diffInMinutes} mins ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
-    return `${Math.floor(diffInMinutes / 1440)} days ago`;
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesType =
-      typeFilter === 'all' ? true : order.order_type === typeFilter;
-
-    const matchesStatus =
-      statusFilter === 'all' ? true : order.status === statusFilter;
-
-    const matchesDate =
-      !dateFilter
-        ? true
-        : new Date(order.created_at).toISOString().slice(0, 10) === dateFilter;
-
-    return matchesType && matchesStatus && matchesDate;
+  const filteredOrders = orders.filter(order => {
+    const matchesType = typeFilter === 'all' ? true : order.order_type === typeFilter;
+    const matchesStatus = statusFilter === 'all' ? true : order.status === statusFilter;
+    const matchesDate = !dateFilter ? true : new Date(order.created_at).toISOString().slice(0, 10) === dateFilter;
+    const matchesSearch = !searchQuery ? true : order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) || order.id.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesType && matchesStatus && matchesDate && matchesSearch;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
-
-  const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * ORDERS_PER_PAGE,
-    currentPage * ORDERS_PER_PAGE
-  );
-
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-  };
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ORDERS_PER_PAGE, currentPage * ORDERS_PER_PAGE);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Orders</h2>
-        <p className="text-muted-foreground">Manage incoming orders and update their status</p>
-      </div>
-
-      {/* Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-card/60 border border-border/40 rounded-2xl p-3 glass-effect">
-        {/* Order Type Filter */}
-        <div className="space-y-1">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            Order Type
-          </div>
-          <Select
-            value={typeFilter}
-            onValueChange={(value: 'all' | 'dine_in' | 'takeaway') => setTypeFilter(value)}
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-royal-blue font-montserrat">Orders</h2>
+          <p className="text-sm text-gray-500">Track and manage all incoming orders</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+              showFilters || filterCount > 0 ? 'bg-royal-blue text-white border-royal-blue shadow-sm shadow-royal-blue/20' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:shadow-sm'
+            }`}
           >
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="All Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="dine_in">Dine In</SelectItem>
-              <SelectItem value="takeaway">Take Away</SelectItem>
-            </SelectContent>
-          </Select>
+            <Filter className="w-3.5 h-3.5" />
+            Filters
+            {filterCount > 0 && (
+              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">{filterCount}</span>
+            )}
+          </button>
+          {(filterCount > 0) && (
+            <button onClick={clearFilters} className="px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 hover:text-red-500 hover:border-red-200 transition-all">
+              <XCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
+      </div>
 
-        {/* Order Status Filter */}
-        <div className="space-y-1">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            Status
-          </div>
-          <Select
-            value={statusFilter}
-            onValueChange={(value: OrderStatus | 'all') => setStatusFilter(value)}
+      {/* Filters Panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
           >
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="ready">Ready</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="served">Served</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Search</p>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Customer or ID..."
+                      value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                      className="w-full h-9 pl-9 pr-3 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-royal-blue/20 focus:border-royal-blue/40 transition-all"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Type</p>
+                  <Select value={typeFilter} onValueChange={(v: 'all' | 'dine_in' | 'takeaway') => { setTypeFilter(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-9 text-xs bg-gray-50 border-gray-200 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="dine_in">Dine In</SelectItem>
+                      <SelectItem value="takeaway">Take Away</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Status</p>
+                  <Select value={statusFilter} onValueChange={(v: OrderStatus | 'all') => { setStatusFilter(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-9 text-xs bg-gray-50 border-gray-200 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      {Object.entries(statusConfig).map(([key, config]) => (
+                        <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1.5">Date</p>
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => { setDateFilter(e.target.value); setCurrentPage(1); }}
+                    className="w-full h-9 bg-gray-50 border border-gray-200 rounded-xl px-3 text-xs focus:outline-none focus:ring-2 focus:ring-royal-blue/20 focus:border-royal-blue/40 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Date Filter */}
-        <div className="space-y-1">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            Date
-          </div>
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="h-9 w-full rounded-md border border-border/40 bg-background/60 px-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
-          />
-        </div>
-      </div>
-
-      {/* Clear Filters */}
-      <div className="flex justify-end -mt-1">
-        <button
-          type="button"
-          onClick={clearFilters}
-          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
-        >
-          <XCircle className="w-3 h-3" />
-          <span>Clear filters</span>
-        </button>
-      </div>
-
+      {/* Orders Grid */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 border-2 border-royal-blue/20 border-t-royal-blue rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-2.5 h-2.5 bg-royal-blue rounded-full animate-pulse-soft" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 font-medium">Loading orders...</p>
+          </div>
         </div>
       ) : filteredOrders.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No orders found for selected filters
-          </CardContent>
-        </Card>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+            <ShoppingBag className="w-7 h-7 text-gray-300" />
+          </div>
+          <p className="text-base font-semibold text-gray-700">No orders found</p>
+          <p className="text-sm text-gray-400 mt-1">{orders.length === 0 ? 'No orders have been placed yet' : 'Try adjusting your filters'}</p>
+          {orders.length > 0 && (
+            <button onClick={clearFilters} className="mt-4 px-4 py-2 bg-royal-blue text-white text-sm font-semibold rounded-xl hover:bg-royal-blue-dark transition-all shadow-sm shadow-royal-blue/20">
+              Clear Filters
+            </button>
+          )}
+        </motion.div>
       ) : (
-       <>
-         {/* Responsive grid for compact order cards */}
-         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-           {paginatedOrders.map((order) => {
-             const badge = getStatusBadge(order.status);
-             return (
-               <Card
-                 key={order.id}
-                 className={`border border-border/40 rounded-2xl overflow-hidden transition-all duration-150 hover:shadow-md ${getStatusCardClasses(order.status)}`}
-               >
-                 <CardHeader className="pb-2 px-3 pt-3">
-                   <div className="flex items-start justify-between gap-2">
-                     {/* Left: highlight user information */}
-                     <div className="flex items-start gap-1.5">
-                       <User className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
-                       <div className="leading-tight">
-                         <div className="text-xs font-semibold text-foreground">
-                           {order.customer_name}
-                         </div>
-                         {order.customer_phone && (
-                           <div className="text-[10px] text-muted-foreground">
-                             {order.customer_phone}
-                           </div>
-                         )}
-                       </div>
-                     </div>
- 
-                     {/* Right: status badge + subtle order id */}
-                     <div className="flex flex-col items-end gap-0.5">
-                       <Badge
-                         className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${badge.className}`}
-                       >
-                         {badge.label}
-                       </Badge>
-                       <div className="text-[9px] text-muted-foreground font-mono">
-                         #{order.id.substring(0, 8)}
-                       </div>
-                     </div>
-                   </div>
-                 </CardHeader>
-                 <CardContent className="px-3 pb-3 pt-1 space-y-2.5">
-                   {/* Top meta: type + time */}
-                   <div className="space-y-1.5">
-                     <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
-                       <div className="flex items-center gap-1.5">
-                         {order.order_type === 'dine_in' ? (
-                           <UtensilsCrossed className="h-3.5 w-3.5" />
-                         ) : (
-                           <ShoppingBag className="h-3.5 w-3.5" />
-                         )}
-                         <span className="capitalize">
-                           {order.order_type === 'dine_in' ? 'Dine in' : 'Takeaway'}
-                         </span>
-                       </div>
-                       <div className="flex flex-col items-end gap-0">
-                         <div className="flex items-center gap-1.5">
-                           <Clock className="h-3.5 w-3.5" />
-                           <span>{formatTimeAgo(order.created_at)}</span>
-                         </div>
-                         <div className="text-[8px] text-muted-foreground/80">
-                           {(() => {
-                             const d = new Date(order.created_at);
-                             const day = String(d.getDate()).padStart(2, '0');
-                             const month = String(d.getMonth() + 1).padStart(2, '0');
-                             const year = d.getFullYear();
-                             let hours = d.getHours();
-                             const minutes = String(d.getMinutes()).padStart(2, '0');
-                             const ampm = hours >= 12 ? 'PM' : 'AM';
-                             hours = hours % 12 || 12;
-                             return `${day}/${month}/${year} - ${hours}:${minutes} ${ampm}`;
-                           })()}
-                         </div>
-                       </div>
-                     </div>
-                   </div>
+        <>
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+            <AnimatePresence>
+              {paginatedOrders.map((order, idx) => {
+                const status = statusConfig[order.status];
+                return (
+                  <motion.div
+                    key={order.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="group bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-lg hover:shadow-gray-200/40 transition-all duration-300 overflow-hidden"
+                  >
+                    {/* Status bar */}
+                    <div className={`h-1 w-full ${status.bg}`} />
 
-                   {/* Dine-in Reservation Info */}
-                   {order.order_type === 'dine_in' && order.party_size && (
-                     <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 space-y-1">
-                       <div className="flex items-center gap-2 text-[10px]">
-                         <Users className="h-3.5 w-3.5 text-primary" />
-                         <span className="font-semibold text-foreground">
-                           Party of {order.party_size}
-                         </span>
-                       </div>
-                       <div className="flex items-center gap-2 text-[10px]">
-                         <Calendar className="h-3.5 w-3.5 text-primary" />
-                         <span className="text-foreground">
-                           {order.reservation_date === 'today' 
-                             ? 'Today' 
-                             : order.reservation_date === 'tomorrow' 
-                             ? 'Tomorrow' 
-                             : new Date(order.reservation_date || '').toLocaleDateString('en-US', { 
-                                 weekday: 'short', 
-                                 day: 'numeric', 
-                                 month: 'short' 
-                               })} at {order.reservation_time}
-                         </span>
-                       </div>
-                     </div>
-                   )}
+                    <div className="p-4 sm:p-5 space-y-3">
+                      {/* Header: Customer + Status */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-royal-blue/10 to-brand-blue/10 border border-royal-blue/10 flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-royal-blue" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{order.customer_name}</p>
+                            <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                              {order.customer_phone && (
+                                <span className="flex items-center gap-1">
+                                  <Phone className="w-2.5 h-2.5" />
+                                  {order.customer_phone}
+                                </span>
+                              )}
+                              <span className="text-[8px]">#{order.id.substring(0, 8)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.bg} ${status.color} border ${status.border} flex items-center gap-1.5 flex-shrink-0`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                          {status.label}
+                        </div>
+                      </div>
 
-                   {/* Items summary */}
-                   <div className="space-y-0.5">
-                     <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                       Items
-                     </h4>
-                     <ul className="space-y-0.5">
-                       {order.order_items.slice(0, 3).map((item: any, idx: number) => (
-                         <li
-                           key={idx}
-                           className="text-[10px] text-muted-foreground truncate"
-                         >
-                           {item.quantity}x {item.name}
-                         </li>
-                       ))}
-                       {order.order_items.length > 3 && (
-                         <li className="text-[9px] text-muted-foreground/80">
-                           +{order.order_items.length - 3} more item
-                           {order.order_items.length - 3 > 1 ? 's' : ''}
-                         </li>
-                       )}
-                     </ul>
-                   </div>
+                      {/* Meta: Type + Time */}
+                      <div className="flex items-center justify-between text-[11px] text-gray-500">
+                        <span className="flex items-center gap-1.5">
+                          {order.order_type === 'dine_in' ? (
+                            <UtensilsCrossed className="w-3.5 h-3.5" />
+                          ) : (
+                            <ShoppingBag className="w-3.5 h-3.5" />
+                          )}
+                          <span className="capitalize font-medium">{order.order_type === 'dine_in' ? 'Dine In' : 'Takeaway'}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <Timer className="w-3 h-3" />
+                          {formatTimeAgo(order.created_at)}
+                        </span>
+                      </div>
 
-                   {/* Footer: total + status select */}
-                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
-                     <span className="font-semibold text-xs">
-                       {order.total_amount.toLocaleString()} MMK
-                     </span>
-                     <Select
-                       value={order.status}
-                       onValueChange={(value) =>
-                         updateOrderStatus(order.id, value as OrderStatus)
-                       }
-                     >
-                       <SelectTrigger className="h-8 w-32 text-[10px]">
-                         <SelectValue />
-                       </SelectTrigger>
-                       <SelectContent>
-                         <SelectItem value="paid">Paid</SelectItem>
-                         <SelectItem value="preparing">Preparing</SelectItem>
-                         <SelectItem value="ready">Ready</SelectItem>
-                         <SelectItem value="served">Served</SelectItem>
-                         <SelectItem value="completed">Completed</SelectItem>
-                         <SelectItem value="cancelled">Cancelled</SelectItem>
-                       </SelectContent>
-                     </Select>
-                   </div>
-                 </CardContent>
-               </Card>
-             );
-           })}
-         </div>
+                      {/* Dine-in Reservation */}
+                      {order.order_type === 'dine_in' && order.party_size && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50/50 border border-amber-100/50">
+                          <Users className="w-3.5 h-3.5 text-amber-600" />
+                          <span className="text-[11px] font-medium text-amber-800">Party of {order.party_size}</span>
+                          {order.reservation_date && (
+                            <>
+                              <span className="text-amber-300">|</span>
+                              <Calendar className="w-3 h-3 text-amber-600" />
+                              <span className="text-[11px] text-amber-700">
+                                {order.reservation_date === 'today' ? 'Today' : order.reservation_date === 'tomorrow' ? 'Tomorrow' : new Date(order.reservation_date).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                {order.reservation_time && ` at ${order.reservation_time}`}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      )}
 
-         {/* Pagination controls */}
-         {totalPages > 1 && (
-           <div className="flex items-center justify-center gap-2 mt-4 pb-1">
-             {/* Previous */}
-             <button
-               type="button"
-               onClick={() => handlePageChange(currentPage - 1)}
-               disabled={currentPage === 1}
-               className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium border transition-colors ${
-                 currentPage === 1
-                   ? 'border-border/40 text-muted-foreground/40 bg-background/40 cursor-default'
-                   : 'border-border/70 text-foreground bg-background hover:bg-primary/5'
-               }`}
-             >
-               ‹
-             </button>
+                      {/* Items */}
+                      <div>
+                        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Items</p>
+                        <ul className="space-y-0.5">
+                          {order.order_items.slice(0, 3).map((item: any, idx: number) => (
+                            <li key={idx} className="flex items-center justify-between text-[12px]">
+                              <span className="text-gray-700"><span className="font-semibold text-gray-900">{item.quantity}x</span> {item.name}</span>
+                              <span className="text-gray-500 text-[11px]">{Number(item.price).toLocaleString()}K</span>
+                            </li>
+                          ))}
+                          {order.order_items.length > 3 && (
+                            <li className="text-[11px] text-gray-400 font-medium">+{order.order_items.length - 3} more items</li>
+                          )}
+                        </ul>
+                      </div>
 
-             {/* Page numbers */}
-             {Array.from({ length: totalPages }).map((_, idx) => {
-               const page = idx + 1;
-               const isActive = page === currentPage;
-               return (
-                 <button
-                   key={page}
-                   type="button"
-                   onClick={() => handlePageChange(page)}
-                   className={`min-w-9 h-9 px-2 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors ${
-                     isActive
-                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                       : 'bg-background text-muted-foreground border-border/70 hover:bg-primary/5 hover:text-primary'
-                   }`}
-                 >
-                   {page}
-                 </button>
-               );
-             })}
+                      {/* Footer: Total + Status Select */}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-50">
+                        <div>
+                          <p className="text-[10px] text-gray-500 font-medium">Total</p>
+                          <p className="text-base font-bold text-royal-blue font-montserrat">{order.total_amount.toLocaleString()} <span className="text-[10px] font-medium text-gray-500">MMK</span></p>
+                        </div>
+                        <Select value={order.status} onValueChange={(v) => updateOrderStatus(order.id, v as OrderStatus)}>
+                          <SelectTrigger className="h-9 w-36 text-[11px] bg-gray-50 border-gray-200 rounded-xl">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusConfig).map(([key, config]) => (
+                              <SelectItem key={key} value={key}>
+                                <span className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${config.dot}`} />
+                                  {config.label}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
 
-             {/* Next */}
-             <button
-               type="button"
-               onClick={() => handlePageChange(currentPage + 1)}
-               disabled={currentPage === totalPages}
-               className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium border transition-colors ${
-                 currentPage === totalPages
-                   ? 'border-border/40 text-muted-foreground/40 bg-background/40 cursor-default'
-                   : 'border-border/70 text-foreground bg-background hover:bg-primary/5'
-               }`}
-             >
-               ›
-             </button>
-           </div>
-         )}
-       </>
-     )}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 py-6">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/60 bg-white/90 backdrop-blur-md text-[#1D2956] disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#536DFE]/50 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                .map((p, idx, arr) => (
+                  <Fragment key={p}>
+                    {idx > 0 && arr[idx - 1] !== p - 1 && (
+                      <span className="text-gray-400 text-xs">...</span>
+                    )}
+                    <button
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-9 h-9 rounded-xl text-[11px] font-bold transition-all shadow-md ${
+                        currentPage === p
+                          ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/30 scale-105'
+                          : 'border border-white/60 bg-white/90 backdrop-blur-md text-gray-600 hover:border-[#536DFE]/50 hover:text-[#536DFE] hover:shadow-lg'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </Fragment>
+                ))}
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/60 bg-white/90 backdrop-blur-md text-[#1D2956] disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#536DFE]/50 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

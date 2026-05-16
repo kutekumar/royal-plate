@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Building2, Users, ShoppingBag, DollarSign, LogOut } from 'lucide-react';
+import { Building2, Users, ShoppingBag, DollarSign, TrendingUp, Crown, ChevronRight, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, useMotionValue, useTransform, useInView, animate } from 'framer-motion';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 interface Stats {
   totalRestaurants: number;
@@ -14,222 +14,152 @@ interface Stats {
   totalRevenue: number;
 }
 
+const AnimatedCounter = ({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '0px 0px -50px 0px' });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    if (isInView) {
+      const controls = animate(count, value, { duration: 1.5, ease: [0.22, 1, 0.36, 1] });
+      const unsubscribe = rounded.on('change', (latest) => setDisplayValue(latest));
+      return () => { controls.stop(); unsubscribe(); };
+    }
+  }, [isInView, value]);
+
+  return <span ref={ref}>{prefix}{displayValue.toLocaleString()}{suffix}</span>;
+};
+
 const AdminDashboard = () => {
-  const { user, userRole, loading, signOut } = useAuth();
+  const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats>({
-    totalRestaurants: 0,
-    totalOrders: 0,
-    totalCustomers: 0,
-    totalRevenue: 0,
-  });
+  const [stats, setStats] = useState<Stats>({ totalRestaurants: 0, totalOrders: 0, totalCustomers: 0, totalRevenue: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && (!user || userRole !== 'admin')) {
       toast.error('Admin access required');
-      navigate('/auth');
+      if (!user) navigate('/auth', { replace: true });
+      else if (userRole === 'restaurant_owner') navigate('/dashboard', { replace: true });
+      else navigate('/home', { replace: true });
     }
   }, [user, userRole, loading, navigate]);
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success('Logged out successfully');
-      navigate('/auth');
-    } catch (error) {
-      toast.error('Failed to logout');
-    }
-  };
-
   useEffect(() => {
-    if (user && userRole === 'admin') {
-      fetchStats();
-    }
+    if (user && userRole === 'admin') fetchStats();
   }, [user, userRole]);
 
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
-
-      // Fetch restaurants count
-      const { count: restaurantsCount } = await supabase
-        .from('restaurants')
-        .select('*', { count: 'exact', head: true });
-
-      // Fetch orders count and revenue
-      const { data: orders, count: ordersCount } = await supabase
-        .from('orders')
-        .select('total_amount', { count: 'exact' });
-
+      const [{ count: restaurantsCount }, { data: orders, count: ordersCount }, { count: customersCount }] = await Promise.all([
+        supabase.from('restaurants').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('total_amount', { count: 'exact' }),
+        supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+      ]);
       const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-
-      // Fetch customers count (users with customer role)
-      const { count: customersCount } = await supabase
-        .from('user_roles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'customer');
-
-      setStats({
-        totalRestaurants: restaurantsCount || 0,
-        totalOrders: ordersCount || 0,
-        totalCustomers: customersCount || 0,
-        totalRevenue: totalRevenue,
-      });
+      setStats({ totalRestaurants: restaurantsCount || 0, totalOrders: ordersCount || 0, totalCustomers: customersCount || 0, totalRevenue });
     } catch (error) {
       console.error('Error fetching stats:', error);
       toast.error('Failed to load statistics');
-    } finally {
-      setStatsLoading(false);
-    }
+    } finally { setStatsLoading(false); }
   };
 
-  if (loading || statsLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || userRole !== 'admin') {
-    return null;
-  }
+  if (loading || !user || userRole !== 'admin') return null;
 
   const statCards = [
-    {
-      title: 'Total Restaurants',
-      value: stats.totalRestaurants,
-      icon: Building2,
-      description: 'Active restaurants',
-      color: 'text-blue-600',
-    },
-    {
-      title: 'Total Orders',
-      value: stats.totalOrders,
-      icon: ShoppingBag,
-      description: 'All time orders',
-      color: 'text-green-600',
-    },
-    {
-      title: 'Total Customers',
-      value: stats.totalCustomers,
-      icon: Users,
-      description: 'Registered customers',
-      color: 'text-purple-600',
-    },
-    {
-      title: 'Total Revenue',
-      value: `${stats.totalRevenue.toLocaleString()} MMK`,
-      icon: DollarSign,
-      description: 'All time revenue',
-      color: 'text-yellow-600',
-    },
+    { label: 'Total Revenue', gradient: 'from-emerald-400 to-emerald-600', icon: DollarSign, value: stats.totalRevenue, isCurrency: true },
+    { label: 'Total Orders', gradient: 'from-blue-400 to-blue-600', icon: ShoppingBag, value: stats.totalOrders, isCurrency: false },
+    { label: 'Restaurants', gradient: 'from-violet-400 to-violet-600', icon: Building2, value: stats.totalRestaurants, isCurrency: false },
+    { label: 'Customers', gradient: 'from-amber-400 to-amber-600', icon: Users, value: stats.totalCustomers, isCurrency: false },
+  ];
+
+  const navCards = [
+    { label: 'Restaurants', value: stats.totalRestaurants, icon: Building2, path: '/admin/restaurants', gradient: 'from-blue-500 to-blue-600', desc: 'Manage all restaurants' },
+    { label: 'Owners', icon: Shield, path: '/admin/owners', gradient: 'from-violet-500 to-violet-600', desc: 'Manage owner accounts' },
+    { label: 'Orders', value: stats.totalOrders, icon: ShoppingBag, path: '/admin/orders', gradient: 'from-emerald-500 to-emerald-600', desc: 'View platform orders' },
+    { label: 'Users', value: stats.totalCustomers, icon: Users, path: '/admin/users', gradient: 'from-amber-500 to-amber-600', desc: 'Manage all users' },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2 tracking-tight">Admin Dashboard</h1>
-              <p className="text-muted-foreground font-light">Manage your Royal Plate platform</p>
+    <AdminLayout title="Overview" subtitle="Platform insights">
+      {statsLoading ? (
+        <div className="flex justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 border-2 border-royal-blue/20 border-t-royal-blue rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-2.5 h-2.5 bg-royal-blue rounded-full animate-pulse-soft" />
+              </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive border-border/50 font-semibold"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
+            <p className="text-sm text-gray-500 font-medium">Loading admin panel...</p>
           </div>
         </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.title} className="luxury-shadow hover:shadow-2xl transition-all border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-semibold tracking-wide">
-                    {stat.title}
-                  </CardTitle>
-                  <Icon className={`h-5 w-5 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground mt-1 font-light">
-                    {stat.description}
+      ) : (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {statCards.map((card, idx) => {
+              const Icon = card.icon;
+              return (
+                <motion.div
+                  key={card.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(83,109,254,0.15)' }}
+                  className="relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-xl border border-white/60 p-5 shadow-lg"
+                >
+                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`} />
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-3 shadow-lg`}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="text-3xl font-bold text-[#1D2956] font-montserrat">
+                    {card.isCurrency && <span className="text-lg text-gray-400 mr-1">MMK</span>}
+                    <AnimatedCounter value={card.value} />
                   </p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  <p className="text-gray-500 text-xs font-medium mt-1">{card.label}</p>
+                </motion.div>
+              );
+            })}
+          </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card
-            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
-            onClick={() => navigate('/admin/restaurants')}
-          >
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Restaurants
-              </CardTitle>
-              <CardDescription>Manage all restaurants</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card
-            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
-            onClick={() => navigate('/admin/owners')}
-          >
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 font-bold">
-                <Users className="h-5 w-5" />
-                Restaurant Owners
-              </CardTitle>
-              <CardDescription className="font-light">Manage owner accounts</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card
-            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
-            onClick={() => navigate('/admin/orders')}
-          >
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 font-bold">
-                <ShoppingBag className="h-5 w-5" />
-                Orders Report
-              </CardTitle>
-              <CardDescription className="font-light">View all orders</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card
-            className="cursor-pointer luxury-shadow hover:shadow-2xl transition-all hover:scale-105 border-border/50"
-            onClick={() => navigate('/admin/users')}
-          >
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Users
-              </CardTitle>
-              <CardDescription>Manage all users</CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </div>
-    </div>
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Crown className="w-4 h-4 text-gold" />
+              <h2 className="text-base font-bold text-royal-blue font-montserrat">Quick Navigation</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {navCards.map((card, idx) => {
+                const Icon = card.icon;
+                return (
+                  <motion.button
+                    key={card.label}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 + 0.3, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -2 }}
+                    onClick={() => navigate(card.path)}
+                    className="group relative bg-white rounded-2xl border border-gray-100 p-5 text-left hover:shadow-lg hover:shadow-gray-200/40 hover:border-gray-200 transition-all duration-300 overflow-hidden"
+                  >
+                    <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient}/10 flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6`} style={{ color: card.gradient.includes('blue') ? '#3B82F6' : card.gradient.includes('violet') ? '#8B5CF6' : card.gradient.includes('emerald') ? '#10B981' : '#F59E0B' }} />
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                    <p className="text-lg font-bold text-royal-blue font-montserrat">{card.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{card.desc}</p>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </AdminLayout>
   );
 };
 

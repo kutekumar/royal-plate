@@ -1,25 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search, Shield, User as UserIcon, Plus, Edit, Trash2, Building2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, User as UserIcon, Plus, Edit, Trash2, Building2, Shield, ChevronLeft, ChevronRight, Loader2, Mail, Phone as PhoneIcon, Key, UserCircle, CalendarDays, ArrowLeft, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 interface User {
-  user_id: string;
-  full_name: string;
-  phone: string | null;
-  role: string;
-  created_at: string;
+  user_id: string; full_name: string; phone: string | null; role: string; created_at: string; email?: string;
 }
+
+const roleConfig: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
+  admin: { label: 'Admin', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200/50', dot: 'bg-red-500' },
+  restaurant_owner: { label: 'Owner', color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200/50', dot: 'bg-blue-500' },
+  customer: { label: 'Customer', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200/50', dot: 'bg-emerald-500' },
+};
+
+const ITEMS_PER_PAGE = 10;
 
 const AdminUsers = () => {
   const { user, userRole, loading } = useAuth();
@@ -28,9 +31,10 @@ const AdminUsers = () => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'customer' | 'restaurant_owner' | 'admin'>('all');
+  const [page, setPage] = useState(1);
 
-  // Detail and creation dialogs state
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [view, setView] = useState<'list' | 'detail'>('list');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [detailEmail, setDetailEmail] = useState<string>('');
   const [detailRestaurantId, setDetailRestaurantId] = useState<string | null>(null);
@@ -40,872 +44,576 @@ const AdminUsers = () => {
   const [detailRole, setDetailRole] = useState<string>('customer');
 
   const [restaurants, setRestaurants] = useState<{ id: string; name: string }[]>([]);
-
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createRole, setCreateRole] = useState<'customer' | 'restaurant_owner' | 'admin'>('customer');
   const [createName, setCreateName] = useState('');
   const [createEmail, setCreateEmail] = useState('');
   const [createPassword, setCreatePassword] = useState('');
   const [createPhone, setCreatePhone] = useState('');
   const [createRestaurantId, setCreateRestaurantId] = useState<string | null>(null);
+  const [fetching, setFetching] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || userRole !== 'admin')) {
       toast.error('Admin access required');
-      navigate('/auth');
+      if (!user) navigate('/auth');
+      else if (userRole === 'restaurant_owner') navigate('/dashboard');
+      else navigate('/home');
     }
   }, [user, userRole, loading, navigate]);
 
-  useEffect(() => {
-   if (user && userRole === 'admin') {
-     fetchUsers();
-     fetchRestaurants();
-   }
- }, [user, userRole]);
+  useEffect(() => { if (user && userRole === 'admin') { fetchUsers(); fetchRestaurants(); } }, [user, userRole]);
 
   useEffect(() => {
-    const search = searchQuery.toLowerCase();
-
-    const filtered = users.filter((u) => {
-      const matchesSearch =
-        u.full_name.toLowerCase().includes(search) ||
-        u.role.toLowerCase().includes(search) ||
-        (u.phone && u.phone.toLowerCase().includes(search)) ||
-        u.user_id.toLowerCase().includes(search);
-
-      const matchesRole = roleFilter === 'all' ? true : u.role === roleFilter;
-
-      return matchesSearch && matchesRole;
-    });
-
-    setFilteredUsers(filtered);
+    const q = searchQuery.toLowerCase();
+    setFilteredUsers(users.filter(u =>
+      (u.full_name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q) || (u.phone && u.phone.toLowerCase().includes(q)) || u.user_id.toLowerCase().includes(q)) &&
+      (roleFilter === 'all' || u.role === roleFilter)
+    ));
+    setPage(1);
   }, [searchQuery, roleFilter, users]);
 
   const fetchUsers = async () => {
-    console.log('🔍 Fetching users and details via RPC...');
-
     try {
-      // Fetch all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role, created_at')
-        .order('created_at', { ascending: false });
+      setFetching(true);
+      const { data: userRoles } = await supabase.from('user_roles').select('user_id, role, created_at').order('created_at', { ascending: false });
+      if (!userRoles || userRoles.length === 0) { setUsers([]); return; }
 
-      if (rolesError) {
-        console.error('❌ Error fetching user roles:', rolesError);
-        toast.error('Failed to load users');
-        return;
-      }
+      const userIds = userRoles.map(r => r.user_id);
+      let details: any[] = [];
+      let rpc = await supabase.rpc('get_order_customers_fallback', { customer_ids: userIds });
+      if (rpc.error) rpc = await supabase.rpc('get_order_customers', { customer_ids: userIds });
+      if (!rpc.error) details = (rpc.data as any[]) || [];
 
-      if (!userRoles || userRoles.length === 0) {
-        console.log('ℹ️ No users found in user_roles table');
-        setUsers([]);
-        setFilteredUsers([]);
-        return;
-      }
-
-      const userIds = userRoles.map((r) => r.user_id);
-
-      // Fetch customer/user details via RPC (name, email, phone)
-      type UserDetail = { user_id: string; full_name: string | null; email: string | null; phone: string | null };
-      let details: UserDetail[] = [];
-      try {
-        let rpc = await supabase.rpc('get_order_customers_fallback', { customer_ids: userIds });
-        if (rpc.error) {
-          console.warn('⚠️ get_order_customers_fallback not available, trying get_order_customers:', rpc.error.message);
-          rpc = await supabase.rpc('get_order_customers', { customer_ids: userIds });
-        }
-        if (rpc.error) {
-          console.error('❌ Error fetching user details via RPC:', rpc.error);
-          toast.error('Failed to load some user details');
-        } else {
-          details = (rpc.data as UserDetail[]) || [];
-        }
-      } catch (e) {
-        console.error('❌ Unexpected RPC error:', e);
-      }
-
-      const detailMap = new Map(details.map((d) => [d.user_id, d]));
-
-      // Create final users data
-      const usersData: User[] = userRoles.map((role) => {
+      const detailMap = new Map(details.map((d: any) => [d.user_id, d]));
+      setUsers(userRoles.map(role => {
         const d = detailMap.get(role.user_id);
-        const displayName = d?.full_name?.trim()
-          ? d.full_name.trim()
-          : `User ${role.user_id.substring(0, 8)}`;
-
-        return {
-          user_id: role.user_id,
-          full_name: displayName,
-          phone: d?.phone || null,
-          role: role.role,
-          created_at: role.created_at,
-        };
-      });
-
-      console.log('📊 Final users data (via RPC):', {
-        total: usersData.length,
-        withRealNames: usersData.filter((u) => !u.full_name.startsWith('User ')).length,
-        withPhones: usersData.filter((u) => u.phone).length,
-      });
-
-      setUsers(usersData);
-      setFilteredUsers(usersData);
+        return { user_id: role.user_id, full_name: d?.full_name?.trim() || `User ${role.user_id.substring(0, 8)}`, phone: d?.phone || null, role: role.role, created_at: role.created_at };
+      }));
     } catch (error) {
-      console.error('❌ Unexpected error in fetchUsers:', error);
-      toast.error('An unexpected error occurred while loading users');
-    }
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+    } finally { setFetching(false); }
   };
 
   const fetchRestaurants = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('id, name')
-        .order('name');
-
-      if (error) {
-        console.error('❌ Error fetching restaurants:', error);
-        return;
-      }
-
-      setRestaurants(data || []);
-    } catch (error) {
-      console.error('❌ Unexpected error fetching restaurants:', error);
-    }
+    const { data } = await supabase.from('restaurants').select('id, name').order('name');
+    setRestaurants(data || []);
   };
 
-  const handleViewDetails = async (user: User) => {
-    console.log('👁️ Opening user details for:', user.user_id.substring(0, 8));
-    setSelectedUser(user);
-    setDetailName(user.full_name);
-    setDetailPhone(user.phone || '');
-    setDetailRole(user.role);
+  const handleViewDetails = async (u: User) => {
+    setSelectedUser(u); setDetailName(u.full_name); setDetailPhone(u.phone || ''); setDetailRole(u.role);
 
-    // Fetch email via RPC
     try {
-      let rpc = await supabase.rpc('get_order_customers_fallback', { customer_ids: [user.user_id] });
-      if (rpc.error) {
-        rpc = await supabase.rpc('get_order_customers', { customer_ids: [user.user_id] });
-      }
-      if (!rpc.error && rpc.data && rpc.data.length > 0) {
-        setDetailEmail(rpc.data[0].email || 'Email not available');
-      } else {
-        setDetailEmail('Email not available');
-      }
-    } catch (e) {
-      setDetailEmail('Email not available');
+      let rpc = await supabase.rpc('get_order_customers_fallback', { customer_ids: [u.user_id] });
+      if (rpc.error) rpc = await supabase.rpc('get_order_customers', { customer_ids: [u.user_id] });
+      setDetailEmail(!rpc.error && rpc.data?.[0]?.email ? rpc.data[0].email : 'Email not available');
+    } catch { setDetailEmail('Email not available'); }
+
+    setDetailRestaurantId(null); setDetailRestaurantName(null);
+    if (u.role === 'restaurant_owner') {
+      const { data: owned } = await supabase.from('restaurants').select('id, name').eq('owner_id', u.user_id).limit(1).maybeSingle();
+      if (owned) { setDetailRestaurantId(owned.id); setDetailRestaurantName(owned.name); }
     }
+    setView('detail');
+  };
 
-    // Fetch linked restaurant if role is restaurant_owner
-    setDetailRestaurantId(null);
-    setDetailRestaurantName(null);
-
-    if (user.role === 'restaurant_owner') {
-      try {
-        // First try: use restaurants table where owner_id matches this user
-        const { data: ownedRestaurants, error: ownedError } = await supabase
-          .from('restaurants')
-          .select('id, name')
-          .eq('owner_id', user.user_id)
-          .limit(1)
-          .maybeSingle();
-
-        if (!ownedError && ownedRestaurants) {
-          setDetailRestaurantId(ownedRestaurants.id);
-          setDetailRestaurantName(ownedRestaurants.name || 'Linked Restaurant');
-        } else {
-          // Fallback: legacy/link-table based relationship via restaurant_owners
-          const { data: ownerData, error: relError } = await supabase
-            .from('restaurant_owners')
-            .select('restaurant_id, restaurants(name)')
-            .eq('user_id', user.user_id)
-            .maybeSingle();
-
-          if (!relError && ownerData) {
-            setDetailRestaurantId(ownerData.restaurant_id);
-            setDetailRestaurantName((ownerData.restaurants as any)?.name || 'Linked Restaurant');
-          }
-        }
-      } catch (e) {
-        console.error('❌ Error fetching restaurant for owner:', e);
-      }
-    }
-
-    setIsDetailOpen(true);
+  const handleBack = () => {
+    setView('list');
+    setSelectedUser(null);
   };
 
   const handleEditUser = async () => {
     if (!selectedUser) return;
-
+    setSaving(true);
     try {
-      // Update profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: detailName.trim(),
-          phone: detailPhone.trim() || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedUser.user_id);
-
-      if (profileError) {
-        console.error('❌ Error updating profile:', profileError);
-        toast.error('Failed to update user profile');
-        return;
-      }
-
-      // Update role if changed
+      await supabase.from('profiles').update({ full_name: detailName.trim(), phone: detailPhone.trim() || null, updated_at: new Date().toISOString() }).eq('id', selectedUser.user_id);
       if (detailRole !== selectedUser.role) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .update({ role: detailRole })
-          .eq('user_id', selectedUser.user_id);
-
-        if (roleError) {
-          console.error('❌ Error updating role:', roleError);
-          toast.error('Failed to update user role');
-          return;
-        }
-
-        // Handle restaurant owner role change
-        if (detailRole === 'restaurant_owner' && detailRestaurantId) {
-          // Add or update restaurant_owners entry
-          const { error: ownerError } = await supabase
-            .from('restaurant_owners')
-            .upsert({
-              user_id: selectedUser.user_id,
-              restaurant_id: detailRestaurantId,
-              created_at: new Date().toISOString()
-            });
-
-          if (ownerError) {
-            console.error('❌ Error linking restaurant:', ownerError);
-            toast.error('Failed to link restaurant');
-            return;
-          }
-        } else if (selectedUser.role === 'restaurant_owner' && detailRole !== 'restaurant_owner') {
-          // Remove restaurant_owners entry
-          await supabase
-            .from('restaurant_owners')
-            .delete()
-            .eq('user_id', selectedUser.user_id);
-        }
+        const { error: roleError } = await supabase.from('user_roles').update({ role: detailRole }).eq('user_id', selectedUser.user_id);
+        if (roleError) { toast.error('Failed to update user role'); setSaving(false); return; }
       }
-
       toast.success('User updated successfully');
-      setIsDetailOpen(false);
-      fetchUsers();
-    } catch (error) {
-      console.error('❌ Unexpected error updating user:', error);
-      toast.error('An unexpected error occurred');
-    }
+      setView('list'); setSelectedUser(null); fetchUsers();
+    } catch { toast.error('Failed to update user'); }
+    finally { setSaving(false); }
   };
 
   const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      return;
-    }
-
+    if (!selectedUser || !confirm('Are you sure? This cannot be undone.')) return;
     try {
-      console.log('🗑️ Deleting user:', selectedUser.user_id.substring(0, 8), 'with role:', selectedUser.role);
-
-      // Delete from restaurant_owners if applicable (check for any restaurant ownership, not just current role)
-      console.log('🔄 Checking for restaurant ownership...');
-      const { data: ownershipData, error: ownershipCheckError } = await supabase
-        .from('restaurant_owners')
-        .select('restaurant_id')
-        .eq('user_id', selectedUser.user_id);
-
-      if (!ownershipCheckError && ownershipData && ownershipData.length > 0) {
-        console.log('🔄 Removing restaurant ownership links...');
-        const { error: ownerError } = await supabase
-          .from('restaurant_owners')
-          .delete()
-          .eq('user_id', selectedUser.user_id);
-
-        if (ownerError) {
-          console.error('❌ Error deleting restaurant ownership:', ownerError);
-          toast.error(`Failed to remove restaurant links: ${ownerError.message}`);
-          return;
-        }
-        console.log('✅ Restaurant ownership removed');
-      }
-
-      // Delete from user_roles
-      console.log('🔄 Deleting user role...');
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', selectedUser.user_id);
-
-      if (roleError) {
-        console.error('❌ Error deleting user role:', roleError);
-        toast.error(`Failed to delete user role: ${roleError.message}`);
-        return;
-      }
-      console.log('✅ User role deleted');
-
-      // Delete profile
-      console.log('🔄 Deleting user profile...');
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', selectedUser.user_id);
-
-      if (profileError) {
-        console.error('❌ Error deleting profile:', profileError);
-        toast.error(`Failed to delete user profile: ${profileError.message}`);
-        return;
-      }
-      console.log('✅ User profile deleted');
-
-      // Optionally delete from auth.users (this might require service role)
-      try {
-        console.log('🔄 Attempting to delete auth user...');
-        const { error: authError } = await supabase.auth.admin.deleteUser(selectedUser.user_id);
-        if (authError) {
-          console.warn('⚠️ Could not delete auth user (service role required):', authError.message);
-          // This is not critical - the user won't appear in admin panel anyway
-        } else {
-          console.log('✅ Auth user deleted');
-        }
-      } catch (authDeleteError) {
-        console.warn('⚠️ Auth user deletion not available:', authDeleteError);
-        // Not critical
-      }
-
-      console.log('🎉 User deletion complete');
+      await supabase.from('restaurant_owners').delete().eq('user_id', selectedUser.user_id);
+      await supabase.from('user_roles').delete().eq('user_id', selectedUser.user_id);
+      await supabase.from('profiles').delete().eq('id', selectedUser.user_id);
+      await supabase.auth.admin.deleteUser(selectedUser.user_id).catch(() => {});
       toast.success('User deleted successfully');
-      setIsDetailOpen(false);
-      
-      // Give a small delay to ensure database transactions are complete
-      setTimeout(() => {
-        fetchUsers();
-      }, 500);
-      
-    } catch (error) {
-      console.error('❌ Unexpected error deleting user:', error);
-      toast.error('An unexpected error occurred');
-    }
+      setView('list'); setSelectedUser(null); setTimeout(() => fetchUsers(), 500);
+    } catch { toast.error('Failed to delete user'); }
   };
 
   const handleCreateUser = async () => {
-    if (!createName.trim() || !createEmail.trim() || !createPassword.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
+    if (!createName.trim() || !createEmail.trim() || !createPassword.trim()) { toast.error('Please fill in all required fields'); return; }
     try {
-      console.log('🔄 Creating user without auth signup to prevent session interference...');
-      console.log('🔄 Selected role for new user:', createRole);
-      
-      // Store current admin session for verification
-      const currentSession = await supabase.auth.getSession();
-      const adminUser = currentSession.data.session?.user;
-      
-      if (!adminUser) {
-        toast.error('Admin session not found');
-        return;
-      }
-
-      console.log('👨‍💼 Current admin:', adminUser.email, 'ID:', adminUser.id.substring(0, 8));
-
-      // Call Supabase Edge Function to create user without affecting admin session
-      console.log('🔄 Creating user via edge function...');
-      const { data: fnData, error: fnError } = await supabase.functions.invoke('admin-create-user', {
-        body: {
-          email: createEmail.trim(),
-          password: createPassword.trim(),
-          full_name: createName.trim(),
-          phone: createPhone.trim() || null,
-          role: createRole,
-          restaurant_id: createRestaurantId,
-        },
+      const { error: fnError } = await supabase.functions.invoke('admin-create-user', {
+        body: { email: createEmail.trim(), password: createPassword.trim(), full_name: createName.trim(), phone: createPhone.trim() || null, role: createRole, restaurant_id: createRestaurantId },
       });
-
-      if (fnError) {
-        console.error('❌ Edge function error:', fnError);
-        toast.error(fnError.message || 'Failed to create user');
-        return;
-      }
-
-      console.log('✅ Edge function result:', fnData);
-
-      // 5. Verify admin session is still intact (should be unchanged)
-      const verifySession = await supabase.auth.getSession();
-      if (verifySession.data.session?.user?.id === adminUser.id) {
-        console.log('✅ Admin session remained intact:', verifySession.data.session.user.email);
-      } else {
-        console.error('❌ Admin session was somehow changed!');
-      }
-
-      console.log('🎉 User creation complete without session interference');
-      toast.success(`${createRole.charAt(0).toUpperCase() + createRole.slice(1)} user created successfully`);
-      
-      // Reset form
-      setIsCreateOpen(false);
-      setCreateRole('customer');
-      setCreateName('');
-      setCreateEmail('');
-      setCreatePassword('');
-      setCreatePhone('');
-      setCreateRestaurantId(null);
-      
-      // Refresh user list
-      fetchUsers();
-
-    } catch (error) {
-      console.error('❌ Unexpected error creating user:', error);
-      toast.error('An unexpected error occurred');
-    }
-  };
-
-  const createUserProfile = async (userId: string) => {
-    try {
-      console.log('🔄 Creating profile for user:', userId.substring(0, 8));
-      
-      // Create profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          full_name: createName.trim(),
-          phone: createPhone.trim() || null,
-          updated_at: new Date().toISOString()
-        })
-        .select();
-
-      if (profileError) {
-        console.error('❌ Error creating profile:', profileError);
-        toast.error(`Failed to create user profile: ${profileError.message}`);
-        return;
-      }
-
-      console.log('✅ Profile created successfully:', profileData);
-
-      // Create user role
-      console.log('🔄 Creating user role:', createRole);
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: createRole,
-          created_at: new Date().toISOString()
-        })
-        .select();
-
-      if (roleError) {
-        console.error('❌ Error creating user role:', roleError);
-        toast.error(`Failed to assign user role: ${roleError.message}`);
-        return;
-      }
-
-      console.log('✅ User role created successfully:', roleData);
-
-      // Handle restaurant owner linking
-      if (createRole === 'restaurant_owner' && createRestaurantId) {
-        console.log('🔄 Linking restaurant:', createRestaurantId);
-        const { data: ownerData, error: ownerError } = await supabase
-          .from('restaurant_owners')
-          .insert({
-            user_id: userId,
-            restaurant_id: createRestaurantId,
-            created_at: new Date().toISOString()
-          })
-          .select();
-
-        if (ownerError) {
-          console.error('❌ Error linking restaurant:', ownerError);
-          toast.error('User created but failed to link restaurant');
-        } else {
-          console.log('✅ Restaurant linked successfully:', ownerData);
-        }
-      }
-
-      console.log('🎉 User creation complete, refreshing user list...');
+      if (fnError) { toast.error(fnError.message || 'Failed to create user'); return; }
       toast.success('User created successfully');
       setIsCreateOpen(false);
-      setCreateRole('customer');
-      setCreateName('');
-      setCreateEmail('');
-      setCreatePassword('');
-      setCreatePhone('');
-      setCreateRestaurantId(null);
-      
-      // Give a small delay to ensure database transactions are complete
-      setTimeout(() => {
-        fetchUsers();
-      }, 500);
-      
-    } catch (error) {
-      console.error('❌ Unexpected error creating user profile:', error);
-      toast.error('An unexpected error occurred while creating user profile');
-    }
+      setCreateRole('customer'); setCreateName(''); setCreateEmail(''); setCreatePassword(''); setCreatePhone(''); setCreateRestaurantId(null);
+      fetchUsers();
+    } catch { toast.error('Failed to create user'); }
   };
 
-  const getRoleBadge = (role: string) => {
-    const variants: { [key: string]: { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any } } = {
-      admin: { variant: 'destructive', icon: Shield },
-      restaurant_owner: { variant: 'default', icon: UserIcon },
-      customer: { variant: 'secondary', icon: UserIcon },
-    };
+  if (loading || !user || userRole !== 'admin') return null;
 
-    const config = variants[role] || variants.customer;
-    const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
-        <Icon className="h-3 w-3" />
-        {role.replace('_', ' ').toUpperCase()}
-      </Badge>
-    );
+  const stats = {
+    admins: users.filter(u => u.role === 'admin').length,
+    owners: users.filter(u => u.role === 'restaurant_owner').length,
+    customers: users.filter(u => u.role === 'customer').length,
   };
 
-  const getRoleStats = () => {
-    const admins = users.filter(u => u.role === 'admin').length;
-    const owners = users.filter(u => u.role === 'restaurant_owner').length;
-    const customers = users.filter(u => u.role === 'customer').length;
-    return { admins, owners, customers };
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
+  const paginatedUsers = filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  const stats = getRoleStats();
-
-  if (loading || !user || userRole !== 'admin') {
-    return null;
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admin')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold text-foreground">User Management</h1>
-            <p className="text-muted-foreground">Manage all registered users</p>
+  const listView = (
+    <>
+      {/* Role Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center"><Shield className="w-[16px] h-[16px] text-red-600" /></div>
+            <p className="text-xs font-semibold text-gray-500">Administrators</p>
           </div>
+          <p className="text-2xl font-bold text-royal-blue font-montserrat">{stats.admins}</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center"><UserIcon className="w-[16px] h-[16px] text-blue-600" /></div>
+            <p className="text-xs font-semibold text-gray-500">Owners</p>
+          </div>
+          <p className="text-2xl font-bold text-royal-blue font-montserrat">{stats.owners}</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-all">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center"><UserIcon className="w-[16px] h-[16px] text-emerald-600" /></div>
+            <p className="text-xs font-semibold text-gray-500">Customers</p>
+          </div>
+          <p className="text-2xl font-bold text-royal-blue font-montserrat">{stats.customers}</p>
+        </motion.div>
+      </div>
+
+      {/* Search + Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input placeholder="Search by name, email or ID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-10 text-sm bg-white border-gray-200 rounded-xl focus:ring-royal-blue/20" />
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Shield className="h-4 w-4 text-destructive" />
-                Admins
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.admins}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-primary" />
-                Restaurant Owners
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.owners}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-secondary" />
-                Customers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.customers}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search + Role Filter */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="relative md:flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+        <div className="flex items-center gap-2">
+          <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
+            <SelectTrigger className="w-full sm:w-44 h-10 text-sm bg-white border-gray-200 rounded-xl"><SelectValue placeholder="Filter by role" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="restaurant_owner">Owner</SelectItem>
+              <SelectItem value="customer">Customer</SelectItem>
+            </SelectContent>
+          </Select>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-br from-royal-blue to-royal-blue-dark text-white shadow-sm shadow-royal-blue/20 hover:shadow-md hover:shadow-royal-blue/30 transition-all rounded-xl h-10 px-4 text-xs font-semibold gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                Create User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl rounded-2xl border-gray-100/80 shadow-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+              <div className="relative bg-gradient-to-br from-royal-blue/5 via-transparent to-brand-blue/5 px-6 pt-6 pb-5 border-b border-royal-blue/10">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-royal-blue via-brand-blue to-gold" />
+                <DialogHeader>
+                  <DialogTitle className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-royal-blue to-brand-blue flex items-center justify-center shadow-lg shadow-royal-blue/20 shrink-0">
+                      <Plus className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-royal-blue font-montserrat">New User</p>
+                      <p className="text-xs text-gray-500 font-normal mt-0.5">Create a new platform account</p>
+                    </div>
+                  </DialogTitle>
+                </DialogHeader>
               </div>
-              <div className="md:w-64">
-                
-                <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="restaurant_owner">Restaurant Owner</SelectItem>
-                    <SelectItem value="customer">Customer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Users ({filteredUsers.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Registered</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map((u) => (
-                    <TableRow key={u.user_id}>
-                      <TableCell className="font-medium">
-                        <div className="flex flex-col">
-                          <span>{u.full_name}</span>
-                          <span className="text-xs text-muted-foreground">{u.phone ? u.phone : `ID: ${u.user_id.substring(0, 8)}...`}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{u.phone || 'N/A'}</span>
-                      </TableCell>
-                      <TableCell>{getRoleBadge(u.role)}</TableCell>
-                      <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewDetails(u)}>
-                          View Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* User Detail Dialog */}
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>User Details</DialogTitle>
-            </DialogHeader>
-            {selectedUser && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="detail-name">Full Name</Label>
-                    <Input
-                      id="detail-name"
-                      value={detailName}
-                      onChange={(e) => setDetailName(e.target.value)}
-                    />
+              <div className="px-6 py-5 space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-royal-blue to-brand-blue" />
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Personal Information</span>
                   </div>
-                  <div>
-                    <Label htmlFor="detail-phone">Phone</Label>
-                    <Input
-                      id="detail-phone"
-                      value={detailPhone}
-                      onChange={(e) => setDetailPhone(e.target.value)}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-gray-700">Full Name <span className="text-red-400">*</span></Label>
+                      <div className="relative">
+                        <UserCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <Input value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="Enter full name" className="h-11 pl-10 text-sm bg-gray-50/80 border-gray-200 rounded-xl focus:bg-white focus:border-royal-blue/30 transition-all" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-gray-700">Phone</Label>
+                      <div className="relative">
+                        <PhoneIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <Input value={createPhone} onChange={(e) => setCreatePhone(e.target.value)} placeholder="Enter phone number" className="h-11 pl-10 text-sm bg-gray-50/80 border-gray-200 rounded-xl focus:bg-white focus:border-royal-blue/30 transition-all" />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="detail-email">Email</Label>
-                    <Input
-                      id="detail-email"
-                      value={detailEmail}
-                      disabled
-                      className="bg-muted"
-                    />
+
+                <div className="border-t border-gray-100" />
+
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-amber-400 to-amber-500" />
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Account Details</span>
                   </div>
-                  <div>
-                    <Label htmlFor="detail-role">Role</Label>
-                    <Select value={detailRole} onValueChange={setDetailRole}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-gray-700">Email <span className="text-red-400">*</span></Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <Input type="email" value={createEmail} onChange={(e) => setCreateEmail(e.target.value)} placeholder="Enter email address" className="h-11 pl-10 text-sm bg-gray-50/80 border-gray-200 rounded-xl focus:bg-white focus:border-royal-blue/30 transition-all" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-gray-700">Password <span className="text-red-400">*</span></Label>
+                      <div className="relative">
+                        <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <Input type="password" value={createPassword} onChange={(e) => setCreatePassword(e.target.value)} placeholder="Enter password" className="h-11 pl-10 text-sm bg-gray-50/80 border-gray-200 rounded-xl focus:bg-white focus:border-royal-blue/30 transition-all" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100" />
+
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-500" />
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Role &amp; Access</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-gray-700">Role <span className="text-red-400">*</span></Label>
+                    <Select value={createRole} onValueChange={(v: any) => setCreateRole(v)}>
+                      <SelectTrigger className="h-11 border-gray-200 rounded-xl text-sm bg-gray-50/80"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="customer">Customer</SelectItem>
-                        <SelectItem value="restaurant_owner">Restaurant Owner</SelectItem>
+                        <SelectItem value="restaurant_owner">Owner</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  {createRole === 'restaurant_owner' && (
+                    <div className="mt-4 space-y-1.5">
+                      <Label className="text-xs font-semibold text-gray-700">Link to Restaurant</Label>
+                      <Select value={createRestaurantId || ''} onValueChange={setCreateRestaurantId}>
+                        <SelectTrigger className="h-11 border-gray-200 rounded-xl text-sm bg-gray-50/80"><SelectValue placeholder="Select a restaurant (optional)" /></SelectTrigger>
+                        <SelectContent>
+                          {restaurants.map(r => (<SelectItem key={r.id} value={r.id}><span className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5" />{r.name}</span></SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
-                {detailRole === 'restaurant_owner' && detailRestaurantId && detailRestaurantName && (
-                  <div>
-                    <Label>Linked Restaurant</Label>
-                    <p className="mt-1 text-sm font-medium">{detailRestaurantName}</p>
-                  </div>
-                )}
-
-                <div className="border-t pt-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <Label className="text-muted-foreground">User ID</Label>
-                      <p className="font-mono">{selectedUser.user_id}</p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Registration Date</Label>
-                      <p>{new Date(selectedUser.created_at).toLocaleDateString()}</p>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="flex-1 rounded-xl h-12 text-sm border-gray-200 font-semibold hover:bg-gray-50 transition-all">
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateUser} className="flex-1 bg-gradient-to-br from-royal-blue to-royal-blue-dark text-white shadow-lg shadow-royal-blue/20 hover:shadow-xl hover:shadow-royal-blue/30 rounded-xl h-12 text-sm font-semibold gap-2 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]">
+                    <Plus className="w-4 h-4" />Create User
+                  </Button>
                 </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-royal-blue font-montserrat">All Users <span className="text-gray-400 font-normal">({filteredUsers.length})</span></h2>
+        </div>
+        {fetching ? (
+          <div className="flex justify-center py-16">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 text-royal-blue animate-spin" />
+              <p className="text-sm text-gray-500 font-medium">Loading users...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-50">
+                    {['Name', 'Phone', 'Role', 'Registered', ''].map(h => (
+                      <th key={h} className={`text-left px-5 py-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider ${h === '' ? 'text-right' : ''}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {paginatedUsers.length === 0 ? (
+                      <tr><td colSpan={5} className="px-5 py-12 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <UserIcon className="w-8 h-8 text-gray-300" />
+                          <p className="text-sm text-gray-500 font-medium">No users found</p>
+                        </div>
+                      </td></tr>
+                    ) : (
+                      paginatedUsers.map((u, idx) => {
+                        const role = roleConfig[u.role] || roleConfig.customer;
+                        return (
+                          <motion.tr key={u.user_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.02 }} className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/50 transition-colors group">
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-royal-blue/10 to-brand-blue/10 border border-royal-blue/10 flex items-center justify-center">
+                                  <span className="text-xs font-bold text-royal-blue">{u.full_name.charAt(0).toUpperCase()}</span>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-gray-900">{u.full_name}</p>
+                                  <p className="text-[10px] font-mono text-gray-400">ID: {u.user_id.substring(0, 8)}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4"><span className="text-xs text-gray-600">{u.phone || <span className="text-gray-400">N/A</span>}</span></td>
+                            <td className="px-5 py-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-semibold ${role.bg} ${role.color} border ${role.border}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${role.dot}`} />
+                                {role.label}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4"><span className="text-xs text-gray-500">{new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
+                            <td className="px-5 py-4 text-right">
+                              <button onClick={() => handleViewDetails(u)} className="text-xs font-semibold text-royal-blue hover:text-royal-blue/70 transition-colors md:opacity-0 md:group-hover:opacity-100 opacity-100">
+                                View Details
+                              </button>
+                            </td>
+                          </motion.tr>
+                        );
+                      })
+                    )}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 py-4 border-t border-gray-50">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/60 bg-white/90 backdrop-blur-md text-[#1D2956] disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#536DFE]/50 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .map((p, idx, arr) => (
+                    <Fragment key={p}>
+                      {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-gray-400 text-xs">...</span>}
+                      <button
+                        onClick={() => setPage(p)}
+                        className={`w-9 h-9 rounded-xl text-[11px] font-bold transition-all shadow-md ${
+                          page === p
+                            ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-[#536DFE]/30 scale-105'
+                            : 'border border-white/60 bg-white/90 backdrop-blur-md text-gray-600 hover:border-[#536DFE]/50 hover:text-[#536DFE] hover:shadow-lg'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    </Fragment>
+                  ))}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/60 bg-white/90 backdrop-blur-md text-[#1D2956] disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#536DFE]/50 hover:bg-gradient-to-br hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all shadow-md"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             )}
-            <DialogFooter className="flex justify-between">
-              <Button
-                variant="destructive"
-                onClick={handleDeleteUser}
-                className="flex items-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete User
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleEditUser} className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  Save Changes
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </>
+        )}
+      </div>
+    </>
+  );
 
-        {/* Create User Dialog */}
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New User</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="create-name">Full Name *</Label>
-                  <Input
-                    id="create-name"
-                    value={createName}
-                    onChange={(e) => setCreateName(e.target.value)}
-                    placeholder="Enter full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="create-phone">Phone</Label>
-                  <Input
-                    id="create-phone"
-                    value={createPhone}
-                    onChange={(e) => setCreatePhone(e.target.value)}
-                    placeholder="Enter phone number"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="create-email">Email *</Label>
-                  <Input
-                    id="create-email"
-                    type="email"
-                    value={createEmail}
-                    onChange={(e) => setCreateEmail(e.target.value)}
-                    placeholder="Enter email address"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="create-password">Password *</Label>
-                  <Input
-                    id="create-password"
-                    type="password"
-                    value={createPassword}
-                    onChange={(e) => setCreatePassword(e.target.value)}
-                    placeholder="Enter password"
-                  />
-                </div>
-              </div>
+  const role = selectedUser ? (roleConfig[selectedUser.role] || roleConfig.customer) : roleConfig.customer;
 
+  const detailView = selectedUser && (
+    <motion.div key="detail" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ type: 'spring', damping: 28, stiffness: 300 }}>
+      <div className="flex items-center gap-4 mb-6">
+        <button onClick={handleBack} className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-royal-blue hover:border-royal-blue/20 transition-all shadow-sm">
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-royal-blue to-brand-blue flex items-center justify-center shadow-lg shadow-royal-blue/20 shrink-0">
+            <span className="text-lg font-bold text-white">{selectedUser.full_name.charAt(0).toUpperCase()}</span>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-royal-blue font-montserrat">User Details</p>
+            <p className="text-xs text-gray-500 font-normal">View and edit user information</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100/80 shadow-sm max-w-2xl">
+        <div className="px-6 py-5 space-y-6">
+          {/* Role Badge */}
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-50/50 border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-royal-blue to-brand-blue flex items-center justify-center shadow-sm">
+                <span className="text-base font-bold text-white">{selectedUser.full_name.charAt(0).toUpperCase()}</span>
+              </div>
               <div>
-                <Label htmlFor="create-role">Role *</Label>
-                <Select value={createRole} onValueChange={(value: any) => setCreateRole(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                <p className="text-sm font-bold text-royal-blue font-montserrat">{selectedUser.full_name}</p>
+                <p className="text-[11px] text-gray-500">{detailEmail || selectedUser.user_id.substring(0, 8)}</p>
+              </div>
+            </div>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold ${role.bg} ${role.color} border ${role.border}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${role.dot}`} />
+              {role.label}
+            </span>
+          </div>
+
+          <div className="border-t border-gray-100" />
+
+          {/* Personal Info */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1 h-4 rounded-full bg-gradient-to-b from-royal-blue to-brand-blue" />
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Personal Information</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">Full Name</Label>
+                <div className="relative">
+                  <UserCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Input value={detailName} onChange={(e) => setDetailName(e.target.value)} className="h-11 pl-10 text-sm bg-gray-50/80 border-gray-200 rounded-xl focus:bg-white focus:border-royal-blue/30 transition-all" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">Phone</Label>
+                <div className="relative">
+                  <PhoneIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Input value={detailPhone} onChange={(e) => setDetailPhone(e.target.value)} className="h-11 pl-10 text-sm bg-gray-50/80 border-gray-200 rounded-xl focus:bg-white focus:border-royal-blue/30 transition-all" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100" />
+
+          {/* Account Info */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1 h-4 rounded-full bg-gradient-to-b from-amber-400 to-amber-500" />
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Account</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <Input value={detailEmail} disabled className="h-11 pl-10 text-sm bg-gray-100 border-gray-200 rounded-xl text-gray-500 cursor-not-allowed" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-700">Role</Label>
+                <Select value={detailRole} onValueChange={setDetailRole}>
+                  <SelectTrigger className="h-11 border-gray-200 rounded-xl text-sm bg-gray-50/80"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="customer">Customer</SelectItem>
-                    <SelectItem value="restaurant_owner">Restaurant Owner</SelectItem>
+                    <SelectItem value="restaurant_owner">Owner</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          </div>
 
-              {createRole === 'restaurant_owner' && (
-                <div>
-                  <Label htmlFor="create-restaurant">Link to Restaurant</Label>
-                  <Select value={createRestaurantId || ''} onValueChange={setCreateRestaurantId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a restaurant (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {restaurants.map((restaurant) => (
-                        <SelectItem key={restaurant.id} value={restaurant.id}>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            {restaurant.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    You can link the user to a restaurant later if needed
-                  </p>
+          {detailRole === 'restaurant_owner' && detailRestaurantName && (
+            <>
+              <div className="border-t border-gray-100" />
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-4 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-500" />
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Linked Restaurant</span>
                 </div>
-              )}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-blue-800">{detailRestaurantName}</p>
+                      <p className="text-[11px] text-blue-600/70">Active restaurant link</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
-              <div className="bg-muted p-3 rounded-md">
-                <p className="text-sm text-muted-foreground">
-                  * Required fields. The user will receive an email confirmation to activate their account.
-                </p>
+          <div className="border-t border-gray-100" />
+
+          {/* Meta */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-1 h-4 rounded-full bg-gradient-to-b from-purple-400 to-purple-500" />
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em]">Metadata</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <UserCircle className="w-3.5 h-3.5 text-gray-400" />
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">User ID</p>
+                </div>
+                <p className="text-xs font-mono font-medium text-gray-700 truncate">{selectedUser.user_id}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <CalendarDays className="w-3.5 h-3.5 text-gray-400" />
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Registered</p>
+                </div>
+                <p className="text-xs font-medium text-gray-700">{new Date(selectedUser.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-2">
+            <Button variant="destructive" onClick={handleDeleteUser} className="rounded-xl h-12 px-4 text-sm font-semibold gap-2 bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700 transition-all flex-1 sm:flex-none">
+              <Trash2 className="w-4 h-4" />Delete
+            </Button>
+            <div className="flex gap-2 flex-1 sm:flex-none justify-end">
+              <Button variant="outline" onClick={handleBack} className="rounded-xl h-12 px-6 text-sm border-gray-200 font-semibold hover:bg-gray-50 transition-all">
+                <X className="w-4 h-4" />Cancel
               </Button>
-              <Button onClick={handleCreateUser} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create User
+              <Button onClick={handleEditUser} disabled={saving} className="bg-gradient-to-br from-royal-blue to-royal-blue-dark text-white shadow-lg shadow-royal-blue/20 hover:shadow-xl hover:shadow-royal-blue/30 rounded-xl h-12 px-6 text-sm font-semibold gap-2 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Save Changes
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </motion.div>
+  );
+
+  return (
+    <AdminLayout title={view === 'detail' ? 'User Details' : 'Users'} subtitle={view === 'detail' ? 'View and edit user information' : 'Manage all users'}>
+      <AnimatePresence mode="wait">
+        {view === 'detail' ? detailView : listView}
+      </AnimatePresence>
+    </AdminLayout>
   );
 };
 

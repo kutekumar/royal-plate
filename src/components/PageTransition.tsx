@@ -1,46 +1,38 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { ReactNode, memo } from 'react';
 
 interface PageTransitionProps {
   children: ReactNode;
   className?: string;
 }
 
-const PageTransition = ({ children, className = '' }: PageTransitionProps) => {
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 30,
-          scale: 0.96,
-          filter: 'blur(10px)'
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          filter: 'blur(0px)'
-        }}
-        exit={{
-          opacity: 0,
-          y: -30,
-          scale: 1.02,
-          filter: 'blur(10px)'
-        }}
-        transition={{
-          duration: 0.6,
-          ease: [0.22, 1, 0.36, 1], // Custom easing for buttery smooth feel
-          opacity: { duration: 0.5 },
-          scale: { duration: 0.6 },
-          filter: { duration: 0.4 }
-        }}
-        className={className}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  );
+const pageVariants = {
+  initial: { opacity: 0, y: 20, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -15, scale: 1.01 },
 };
+
+const pageTransitionConfig = {
+  duration: 0.4,
+  ease: [0.22, 1, 0.36, 1],
+};
+
+const PageTransition = memo(({ children, className = '' }: PageTransitionProps) => {
+  return (
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={pageTransitionConfig}
+      className={className}
+      style={{ willChange: 'transform, opacity' }}
+    >
+      {children}
+    </motion.div>
+  );
+});
+
+PageTransition.displayName = 'PageTransition';
 
 export default PageTransition;
