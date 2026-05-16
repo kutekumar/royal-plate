@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSoundContext } from '@/contexts/SoundContext';
-import { Calendar, Clock, Users, X, Sparkles, ShoppingBag, MapPin, UtensilsCrossed, ChefHat, CheckCircle, XCircle, Timer, Package } from 'lucide-react';
+import { Calendar, Clock, Users, X, Gem, ShoppingBag, MapPin, UtensilsCrossed, ChefHat, CheckCircle, XCircle, Timer, Package, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
@@ -22,6 +23,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 const Orders = () => {
   const { user } = useAuth();
   const { play } = useSoundContext();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [fullscreenQR, setFullscreenQR] = useState(false);
@@ -52,6 +54,13 @@ const Orders = () => {
   }, [user]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  useEffect(() => {
+    const active = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+    if (active.length === 0) {
+      localStorage.removeItem('royal-plate-active-order');
+    }
+  }, [orders]);
 
   // Entrance animations
   useEffect(() => {
@@ -94,6 +103,15 @@ const Orders = () => {
 
   const upcomingCount = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length;
   const pastCount = orders.filter(o => o.status === 'completed' || o.status === 'cancelled').length;
+
+  const restaurantOrderCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    orders.forEach(o => {
+      const rid = o.restaurant_id || o.restaurants?.id;
+      if (rid) counts[rid] = (counts[rid] || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
 
   if (loading) {
     return null;
@@ -149,7 +167,7 @@ const Orders = () => {
       </div>
 
       {/* ── Premium Orders List ── */}
-      <div className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-5 pb-24 scrollbar-hide" style={{ contentVisibility: 'auto' }}>
         {filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#6B7FFF]/10 flex items-center justify-center mb-6 shadow-xl shadow-black/5">
@@ -177,11 +195,13 @@ const Orders = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.08, duration: 0.4 }}
-                  onClick={() => { play('tap'); setSelectedOrder(order); }}
-                  className="relative rounded-3xl overflow-hidden cursor-pointer group shadow-xl shadow-black/5 hover:shadow-2xl hover:shadow-[#536DFE]/20 transition-all duration-500 active:scale-[0.98] border border-white/60"
+                  className="relative rounded-3xl overflow-hidden shadow-xl shadow-black/5 hover:shadow-2xl hover:shadow-[#536DFE]/20 transition-all duration-500 border border-white/60"
                 >
                   {/* ── Background Image with Brand Filter ── */}
-                  <div className="relative h-48 brand-image-filter brand-shimmer">
+                  <div
+                    onClick={() => { play('tap'); setSelectedOrder(order); }}
+                    className="relative h-48 brand-image-filter brand-shimmer cursor-pointer group"
+                  >
                     {order.restaurants?.image_url ? (
                       <img
                         src={order.restaurants.image_url}
@@ -220,9 +240,16 @@ const Orders = () => {
 
                     {/* ── Bottom Content ── */}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <h3 className="text-white text-xl font-bold leading-tight drop-shadow-lg mb-2">
-                        {order.restaurants?.name}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white text-xl font-bold leading-tight drop-shadow-lg">
+                          {order.restaurants?.name}
+                        </h3>
+                        {(restaurantOrderCounts[order.restaurant_id] >= 3 || (order.restaurants?.id && restaurantOrderCounts[order.restaurants.id] >= 3)) && (
+                          <span className="text-[9px] bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white font-extrabold px-2 py-0.5 rounded-full shadow-lg border border-white/30 animate-float-badge">
+                            Superfan
+                          </span>
+                        )}
+                      </div>
 
                       <div className="flex flex-wrap items-center gap-3 text-white/80 text-xs mb-3.5">
                         {isDineIn && order.reservation_date ? (
@@ -267,6 +294,21 @@ const Orders = () => {
                       </div>
                     </div>
                   </div>
+                  {/* Quick reorder for completed orders */}
+                  {(order.status === 'completed') && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.08 + 0.5 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/restaurant/${order.restaurant_id}/menu`); play('tap'); }}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-white to-gray-50 text-[#536DFE] text-[11px] font-bold border-t border-gray-100 hover:from-[#536DFE]/5 hover:to-[#6B7FFF]/5 transition-all"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      Redo Order
+                      <ChevronRight className="w-3 h-3" />
+                    </motion.button>
+                  )}
                 </motion.div>
               );
             })}

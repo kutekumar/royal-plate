@@ -1,6 +1,6 @@
 import { Home, Receipt, BookOpenText, User, UtensilsCrossed } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useCallback, memo } from 'react';
+import { useCallback, memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundContext } from '@/contexts/SoundContext';
 import { useNavigationContext } from '@/contexts/NavigationContext';
@@ -8,17 +8,18 @@ import { useNavigationContext } from '@/contexts/NavigationContext';
 const navItems = [
   { path: '/home', icon: Home, label: 'Home', activeLabel: 'Discover' },
   { path: '/food', icon: UtensilsCrossed, label: 'Food', activeLabel: 'Menu' },
-  { path: '/orders', icon: Receipt, label: 'Orders', activeLabel: 'My Orders' },
+  { path: '/orders', icon: Receipt, label: 'Orders', activeLabel: 'My Orders', badge: true },
   { path: '/blog', icon: BookOpenText, label: 'Blog', activeLabel: 'Updates' },
   { path: '/profile', icon: User, label: 'Profile', activeLabel: 'Account' },
 ];
 
 const navItemPaths = navItems.map(item => item.path);
 
-const NavItem = memo(({ item, isActive, onClick }: {
+const NavItem = memo(({ item, isActive, onClick, hasActiveOrder }: {
   item: typeof navItems[0];
   isActive: boolean;
   onClick: () => void;
+  hasActiveOrder: boolean;
 }) => {
   const Icon = item.icon;
   return (
@@ -51,6 +52,14 @@ const NavItem = memo(({ item, isActive, onClick }: {
             color: isActive ? 'hsl(232, 98%, 65%)' : 'rgba(29,41,86,0.35)',
           }}
         />
+        {item.badge && hasActiveOrder && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-500 z-20"
+            style={{ boxShadow: '0 0 6px rgba(244,63,94,0.6)' }}
+          />
+        )}
         {isActive && (
           <motion.div
             className="absolute inset-0 rounded-full blur-md"
@@ -80,6 +89,7 @@ export const BottomNav = memo(() => {
   const navigate = useNavigate();
   const { play } = useSoundContext();
   const { setDirection } = useNavigationContext();
+  const [hasActiveOrder] = useState(() => localStorage.getItem('royal-plate-active-order') === 'true');
 
   const handleNavigation = useCallback((path: string) => {
     if (location.pathname === path) return;
@@ -117,6 +127,7 @@ export const BottomNav = memo(() => {
               item={item}
               isActive={location.pathname === item.path}
               onClick={() => handleNavigation(item.path)}
+              hasActiveOrder={hasActiveOrder}
             />
           ))}
         </div>

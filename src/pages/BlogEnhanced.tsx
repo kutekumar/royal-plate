@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageCircle, Sparkles, Clock, ChevronDown, Heart, Bookmark, Search, SlidersHorizontal, X, Newspaper, TrendingUp, Send, User } from 'lucide-react';
+import { MessageCircle, Gem, Clock, ChevronDown, Heart, Bookmark, Search, SlidersHorizontal, X, Newspaper, TrendingUp, Send, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';

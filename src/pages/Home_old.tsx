@@ -9,7 +9,7 @@ import {
   Loader2,
   User as UserIcon,
   Bell,
-  Sparkles,
+  Gem,
   Compass,
   Star as StarIcon,
   Shield,
@@ -107,7 +107,7 @@ const Home = () => {
         return <Crown className={base} />;
       case 'sparkles':
       default:
-        return <Sparkles className={base} />;
+        return <Gem className={base} />;
     }
   };
 

@@ -7,7 +7,7 @@ import {
   Phone,
   Mail,
   Edit2,
-  Sparkles,
+  Gem,
   Compass,
   Star as StarIcon,
   Shield,
@@ -27,8 +27,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCustomerLoyalty } from '@/hooks/useCustomerLoyalty';
+import { useStreak } from '@/hooks/useStreak';
 import { formatCurrency } from '@/utils/currency';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { StreakIndicator } from '@/components/StreakIndicator';
+import { TierProgress } from '@/components/TierProgress';
 
 
 const Profile = () => {
@@ -41,6 +44,7 @@ const Profile = () => {
   const shouldReduceMotion = useReducedMotion();
 
   const { loading: loyaltyLoading, summary, badgeLabel, badgeDescription, badgeIcon } = useCustomerLoyalty();
+  const { streak, getStreakEmoji, getStreakTier } = useStreak();
 
   const getBadgeIconNode = (size = 'w-4 h-4') => {
     switch (badgeIcon) {
@@ -48,7 +52,7 @@ const Profile = () => {
       case 'star': return <StarIcon className={size} />;
       case 'shield': return <Shield className={size} />;
       case 'crown': return <Crown className={size} />;
-      default: return <Sparkles className={size} />;
+      default: return <Gem className={size} />;
     }
   };
 
@@ -235,7 +239,7 @@ const Profile = () => {
                       transition={{ duration: 0.5, delay: 0.9 }}
                       className="inline-flex items-center gap-2 bg-gradient-to-br from-[#536DFE]/15 to-[#6B7FFF]/15 text-[#536DFE] text-[10px] font-bold px-4 py-2 rounded-full border border-[#536DFE]/30 shadow-md"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Gem className="w-3.5 h-3.5" />
                       {summary.total_points} pts
                     </motion.span>
                   )}

@@ -2,10 +2,11 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
-import { Check, Home, Receipt, Calendar, Clock, Users, ShoppingBag, Sparkles, ChevronRight, Share2, Download, PartyPopper } from 'lucide-react';
+import { Check, Home, Receipt, Calendar, Clock, Users, ShoppingBag, Gem, ChevronRight, Share2, Download, PartyPopper, Crown, Flame } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
 import { motion } from 'framer-motion';
 import { useSoundContext } from '@/contexts/SoundContext';
+import { useStreak } from '@/hooks/useStreak';
 
 interface ConfirmationData {
   orderId: string;
@@ -80,20 +81,33 @@ const Confirmation = () => {
   const location = useLocation();
   const { play } = useSoundContext();
   const playedRef = useRef(false);
+  const { streak, markActive, getStreakEmoji, getStreakTier } = useStreak();
   const confirmationData = location.state as ConfirmationData;
   const [qrValue, setQrValue] = useState('');
   const [showConfetti, setShowConfetti] = useState(true);
   const [progressStep, setProgressStep] = useState(0);
+  const [chefTip, setChefTip] = useState('');
+
+  const chefTips = [
+    'Pair your meal with a matching beverage for the full experience 🍷',
+    'Leave a review and help fellow foodies discover great spots ⭐',
+    'Try our chef\'s special on your next visit for a surprise 🌟',
+    'Early bird reservations get the best tables 🕐',
+    'Share your dining experience and earn bonus points 📸',
+    'Weekend brunch is our hidden gem — reserve ahead! 🥂',
+  ];
 
   useEffect(() => {
     if (!confirmationData) { navigate('/'); return; }
-    if (!playedRef.current) { play('success'); playedRef.current = true; }
+    if (!playedRef.current) { play('success'); playedRef.current = true; markActive(); }
     if (confirmationData.qrCode) setQrValue(confirmationData.qrCode);
     else {
       const timestamp = Date.now();
       setQrValue(`ALAN-${timestamp}-${confirmationData.restaurant.id}-${confirmationData.orderId}`);
     }
     toast.success('Order confirmed successfully!');
+    localStorage.setItem('royal-plate-active-order', 'true');
+    setChefTip(chefTips[Math.floor(Math.random() * chefTips.length)]);
 
     // Progress animation
     const t1 = setTimeout(() => setProgressStep(1), 600);
@@ -147,6 +161,34 @@ const Confirmation = () => {
         </div>
       )}
 
+      {/* Streak Celebration */}
+      {streak.count > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.8, type: 'spring', stiffness: 300 }}
+          className="absolute top-2 left-1/2 -translate-x-1/2 z-40"
+        >
+          <div className="flex items-center gap-2 bg-gradient-to-r from-orange-500/90 to-amber-500/90 backdrop-blur-xl text-white text-[10px] font-bold px-4 py-2 rounded-full shadow-2xl border border-white/30">
+            <Flame className="w-3.5 h-3.5 animate-streak-fire" />
+            {streak.count}-day streak!
+            <span className="text-white/70 text-[9px] font-medium ml-1">{getStreakTier()}</span>
+          </div>
+        </motion.div>
+      )}
+      {streak.count === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-40"
+        >
+          <span className="bg-white/80 backdrop-blur-xl text-gray-500 text-[9px] font-bold px-3 py-1.5 rounded-full shadow-lg border border-white/60">
+            🎉 First order! Start your streak
+          </span>
+        </motion.div>
+      )}
+
       {/* Success Header */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
@@ -192,7 +234,7 @@ const Confirmation = () => {
       </motion.div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-32 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 pb-32 scrollbar-hide" style={{ contentVisibility: 'auto' }}>
         {/* Order Progress */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -244,7 +286,7 @@ const Confirmation = () => {
           className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/10 border border-white/60 p-4 mb-3"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-[#536DFE]" />
+            <Gem className="w-4 h-4 text-[#536DFE]" />
             <h2 className="text-[#1D2956] text-xs font-bold uppercase tracking-[0.2em]">Your QR Code</h2>
           </div>
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 border border-gray-100">
@@ -373,6 +415,29 @@ const Confirmation = () => {
             <span className="text-[#1D2956] text-[10px] font-bold">Save QR</span>
           </button>
         </motion.div>
+
+        {/* Chef's Tip */}
+        {chefTip && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.65 }}
+            className="bg-gradient-to-br from-[#F59E0B]/5 to-amber-500/5 rounded-3xl border border-[#F59E0B]/20 p-4 mb-3"
+          >
+            <div className="flex items-start gap-3">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Crown className="w-5 h-5 text-[#F59E0B] mt-0.5" />
+              </motion.div>
+              <div>
+                <p className="text-[#F59E0B] text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Chef's Tip</p>
+                <p className="text-gray-600 text-xs leading-relaxed">{chefTip}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Next Steps */}
         <motion.div

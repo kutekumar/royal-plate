@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sparkles, BookOpenText, Plus, Image as ImageIcon, Trash2, Edit2, Pin, PinOff, Calendar, Loader2, CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Star, ArrowUpDown } from "lucide-react";
+import { Gem, BookOpenText, Plus, Image as ImageIcon, Trash2, Edit2, Pin, PinOff, Calendar, Loader2, CheckCircle2, Search, Filter, ChevronDown, ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Star, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RestaurantBlogPostDetail } from "./RestaurantBlogPostDetail";
 import { motion, AnimatePresence } from "framer-motion";
@@ -129,7 +129,7 @@ const RestaurantBlogManagement = () => {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-royal-blue" />
+          <Gem className="w-4 h-4 text-royal-blue" />
           <span className="text-xs text-gray-500">Loading your blog studio...</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

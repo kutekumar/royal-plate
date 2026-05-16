@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft, CreditCard, Wallet, Building2, Check, ShoppingBag, Calendar, Users, Clock, Sparkles, ChevronRight, Crown, Star } from 'lucide-react';
+import { ArrowLeft, CreditCard, Wallet, Building2, Check, ShoppingBag, Calendar, Users, Clock, Gem, ChevronRight, Crown, Star, Gift } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundContext } from '@/contexts/SoundContext';
 
 interface CartItem { id: string; name: string; price: number; quantity: number; }
@@ -34,9 +34,22 @@ const Payment = () => {
   const [orderNotes, setOrderNotes] = useState('');
   const [emailReceipt, setEmailReceipt] = useState(false);
   const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [surpriseReward, setSurpriseReward] = useState<{ label: string; emoji: string } | null>(null);
 
   useEffect(() => {
     fetchLoyaltyPoints();
+    const surpriseChance = Math.random();
+    if (surpriseChance < 0.3) {
+      const rewards = [
+        { label: 'Free drink on next order!', emoji: '🥤' },
+        { label: 'Extra 50 loyalty points!', emoji: '⭐' },
+        { label: '5% off your next visit!', emoji: '🎉' },
+        { label: 'Priority seating unlocked!', emoji: '👑' },
+      ];
+      const picked = rewards[Math.floor(Math.random() * rewards.length)];
+      const timer = setTimeout(() => setSurpriseReward(picked), 2000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const fetchLoyaltyPoints = async () => {
@@ -181,6 +194,42 @@ const Payment = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Surprise Reward */}
+        <AnimatePresence>
+          {surpriseReward && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="bg-gradient-to-br from-[#F59E0B]/15 to-rose-500/15 rounded-3xl border border-[#F59E0B]/30 p-4 mb-3 shadow-lg"
+            >
+              <div className="flex items-center gap-3">
+                <motion.div
+                  initial={{ rotate: -20, scale: 0 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, delay: 0.2 }}
+                  className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-rose-500 flex items-center justify-center shadow-lg shadow-[#F59E0B]/30 flex-shrink-0"
+                >
+                  <Gift className="w-6 h-6 text-white" />
+                </motion.div>
+                <div className="flex-1">
+                  <p className="text-[#1D2956] text-xs font-bold">🎉 Surprise Unlocked!</p>
+                  <p className="text-[#F59E0B] text-sm font-bold mt-0.5">{surpriseReward.emoji} {surpriseReward.label}</p>
+                </div>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.4, type: 'spring' }}
+                  className="bg-white/60 rounded-xl px-3 py-1.5 border border-[#F59E0B]/30"
+                >
+                  <span className="text-[#F59E0B] text-[9px] font-bold animate-streak-fire">Claim</span>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Reservation Details */}
         {orderData.orderType === 'dine_in' && orderData.reservationDate && (
@@ -436,17 +485,28 @@ const Payment = () => {
 
       {/* Fixed Bottom Button */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-sm p-4 bg-white/95 backdrop-blur-xl border-t border-white/60 shadow-2xl">
+        {!selectedPaymentMethod && (
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center text-[10px] text-gray-400 font-medium mb-2"
+          >
+            ✨ Select a payment method to complete your order
+          </motion.p>
+        )}
         <motion.button
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: selectedPaymentMethod ? 1.02 : 1 }}
           whileTap={{ scale: 0.98 }}
           onClick={handlePayment}
           disabled={processing || !selectedPaymentMethod}
-          className="w-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] hover:shadow-2xl hover:shadow-[#536DFE]/50 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#536DFE]/40 uppercase tracking-widest text-sm"
+          className={`relative w-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] hover:shadow-2xl hover:shadow-[#536DFE]/50 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#536DFE]/40 uppercase tracking-widest text-sm ${
+            !processing && selectedPaymentMethod ? 'animate-pulse-ring' : ''
+          }`}
         >
           {processing ? (
             <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
           ) : (
-            <><Check className="w-5 h-5" /> Pay {formatCurrency(grandTotal)}</>
+            <><Check className="w-5 h-5" /> {selectedPaymentMethod ? `Pay ${formatCurrency(grandTotal)}` : 'Select Payment Method'}</>
           )}
         </motion.button>
       </div>

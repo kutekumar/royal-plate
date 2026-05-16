@@ -12,7 +12,7 @@ import {
   X,
   Check,
   Star,
-  Sparkles,
+  Gem,
   Crown,
   Flame,
   UtensilsCrossed,
@@ -159,7 +159,16 @@ const RestaurantMenu = () => {
       return [...prev, { ...item, quantity: 1, specialInstructions: '' }];
     });
     toast.success(`${item.name} added`, { duration: 1200 });
-  }, [play]);
+    if (id) {
+      try {
+        const raw = localStorage.getItem('royal-plate-ordered-items');
+        const data = raw ? JSON.parse(raw) as Record<string, string[]> : {};
+        if (!data[id]) data[id] = [];
+        if (!data[id].includes(item.id)) data[id].push(item.id);
+        localStorage.setItem('royal-plate-ordered-items', JSON.stringify(data));
+      } catch {}
+    }
+  }, [play, id]);
 
   const removeFromCart = useCallback((itemId: string) => {
     play('removeFromCart');
@@ -207,6 +216,27 @@ const RestaurantMenu = () => {
       .filter(item => !cartIds.has(item.id) && cartCats.has(item.category))
       .slice(0, 3);
   }, [cart, menuItems]);
+
+  const todaysSpecialId = useMemo(() => {
+    const nonBeverage = menuItems.filter(i => i.category !== 'Beverages' && i.category !== 'Appetizers');
+    if (nonBeverage.length === 0) return null;
+    const stored = sessionStorage.getItem(`menu-special-${id}`);
+    if (stored) return stored;
+    const pick = nonBeverage[Math.floor(Math.random() * nonBeverage.length)].id;
+    sessionStorage.setItem(`menu-special-${id}`, pick);
+    return pick;
+  }, [menuItems, id]);
+
+  const orderedBeforeIds = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('royal-plate-ordered-items');
+      if (raw) {
+        const data = JSON.parse(raw) as Record<string, string[]>;
+        return data[id || ''] || [];
+      }
+    } catch {}
+    return [];
+  }, [id]);
 
   const scrollToCategory = (cat: string) => {
     play('select');
@@ -572,7 +602,7 @@ const RestaurantMenu = () => {
                     {suggestedItems.length > 0 && (
                       <div className="bg-gradient-to-br from-[#F59E0B]/5 to-[#D97706]/5 rounded-2xl p-4 border border-[#F59E0B]/20">
                         <div className="flex items-center gap-2 mb-3">
-                          <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                          <Gem className="w-3.5 h-3.5 text-[#F59E0B]" />
                           <p className="text-[#F59E0B] text-[11px] font-bold uppercase tracking-[0.2em]">You might also like</p>
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
@@ -627,6 +657,8 @@ const RestaurantMenu = () => {
     const cartItem = cart.find(c => c.id === item.id);
     const quantity = cartItem?.quantity || 0;
     const isPopular = index < 3 && item.category !== 'Beverages';
+    const isTodaysSpecial = item.id === todaysSpecialId;
+    const wasOrderedBefore = orderedBeforeIds.includes(item.id);
     return (
       <motion.div
         key={item.id}
@@ -634,14 +666,28 @@ const RestaurantMenu = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.03, duration: 0.3 }}
         ref={(el) => { menuItemRefs.current[item.id] = el; }}
-        className="flex gap-4 p-4 bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] rounded-2xl hover:from-white hover:to-[#F5F5F7] hover:shadow-xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-[#536DFE]/20 shadow-md active:scale-[0.99]"
+        className={`flex gap-4 p-4 rounded-2xl transition-all duration-300 cursor-pointer group active:scale-[0.99] ${
+          isTodaysSpecial
+            ? 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 shadow-lg shadow-amber-200/40 hover:shadow-xl'
+            : 'bg-gradient-to-br from-[#F5F5F7] to-[#FAFAFA] border border-transparent hover:border-[#536DFE]/20 shadow-md hover:shadow-xl'
+        }`}
         onClick={() => { play('tap'); setSelectedMenuItem(item); }}
       >
-        <div className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg border border-white/60 brand-menu-filter brand-shimmer">
+        <div className={`relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg border border-white/60 brand-menu-filter brand-shimmer ${
+          isTodaysSpecial ? 'ring-2 ring-amber-400/60' : ''
+        }`}>
           <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brand-image-fade" />
           {isPopular && (
             <div className="absolute top-1 left-1 chef-badge text-[8px] px-1.5 py-0.5 z-10">
               <Crown className="w-2.5 h-2.5 inline mr-0.5" />Popular
+            </div>
+          )}
+          {isTodaysSpecial && (
+            <div className="absolute top-1 right-1 z-10">
+              <span className="inline-flex items-center gap-0.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[7px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-lg border border-white/30 animate-streak-fire">
+                <Gem className="w-2 h-2" />
+                Special
+              </span>
             </div>
           )}
         </div>
@@ -649,6 +695,9 @@ const RestaurantMenu = () => {
           <div className="flex items-center gap-2 mb-1">
             <h4 className="text-[#1D2956] font-bold text-sm truncate group-hover:text-[#536DFE] transition-colors">{item.name}</h4>
             {isPopular && <span className="chef-badge flex-shrink-0"><Crown className="w-2.5 h-2.5 inline mr-0.5" />Chef's Pick</span>}
+            {wasOrderedBefore && !isPopular && (
+              <span className="text-[8px] text-[#536DFE] font-bold bg-[#536DFE]/10 px-2 py-0.5 rounded-full border border-[#536DFE]/20 flex-shrink-0">❤️</span>
+            )}
           </div>
           <p className="text-gray-400 text-[11px] line-clamp-2 mb-2.5 leading-relaxed">{item.description}</p>
           <div className="flex items-center justify-between">

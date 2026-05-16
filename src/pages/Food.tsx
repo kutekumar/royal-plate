@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
-import { Search, SlidersHorizontal, X, Star, ChevronLeft, ChevronRight, UtensilsCrossed, Crown, Sparkles, ShoppingCart } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Star, ChevronLeft, ChevronRight, UtensilsCrossed, Crown, Gem, ShoppingCart, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundContext } from '@/contexts/SoundContext';
+import DishExplorer from '@/components/DishExplorer';
 
 let cachedData: { restaurants: any[]; menuItems: any[] } | null = null;
 let cacheTime = 0;
@@ -50,6 +51,23 @@ const Food = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedFoodItem, setSelectedFoodItem] = useState<FoodItem | null>(null);
+
+  const seasonalEmoji = useMemo(() => {
+    const m = new Date().getMonth();
+    if (m >= 2 && m <= 4) return '🌸';
+    if (m >= 5 && m <= 7) return '☀️';
+    if (m >= 8 && m <= 10) return '🍂';
+    return '❄️';
+  }, []);
+
+  const favoriteItems = useMemo(() => {
+    try {
+      const ids: string[] = JSON.parse(localStorage.getItem('royal-plate-ordered-items') || '[]');
+      if (ids.length === 0) return [];
+      return items.filter(item => ids.includes(item.id));
+    } catch { return []; }
+  }, [items]);
 
   // Extract unique categories from fetched data
   const categories = useMemo(() => {
@@ -164,7 +182,12 @@ const Food = () => {
 
   const handleFoodClick = (item: FoodItem) => {
     play('tap');
-    navigate(`/restaurant/${item.restaurant_id}/menu`, { state: { scrollToMenuItemId: item.id } });
+    setSelectedFoodItem(item);
+  };
+
+  const handleFoodNavigateToRestaurant = (restaurantId: string, menuItemId: string) => {
+    setSelectedFoodItem(null);
+    navigate(`/restaurant/${restaurantId}`, { state: { scrollToMenuItemId: menuItemId } });
   };
 
   const formatPrice = (price: number) => {
@@ -173,7 +196,6 @@ const Food = () => {
   };
 
   return (
-    <>
         <div className="relative flex h-screen w-full max-w-sm mx-auto flex-col overflow-hidden bg-gradient-to-br from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
 
       {/* ── Premium Header with Glassmorphism ── */}
@@ -200,7 +222,7 @@ const Food = () => {
               Culinary Collection
             </h1>
             <p className="text-gray-400 text-[10px] uppercase tracking-[0.25em] font-medium">
-              Discover Exquisite Flavors
+              {seasonalEmoji} Discover Exquisite Flavors
             </p>
           </motion.div>
           <motion.button
@@ -357,8 +379,36 @@ const Food = () => {
         )}
       </div>
 
+      {/* ── Your Favorites ── */}
+      {favoriteItems.length > 0 && (
+        <div className="px-4 pb-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
+            <span className="text-[#1D2956] text-[10px] font-bold uppercase tracking-[0.15em]">Your Favorites</span>
+          </div>
+          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
+            {favoriteItems.slice(0, 8).map((item, idx) => (
+              <motion.button
+                key={`fav-${item.id}`}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.04, duration: 0.25 }}
+                whileTap={{ scale: 0.93 }}
+                onClick={() => handleFoodClick(item)}
+                className="flex-shrink-0 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 py-2 border border-white/60 shadow-md hover:shadow-lg hover:border-rose-300 transition-all"
+              >
+                <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0">
+                  <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <span className="text-[#1D2956] text-[10px] font-bold whitespace-nowrap">{item.name}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Premium Food Grid ── */}
-      <div className="flex-1 overflow-y-auto px-4 pb-20 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 pb-20 scrollbar-hide" style={{ contentVisibility: 'auto' }}>
         {loading ? (
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -532,8 +582,29 @@ const Food = () => {
         )}
       </div>
 
+        {/* ── Dish Explorer Overlay ── */}
+        <AnimatePresence>
+          {selectedFoodItem && (
+            <DishExplorer
+              dish={{
+                id: selectedFoodItem.id,
+                name: selectedFoodItem.name,
+                description: selectedFoodItem.description,
+                price: selectedFoodItem.price,
+                image_url: selectedFoodItem.image_url,
+                category: selectedFoodItem.category,
+                restaurant_id: selectedFoodItem.restaurant_id,
+                restaurant_name: selectedFoodItem.restaurant_name,
+                restaurant_image: selectedFoodItem.restaurant_image,
+                restaurant_rating: selectedFoodItem.restaurant_rating,
+                restaurant_cuisine: selectedFoodItem.restaurant_cuisine,
+              }}
+              onClose={() => setSelectedFoodItem(null)}
+              onNavigateToRestaurant={handleFoodNavigateToRestaurant}
+            />
+          )}
+        </AnimatePresence>
     </div>
-    </>
   );
 };
 

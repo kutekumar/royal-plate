@@ -16,7 +16,7 @@ import {
   X,
   Check,
   Navigation,
-  Sparkles,
+  Gem,
   Clock,
   Users,
   Heart,
@@ -94,6 +94,21 @@ const RestaurantDetails = () => {
   const [showInstructionsFor, setShowInstructionsFor] = useState<string | null>(null);
   const [instructionText, setInstructionText] = useState('');
   const heroRef = useRef<HTMLDivElement>(null);
+  const visitCount = useMemo(() => {
+    try {
+      const visits = JSON.parse(localStorage.getItem('royal-plate-visits') || '{}');
+      return visits[id || ''] || 0;
+    } catch { return 0; }
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    try {
+      const visits = JSON.parse(localStorage.getItem('royal-plate-visits') || '{}');
+      visits[id] = (visits[id] || 0) + 1;
+      localStorage.setItem('royal-plate-visits', JSON.stringify(visits));
+    } catch {}
+  }, [id]);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -302,7 +317,7 @@ const RestaurantDetails = () => {
     { id: '', label: 'None specified', icon: UtensilsCrossed },
     { id: 'birthday', label: 'Birthday', icon: Gift },
     { id: 'anniversary', label: 'Anniversary', icon: Heart },
-    { id: 'date_night', label: 'Date Night', icon: Sparkles },
+    { id: 'date_night', label: 'Date Night', icon: Gem },
     { id: 'business', label: 'Business Dinner', icon: Briefcase },
     { id: 'celebration', label: 'Celebration', icon: PartyPopper },
     { id: 'chef_table', label: "Chef's Table", icon: Crown },
@@ -426,47 +441,23 @@ const RestaurantDetails = () => {
           <span className="text-sm font-bold tracking-wide">Concierge</span>
         </button>
 
-        {/* Animated Rating Badge */}
+        {/* Cinematic Centered Restaurant Name */}
         <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-          className="absolute bottom-24 left-5 z-10"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+          className="absolute inset-0 z-[5] flex flex-col items-center justify-center px-8"
         >
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-2xl rounded-2xl px-4 py-2.5 border border-white/40 shadow-2xl hover:bg-white/30 transition-all">
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + i * 0.1, type: 'spring', stiffness: 300 }}
-              >
-                <Star
-                  className={`w-4 h-4 ${
-                    i < Math.floor(restaurant.rating)
-                      ? 'fill-[#F59E0B] text-[#F59E0B] drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]'
-                      : 'text-white/30'
-                  }`}
-                />
-              </motion.div>
-            ))}
-            <span className="text-white text-sm font-bold ml-1 drop-shadow-lg">{restaurant.rating}</span>
-          </div>
-        </motion.div>
-
-        {/* Restaurant Name Overlay */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-          className="absolute bottom-6 left-5 z-10"
-        >
-          <h1 className="text-white text-3xl font-bold leading-tight tracking-tight drop-shadow-2xl">
-            {restaurant.name}
-          </h1>
-          <div className="flex items-center gap-2 mt-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse-soft" />
-            <span className="text-white/80 text-xs font-medium drop-shadow-lg">Open now</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-black/50" />
+          <div className="relative flex flex-col items-center">
+            <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#F59E0B]/60 to-transparent mb-5" />
+            <h1
+              className="text-center text-[clamp(1.5rem,5.5vw,2.75rem)] font-bold leading-tight tracking-[0.06em] text-transparent bg-clip-text bg-gradient-to-b from-[#FFF8E7] via-[#F5E6C8] to-[#C9A84C] px-2"
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5)) drop-shadow(0 8px 24px rgba(0,0,0,0.25))' }}
+            >
+              {restaurant.name}
+            </h1>
+            <div className="w-20 h-[1px] bg-gradient-to-r from-transparent via-[#F59E0B]/50 to-transparent mt-5" />
           </div>
         </motion.div>
       </div>
@@ -479,7 +470,7 @@ const RestaurantDetails = () => {
         style={{ willChange: 'transform, opacity' }}
         className="glass-premium mx-5 -mt-8 relative z-10 rounded-3xl shadow-2xl shadow-black/10 border border-white/60 p-6 mb-5">
         
-        {/* Cuisine & Rating Row */}
+        {/* Cuisine, Status, Rating & Visit Row */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             {restaurant.cuisine_type && (
@@ -487,17 +478,24 @@ const RestaurantDetails = () => {
                 {restaurant.cuisine_type}
               </span>
             )}
+            {visitCount > 1 && (
+              <span className="text-gray-400 text-[10px] font-medium tracking-tight">
+                · #{visitCount}
+              </span>
+            )}
           </div>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="flex items-center gap-1.5 bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/10 rounded-xl px-3 py-1.5 border border-[#F59E0B]/20"
-          >
-            <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" />
-            <span className="text-[#F59E0B] text-xs font-bold">{restaurant.rating}</span>
-            <span className="text-gray-400 text-[10px]">· 2.3 km</span>
-          </motion.div>
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+              <span className="text-emerald-600 text-[10px] font-bold">Open</span>
+            </div>
+            <div className="flex items-center gap-1 bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/10 rounded-lg px-2 py-0.5 border border-[#F59E0B]/20">
+              <Star className="w-3 h-3 text-[#F59E0B] fill-[#F59E0B]" />
+              <span className="text-[#F59E0B] text-[10px] font-bold">{restaurant.rating}</span>
+            </div>
+            <span className="text-gray-300 text-[10px]">·</span>
+            <span className="text-gray-400 text-[10px] font-medium">2.3 km</span>
+          </div>
         </div>
         
         <p className="text-gray-500 text-sm leading-relaxed">{restaurant.description}</p>
@@ -812,7 +810,7 @@ const RestaurantDetails = () => {
           <div className="grid grid-cols-3 gap-2 mb-5">
             {menuItems.slice(0, 6).map((item) => (
               <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square shadow-md group">
-                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <p className="absolute bottom-1.5 left-1.5 right-1.5 text-white text-[8px] font-bold leading-tight drop-shadow-lg line-clamp-1">{item.name}</p>
               </div>
@@ -835,7 +833,7 @@ const RestaurantDetails = () => {
           {menuItems.length > 0 && (
             <div className="mt-5 pt-5 border-t border-gray-100">
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+                <Gem className="w-4 h-4 text-[#F59E0B]" />
                 <p className="text-[#1D2956] text-[11px] font-bold uppercase tracking-[0.2em]">Popular picks</p>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
@@ -847,7 +845,7 @@ const RestaurantDetails = () => {
                       onClick={() => addToCart(item)}
                       className="flex-shrink-0 flex items-center gap-2.5 bg-white/90 rounded-2xl px-4 py-3 border border-gray-100 shadow-md hover:shadow-lg hover:border-[#536DFE]/30 transition-all"
                     >
-                      <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded-xl object-cover shadow-sm" />
+                      <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded-xl object-cover shadow-sm" loading="lazy" />
                       <div className="text-left">
                         <p className="text-[#1D2956] text-[11px] font-bold truncate max-w-[90px]">{item.name}</p>
                         <p className="text-[#536DFE] text-[11px] font-bold">{formatCurrency(item.price)}</p>
@@ -1148,7 +1146,7 @@ const RestaurantDetails = () => {
                   {suggestedItems.length > 0 && (
                     <div className="bg-gradient-to-br from-[#F59E0B]/5 to-[#D97706]/5 rounded-2xl p-4 border border-[#F59E0B]/20">
                       <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                        <Gem className="w-3.5 h-3.5 text-[#F59E0B]" />
                         <p className="text-[#F59E0B] text-[11px] font-bold uppercase tracking-[0.2em]">You might also like</p>
                       </div>
                       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
@@ -1158,7 +1156,7 @@ const RestaurantDetails = () => {
                             onClick={() => addToCart(suggestion)}
                             className="flex-shrink-0 flex items-center gap-2 bg-white/90 rounded-xl px-3 py-2 border border-gray-100 shadow-sm hover:shadow-md hover:border-[#536DFE]/30 transition-all"
                           >
-                            <img src={suggestion.image_url} alt={suggestion.name} className="w-8 h-8 rounded-lg object-cover" />
+                            <img src={suggestion.image_url} alt={suggestion.name} className="w-8 h-8 rounded-lg object-cover" loading="lazy" />
                             <div className="text-left">
                               <p className="text-[#1D2956] text-[10px] font-bold truncate max-w-[80px]">{suggestion.name}</p>
                               <p className="text-[#536DFE] text-[10px] font-bold">{formatCurrency(suggestion.price)}</p>

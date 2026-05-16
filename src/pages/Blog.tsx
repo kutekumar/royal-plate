@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/BottomNav';
-import { MessageCircle, Heart, Bookmark, Search, SlidersHorizontal, X, Newspaper, TrendingUp, Clock, ChevronRight, Sparkles } from 'lucide-react';
+import { MessageCircle, Heart, Bookmark, Search, SlidersHorizontal, X, Newspaper, TrendingUp, Clock, ChevronRight, Gem } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -383,7 +383,7 @@ const Blog = () => {
                         {/* Pinned badge */}
                         {post.is_pinned && (
                           <div className="absolute top-3 left-3 flex items-center gap-1 bg-gradient-to-r from-[#536DFE] to-[#6B7FFF] text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
-                            <Sparkles className="w-3 h-3" />
+                            <Gem className="w-3 h-3" />
                             Featured
                           </div>
                         )}

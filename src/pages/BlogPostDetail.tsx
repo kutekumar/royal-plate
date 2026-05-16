@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageCircle, Heart, Bookmark, ArrowLeft, Clock, Send, User, Share2, Eye, X, Sparkles } from 'lucide-react';
+import { MessageCircle, Heart, Bookmark, ArrowLeft, Clock, Send, User, Share2, Eye, X, Gem } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
@@ -428,7 +428,7 @@ const BlogPostDetail = () => {
                   ) : comments.length === 0 ? (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
                       <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#536DFE]/10 to-[#1D2956]/10 flex items-center justify-center mb-3 mx-auto shadow-inner">
-                        <Sparkles className="w-8 h-8 text-[#536DFE]/40" />
+                        <Gem className="w-8 h-8 text-[#536DFE]/40" />
                       </motion.div>
                       <p className="text-gray-500 text-xs font-medium">No comments yet</p>
                       <p className="text-gray-400 text-[10px] mt-1">Be the first to share your thoughts!</p>
@@ -486,7 +486,7 @@ const BlogPostDetail = () => {
                               exit={{ opacity: 0, scale: 0.8 }}
                               className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] flex items-center justify-center shadow-lg"
                             >
-                              <Sparkles className="w-3 h-3 text-white" />
+                              <Gem className="w-3 h-3 text-white" />
                             </motion.div>
                           )}
                         </AnimatePresence>

@@ -10,7 +10,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "./quill-editor.css";
 import {
-  Sparkles,
+  Gem,
   Image as ImageIcon,
   Link2,
   ArrowLeft,
@@ -351,7 +351,7 @@ const BlogEditor = () => {
               </Button>
               <div className="h-3 md:h-4 w-px bg-border hidden md:block" />
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
+                <Gem className="w-4 h-4 text-primary" />
                 <h1 className="text-base md:text-lg font-semibold">
                   {postId ? "Edit Blog Post" : "Create New Post"}
                 </h1>

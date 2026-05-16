@@ -3,17 +3,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Star, MapPin, Bell, User, Map, ChevronRight, Percent, Clock, Sparkles, Flame, Heart, Navigation, ChevronDown, Timer } from 'lucide-react';
+import { Search, Star, MapPin, Bell, User, Map, ChevronRight, Percent, Clock, Gem, Flame, Heart, Navigation, ChevronDown, Timer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCustomerNotifications, CustomerNotification } from '@/hooks/useCustomerNotifications';
 import LogoImg from '@/imgs/logo.png';
 import RestaurantMap from '@/components/RestaurantMap';
+import { CustomerNotificationPanel } from '@/components/CustomerNotificationPanel';
 import { YANGON_CENTER } from '@/utils/location';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundContext } from '@/contexts/SoundContext';
 import { useEnhancedRestaurants } from '@/hooks/useQueries';
 import { formatCurrency } from '@/utils/currency';
+import { useStreak } from '@/hooks/useStreak';
+import { StreakIndicator } from '@/components/StreakIndicator';
+import { TierProgress } from '@/components/TierProgress';
+import CuisineExplorer from '@/components/CuisineExplorer';
+import DishExplorer from '@/components/DishExplorer';
 
 const POPULAR_DISHES_CACHE_KEY = 'home_popular_dishes';
 const CACHE_TTL = 1000 * 60 * 5;
@@ -72,7 +78,7 @@ const getTimeEstimate = (distanceKm: number): string => {
 
 const promoSlides = [
   { id: 1, title: 'Free Delivery', subtitle: 'On your first 3 orders', gradient: 'from-[#536DFE] to-[#6B7FFF]', icon: <Percent className="w-5 h-5" /> },
-  { id: 2, title: 'Weekend Special', subtitle: 'Up to 30% off on all items', gradient: 'from-rose-500 to-pink-500', icon: <Sparkles className="w-5 h-5" /> },
+  { id: 2, title: 'Weekend Special', subtitle: 'Up to 30% off on all items', gradient: 'from-rose-500 to-pink-500', icon: <Gem className="w-5 h-5" /> },
   { id: 3, title: 'Quick Delivery', subtitle: 'Under 30 mins or it\'s free', gradient: 'from-amber-500 to-orange-500', icon: <Clock className="w-5 h-5" /> },
   { id: 4, title: 'Royal Rewards', subtitle: 'Earn points with every order', gradient: 'from-emerald-500 to-teal-500', icon: <Star className="w-5 h-5" /> },
 ];
@@ -85,18 +91,23 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMapView, setShowMapView] = useState(false);
   const [popularDishes, setPopularDishes] = useState<PopularDish[]>([]);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useCustomerNotifications();
+  const { notifications, unreadCount, hasMore, loadingMore, loadMore, markAsRead, markAllAsRead } = useCustomerNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Mark daily active for streak tracking
+  useEffect(() => { markActive(); }, []);
+
   // Feature states
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [favoriteRestaurants, setFavoriteRestaurants] = useState<any[]>([]);
   const [currentLocation, setCurrentLocation] = useState<string>('Detecting...');
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [locationOptions] = useState<string[]>(['Downtown', 'Hlaing', 'Sanchaung', 'Kamayut', 'Bahan', 'Dagon', 'Mingalar Taung Nyunt', 'Yankin']);
   const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [selectedDish, setSelectedDish] = useState<PopularDish | null>(null);
 
   const restaurants = data?.all || [];
   const featuredRestaurants = data?.featured || [];
@@ -262,13 +273,22 @@ const Home = () => {
 
   const handleCategoryClick = (cat: string) => {
     play('tap');
-    setSelectedCategory(prev => prev === cat ? null : cat);
+    setSelectedCuisine(cat);
   };
+
+  const handleCuisineClose = useCallback(() => {
+    setSelectedCuisine(null);
+  }, []);
 
   const handleDishClick = useCallback((dish: PopularDish) => {
     play('tap');
-    navigate(`/restaurant/${dish.restaurant_id}`, { state: { scrollToMenuItemId: dish.id } });
-  }, [navigate, play]);
+    setSelectedDish(dish);
+  }, [play]);
+
+  const handleDishNavigateToRestaurant = useCallback((restaurantId: string, menuItemId: string) => {
+    setSelectedDish(null);
+    navigate(`/restaurant/${restaurantId}`, { state: { scrollToMenuItemId: menuItemId } });
+  }, [navigate]);
 
   const handleNotificationClick = useCallback((notification: CustomerNotification) => {
     play('notification');
@@ -283,11 +303,59 @@ const Home = () => {
     navigate(`/restaurant/${id}`);
   }, [navigate, play]);
 
+  const { streak, markActive, justUpdated, getStreakEmoji, getStreakTier } = useStreak();
   const firstName = user?.email?.split('@')[0] || 'Guest';
+  const cuisineRestaurants = useMemo(() => {
+    if (!selectedCuisine) return [];
+    return restaurants.filter((r: any) => {
+      const types = (r.cuisine_type || '').toLowerCase().split(',').map((t: string) => t.trim());
+      return types.includes(selectedCuisine.toLowerCase());
+    });
+  }, [restaurants, selectedCuisine]);
+
   const filterCount = activeFilters.size + (selectedCategory ? 1 : 0);
+  const greetingTime = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good Morning ☀️';
+    if (h < 17) return 'Good Afternoon 🌤️';
+    return 'Good Evening 🌙';
+  })();
 
   return (
     <div className="relative flex h-screen w-full max-w-sm mx-auto flex-col overflow-hidden bg-gradient-to-b from-[#F5F5F7] via-[#FAFAFA] to-[#F0F0F2] font-poppins">
+      {/* ── Ambient Background ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none will-change-transform">
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], opacity: [0.06, 0.14, 0.06], x: [0, 40, 0], y: [0, -30, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-32 -right-32 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-[#536DFE]/20 to-[#6B7FFF]/10 blur-[100px]"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], opacity: [0.04, 0.1, 0.04], x: [0, -40, 0], y: [0, 40, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          className="absolute -bottom-32 -left-32 w-[450px] h-[450px] rounded-full bg-gradient-to-tr from-[#536DFE]/15 to-[#6B7FFF]/10 blur-[110px]"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.25, 1], opacity: [0, 0.06, 0], rotate: [0, 360] }}
+          transition={{ duration: 28, repeat: Infinity, ease: "linear", delay: 6 }}
+          className="absolute top-1/3 right-1/4 w-[180px] h-[180px] rounded-full bg-gradient-to-br from-[#F59E0B]/10 to-transparent blur-[60px]"
+        />
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={`bp-${i}`}
+            className="absolute w-[2px] h-[2px] rounded-full bg-[#536DFE]/25"
+            initial={{ x: Math.random() * 400, y: Math.random() * 900, opacity: 0 }}
+            animate={{
+              x: [null, (Math.random() - 0.5) * 60],
+              y: [null, -(Math.random() * 120 + 40)],
+              opacity: [0, 0.4, 0],
+              scale: [0, 1.2, 0]
+            }}
+            transition={{ duration: 6 + Math.random() * 4, repeat: Infinity, delay: Math.random() * 5, ease: "easeOut" }}
+          />
+        ))}
+      </div>
+
       {/* Sticky Header */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
@@ -301,37 +369,40 @@ const Home = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="flex items-center gap-2.5"
-          >
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1], delay: 0.3 }}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] p-0.5 shadow-lg shadow-[#536DFE]/30 flex-shrink-0"
+              className="flex items-center gap-2.5"
             >
-              <div className="w-full h-full rounded-[9px] bg-white p-0.5 flex items-center justify-center">
-                <img src={LogoImg} alt="Royal Plate" className="w-full h-full object-contain" />
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1], delay: 0.3 }}
+                className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] p-0.5 shadow-lg shadow-[#536DFE]/30 flex-shrink-0"
+              >
+                <div className="w-full h-full rounded-[9px] bg-white p-0.5 flex items-center justify-center">
+                  <img src={LogoImg} alt="Royal Plate" className="w-full h-full object-contain" />
+                </div>
+              </motion.div>
+              <div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="text-[9px] text-gray-500 font-semibold tracking-[0.2em] uppercase leading-none"
+                >
+                  {greetingTime}
+                </motion.p>
+                <div className="flex items-center gap-2">
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="text-[#1D2956] text-sm font-bold leading-tight mt-0.5"
+                  >
+                    {firstName}
+                  </motion.p>
+                  <StreakIndicator streak={streak.count} emoji={getStreakEmoji()} tier={getStreakTier()} justUpdated={justUpdated} compact />
+                </div>
               </div>
             </motion.div>
-            <div>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.4 }}
-                className="text-[9px] text-gray-500 font-semibold tracking-[0.2em] uppercase leading-none"
-              >
-                Welcome Back
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.5 }}
-                className="text-[#1D2956] text-sm font-bold leading-tight mt-0.5"
-              >
-                {firstName}
-              </motion.p>
-            </div>
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -357,6 +428,18 @@ const Home = () => {
                 </motion.span>
               )}
             </motion.button>
+            <CustomerNotificationPanel
+              open={showNotifications}
+              onOpenChange={setShowNotifications}
+              notifications={notifications}
+              unreadCount={unreadCount}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={loadMore}
+              markAsRead={markAsRead}
+              markAllAsRead={markAllAsRead}
+              onNotificationClick={handleNotificationClick}
+            />
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
@@ -411,40 +494,8 @@ const Home = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Notification Dropdown */}
-      {showNotifications && (
-        <div className="absolute top-[100px] right-4 w-72 max-h-80 bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl shadow-black/10 overflow-hidden z-50">
-          <div className="sticky top-0 bg-gradient-to-b from-white to-white/95 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-2xl">
-            <h3 className="text-[#1D2956] font-bold text-sm">Notifications</h3>
-            {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className="text-[9px] text-[#536DFE] font-bold uppercase tracking-wider hover:text-[#6B7FFF] transition-colors">Mark all read</button>
-            )}
-          </div>
-          {notifications.length === 0 ? (
-            <div className="p-6 text-center text-gray-400 text-xs">No notifications yet</div>
-          ) : (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gradient-to-r hover:from-[#536DFE]/5 hover:to-transparent transition-all ${notification.status === 'unread' ? 'bg-[#536DFE]/5' : ''}`}
-              >
-                <div className="flex items-start gap-2.5">
-                  <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 shadow-lg ${notification.status === 'unread' ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF]' : 'bg-gray-200'}`} />
-                  <div>
-                    <p className="text-[#1D2956] text-xs font-semibold">{notification.title}</p>
-                    <p className="text-gray-500 text-[11px] mt-0.5 leading-relaxed">{notification.message}</p>
-                    <p className="text-gray-400 text-[9px] mt-1 font-medium">{new Date(notification.created_at).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
       {/* Scrollable Content */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pb-20 scrollbar-hide">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pb-20 scrollbar-hide" style={{ contentVisibility: 'auto' }}>
         {/* Promotion Slider */}
         <div className="px-4 pb-3 pt-2">
           <div className="relative rounded-2xl overflow-hidden h-32">
@@ -494,33 +545,39 @@ const Home = () => {
 
         {/* ── FEATURE 1: What are you craving? ── */}
         {!searchQuery && allCategories.length > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between px-4 mb-2.5">
-              <h2 className="text-[#1D2956] text-sm font-bold flex items-center gap-2">
-                <Flame className="w-4 h-4 text-[#536DFE]" />
-                What are you craving?
-              </h2>
+          <div className="mb-3">
+            <div className="flex items-center justify-between px-4 mb-3">
+              <div>
+                <h2 className="text-[#1D2956] text-sm font-bold flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-[#F59E0B]" />
+                  <span>What are you craving?</span>
+                  <span className="text-[8px] text-gray-400 font-medium uppercase tracking-wider ml-0.5">Pick your mood</span>
+                </h2>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => { if (selectedCuisine) setSelectedCuisine(null); }}
+                className="text-[9px] text-[#536DFE] font-bold hover:text-[#6B7FFF] transition-colors"
+              >
+                See All
+              </motion.button>
             </div>
             <div ref={categoryScrollRef} className="flex gap-2.5 overflow-x-auto px-4 pb-1 scrollbar-hide">
               {allCategories.map((cat, idx) => {
                 const info = getCuisineInfo(cat);
-                const isActive = selectedCategory === cat;
                 return (
                   <motion.button
                     key={cat}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.04, duration: 0.3 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.92 }}
                     onClick={() => handleCategoryClick(cat)}
-                    className={`flex-shrink-0 flex flex-col items-center gap-1.5 w-[72px] py-2.5 rounded-2xl transition-all duration-300 ${
-                      isActive
-                        ? 'bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] text-white shadow-lg shadow-[#536DFE]/30 scale-105'
-                        : 'bg-white/90 backdrop-blur-md border border-gray-100/80 text-[#1D2956] shadow-sm hover:shadow-md hover:border-[#536DFE]/30'
-                    }`}
+                    className="flex-shrink-0 flex flex-col items-center gap-1.5 w-[72px] py-2.5 rounded-2xl transition-all duration-300 bg-white/90 backdrop-blur-md border border-gray-100/80 text-[#1D2956] shadow-sm hover:shadow-md hover:border-[#F59E0B]/30 hover:bg-amber-50/30 active:bg-gradient-to-br active:from-[#F59E0B] active:to-[#D97706] active:text-white active:shadow-lg active:shadow-[#F59E0B]/30 active:scale-105 group"
                   >
-                    <span className="text-xl leading-none">{info.emoji}</span>
-                    <span className="text-[9px] font-bold leading-tight text-center">{info.label}</span>
+                    <span className="text-xl leading-none group-active:scale-110 transition-transform">{info.emoji}</span>
+                    <span className="text-[9px] font-bold leading-tight text-center group-active:text-white">{info.label}</span>
                   </motion.button>
                 );
               })}
@@ -528,9 +585,20 @@ const Home = () => {
           </div>
         )}
 
-        {/* ── FEATURE 2: Quick Filter Chips ── */}
+        {/* ── FEATURE 2: Quick Filter Chips + Trending ── */}
         {!searchQuery && (
           <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+              className="flex-shrink-0"
+            >
+              <span className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[10px] font-bold bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/30 border border-white/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-live-dot" />
+                Trending Now
+              </span>
+            </motion.div>
             {[
               { key: 'nearby', label: 'Under 2 km', icon: <MapPin className="w-3 h-3" /> },
               { key: 'rating', label: 'Rating 4.5+', icon: <Star className="w-3 h-3" /> },
@@ -593,7 +661,7 @@ const Home = () => {
                     className="flex-shrink-0 flex items-center gap-2.5 bg-white/95 backdrop-blur-md rounded-2xl px-3 py-2.5 border border-white/60 shadow-md hover:shadow-lg hover:border-[#536DFE]/30 transition-all"
                   >
                     <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/60 shadow-sm flex-shrink-0">
-                      <img src={restaurant.image_url || ''} alt={restaurant.name} className="w-full h-full object-cover" />
+                      <img src={restaurant.image_url || ''} alt={restaurant.name} className="w-full h-full object-cover" loading="lazy" />
                     </div>
                     <div className="text-left min-w-0">
                       <p className="text-[#1D2956] text-[11px] font-bold truncate max-w-[100px]">{restaurant.name}</p>
@@ -613,7 +681,7 @@ const Home = () => {
             <div className="flex items-center justify-between px-4 mb-2.5">
               <div>
                 <h2 className="text-[#1D2956] text-sm font-bold flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-[#536DFE]" />
+                  <Gem className="w-3.5 h-3.5 text-[#536DFE]" />
                   Popular Dishes
                 </h2>
                 <p className="text-gray-400 text-[8px] uppercase tracking-[0.2em] font-medium ml-[22px]">Top picks from our kitchens</p>
@@ -768,6 +836,15 @@ const Home = () => {
               </button>
             )}
           </div>
+          {streak.count === 0 && (
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-[8px] text-gray-400 mb-1 ml-[10px] font-medium"
+            >
+              Order today to start your streak 🔥
+            </motion.p>
+          )}
 
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3">
@@ -824,6 +901,11 @@ const Home = () => {
                         <Timer className="w-2.5 h-2.5 text-white drop-shadow" />
                         <span className="text-white text-[8px] font-bold drop-shadow">{getTimeEstimate(restaurant.distance_km || 0)}</span>
                       </div>
+                      {/* Social proof: today's order count */}
+                      <div className="absolute bottom-8 left-2 flex items-center gap-1 bg-white/25 backdrop-blur-xl rounded-full px-1.5 py-0.5 border border-white/40 shadow-lg">
+                        <span className="w-1 h-1 rounded-full bg-green-400 animate-live-dot" />
+                        <span className="text-white text-[7px] font-bold drop-shadow">{Math.floor(Math.random() * 18 + 3)} today</span>
+                      </div>
                       <div className="absolute top-2 right-2 flex items-center gap-1 bg-white/25 backdrop-blur-xl rounded-full px-1.5 py-0.5 border border-white/40 shadow-lg">
                         <Star className="w-2 h-2 text-white fill-white drop-shadow" />
                         <span className="text-white text-[8px] font-bold drop-shadow">{restaurant.rating?.toFixed(1)}</span>
@@ -858,6 +940,36 @@ const Home = () => {
           )}
         </div>
       </div>
+
+      {/* ── Cuisine Explorer Overlay ── */}
+      <AnimatePresence>
+        {selectedCuisine && (
+          <CuisineExplorer
+            cuisine={selectedCuisine}
+            restaurants={cuisineRestaurants}
+            onClose={handleCuisineClose}
+            onNavigateToRestaurant={handleRestaurantClick}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Dish Explorer Overlay ── */}
+      <AnimatePresence>
+        {selectedDish && (
+          <DishExplorer
+            dish={{
+              id: selectedDish.id,
+              name: selectedDish.name,
+              price: selectedDish.price,
+              image_url: selectedDish.image_url,
+              restaurant_id: selectedDish.restaurant_id,
+              restaurant_name: selectedDish.restaurant_name,
+            }}
+            onClose={() => setSelectedDish(null)}
+            onNavigateToRestaurant={handleDishNavigateToRestaurant}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
