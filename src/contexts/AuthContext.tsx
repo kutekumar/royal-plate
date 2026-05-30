@@ -2,10 +2,12 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type UserRole = 'customer' | 'restaurant_owner' | 'admin';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  userRole: 'customer' | 'restaurant_owner' | 'admin' | null;
+  userRole: UserRole | null;
   roleLoading: boolean;
   signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -16,14 +18,39 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const ROLE_STORAGE_KEY = 'rp_user_role';
+
+function readStoredRole(userId: string): UserRole | null {
+  try {
+    const raw = localStorage.getItem(ROLE_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.userId === userId && parsed.role) return parsed.role;
+  } catch {}
+  return null;
+}
+
+function writeStoredRole(userId: string, role: UserRole) {
+  try {
+    localStorage.setItem(ROLE_STORAGE_KEY, JSON.stringify({ userId, role }));
+  } catch {}
+}
+
+function clearStoredRole() {
+  try {
+    localStorage.removeItem(ROLE_STORAGE_KEY);
+  } catch {}
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userRole, setUserRole] = useState<'customer' | 'restaurant_owner' | 'admin' | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [roleLoading, setRoleLoading] = useState(false);
 
-  const roleCache = useRef<Map<string, { role: 'customer' | 'restaurant_owner' | 'admin'; ts: number }>>(new Map());
+  const roleCache = useRef<Map<string, { role: UserRole; ts: number }>>(new Map());
+  const initDone = useRef(false);
   const CACHE_TTL = 1000 * 60 * 2;
 
   const fetchUserRole = useCallback(async (userId: string) => {
@@ -35,25 +62,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return cached.role;
       }
 
+      const stored = readStoredRole(userId);
+      if (stored) {
+        setUserRole(stored);
+      }
+
       const result: any = await Promise.race([
         supabase.rpc('get_user_role', { user_id: userId }),
         new Promise((resolve) =>
-          setTimeout(
-            () => resolve({ data: null, error: new Error('timeout') }),
-            8000,
-          ),
+          setTimeout(() => resolve({ data: null, error: new Error('timeout') }), 8000),
         ),
       ]);
 
       const { data, error } = result;
-      const role = (!error && data ? data : 'customer') as 'customer' | 'restaurant_owner' | 'admin';
-      roleCache.current.set(userId, { role, ts: Date.now() });
-      setUserRole(role);
-      return role;
+      if (!error && data) {
+        const role = data as UserRole;
+        roleCache.current.set(userId, { role, ts: Date.now() });
+        writeStoredRole(userId, role);
+        setUserRole(role);
+        return role;
+      }
+
+      if (stored) {
+        roleCache.current.set(userId, { role: stored, ts: Date.now() });
+        return stored;
+      }
+
+      return null;
     } catch (e) {
       console.error('Error in fetchUserRole:', e);
-      setUserRole('customer');
-      return 'customer';
+      const stored = readStoredRole(userId);
+      if (stored) {
+        roleCache.current.set(userId, { role: stored, ts: Date.now() });
+        setUserRole(stored);
+        return stored;
+      }
+      return null;
     } finally {
       setRoleLoading(false);
     }
@@ -73,18 +117,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!mounted) return;
       if (event === 'INITIAL_SESSION') return;
 
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        setRoleLoading(true);
-        setUserRole(null);
-        try {
-          await fetchUserRole(session.user.id);
-        } catch (e) {
-          console.error('Failed to fetch user role:', e);
-        }
-      } else {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setSession(session);
+        setUser(session.user);
+        await fetchUserRole(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        roleCache.current.clear();
+        clearStoredRole();
+        setSession(null);
+        setUser(null);
         setUserRole(null);
       }
     });
@@ -119,13 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          setRoleLoading(true);
-          setUserRole(null);
-          try {
-            await fetchUserRole(session.user.id);
-          } catch (e) {
-            console.error('Failed to fetch user role:', e);
-          }
+          await fetchUserRole(session.user.id);
         } else {
           setUserRole(null);
         }
@@ -138,7 +173,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (key) localStorage.removeItem(key);
         } catch {}
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          initDone.current = true;
+          setLoading(false);
+        }
       }
     };
 
@@ -169,6 +207,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     roleCache.current.clear();
+    clearStoredRole();
     setUserRole(null);
     setUser(null);
     setSession(null);

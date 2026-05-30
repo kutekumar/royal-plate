@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, CheckCircle2, XCircle, Scan, Smartphone, Loader2, User, Store, ShoppingBag, Clock, Crown, ShieldCheck } from 'lucide-react';
-import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType, Html5Qrcode } from 'html5-qrcode';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,63 +14,89 @@ const QRScanner = () => {
 
   const isSecure = typeof window !== 'undefined' && (window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
+  const initScanner = async () => {
+    const container = document.getElementById('qr-reader');
+    if (!container) {
+      toast.error('Unable to start scanner. Please try again.');
+      setScanning(false);
+      return;
+    }
+
+    let scanTypes;
+    if (!isSecure) {
+      scanTypes = [Html5QrcodeScanType.SCAN_TYPE_FILE];
+    } else {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        const hasCamera = devices && devices.length > 0;
+        scanTypes = hasCamera
+          ? [Html5QrcodeScanType.SCAN_TYPE_CAMERA, Html5QrcodeScanType.SCAN_TYPE_FILE]
+          : [Html5QrcodeScanType.SCAN_TYPE_FILE];
+        if (!hasCamera) {
+          toast.info('No camera detected — using file upload mode');
+        }
+      } catch {
+        scanTypes = [Html5QrcodeScanType.SCAN_TYPE_FILE];
+        toast.info('Camera unavailable — using file upload mode');
+      }
+    }
+
+    const scanner = new Html5QrcodeScanner('qr-reader', {
+      fps: 10, qrbox: { width: 280, height: 280 }, rememberLastUsedCamera: true, aspectRatio: 1.0, showTorchButtonIfSupported: true,
+      supportedScanTypes: scanTypes,
+    }, false);
+
+    scanner.render(
+      async (decodedText) => {
+        setVerifying(true);
+        try {
+          let qrValue = decodedText;
+          try {
+            const parsed = JSON.parse(decodedText);
+            qrValue = parsed.qr_code || parsed.qrCode || parsed.orderId || parsed.id || decodedText;
+          } catch { }
+
+          const { data, error } = await supabase.from('orders').select('*, profiles (full_name), restaurants (name)').eq('qr_code', qrValue).single();
+
+          if (error || !data) {
+            toast.error('Order not found for this QR code');
+            return;
+          }
+
+          setScannedOrder(data);
+          toast.success('Order verified successfully!');
+          stopScanning();
+        } catch (error) {
+          console.error('Error verifying order:', error);
+          toast.error('Failed to verify order');
+        } finally {
+          setVerifying(false);
+        }
+      },
+      (errorMessage) => {
+        if (typeof errorMessage === 'string' && !errorMessage.toLowerCase().includes('not found') && !errorMessage.toLowerCase().includes('no qr code') && !errorMessage.toLowerCase().includes('inactive')) {
+          console.debug('QR scan error:', errorMessage);
+        }
+      }
+    );
+
+    scannerRef.current = scanner;
+  };
+
+  useEffect(() => {
+    if (!scanning) return;
+    const timer = setTimeout(() => {
+      initScanner();
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [scanning]);
+
   const startScanning = () => {
     if (scannerRef.current) {
       try { scannerRef.current.clear(); } catch { }
       scannerRef.current = null;
     }
-
     setScanning(true);
-
-    setTimeout(() => {
-      const container = document.getElementById('qr-reader');
-      if (!container) {
-        toast.error('Unable to start scanner. Please try again.');
-        setScanning(false);
-        return;
-      }
-
-      const scanner = new Html5QrcodeScanner('qr-reader', {
-        fps: 10, qrbox: { width: 280, height: 280 }, rememberLastUsedCamera: true, aspectRatio: 1.0, showTorchButtonIfSupported: true,
-        supportedScanTypes: isSecure ? [Html5QrcodeScanType.SCAN_TYPE_CAMERA, Html5QrcodeScanType.SCAN_TYPE_FILE] : [Html5QrcodeScanType.SCAN_TYPE_FILE],
-      }, false);
-
-      scanner.render(
-        async (decodedText) => {
-          setVerifying(true);
-          try {
-            let qrValue = decodedText;
-            try {
-              const parsed = JSON.parse(decodedText);
-              qrValue = parsed.qr_code || parsed.qrCode || parsed.orderId || parsed.id || decodedText;
-            } catch { }
-
-            const { data, error } = await supabase.from('orders').select('*, profiles (full_name), restaurants (name)').eq('qr_code', qrValue).single();
-
-            if (error || !data) {
-              toast.error('Order not found for this QR code');
-              return;
-            }
-
-            setScannedOrder(data);
-            toast.success('Order verified successfully!');
-            stopScanning();
-          } catch (error) {
-            console.error('Error verifying order:', error);
-            toast.error('Failed to verify order');
-          } finally {
-            setVerifying(false);
-          }
-        },
-        (errorMessage) => {
-          if (typeof errorMessage === 'string' && !errorMessage.toLowerCase().includes('not found') && !errorMessage.toLowerCase().includes('no qr code') && !errorMessage.toLowerCase().includes('inactive')) {
-            console.debug('QR scan error:', errorMessage);
-          }
-        }
-      );
-
-      scannerRef.current = scanner;
-    }, 0);
   };
 
   const stopScanning = () => {

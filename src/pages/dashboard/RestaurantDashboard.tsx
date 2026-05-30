@@ -252,9 +252,9 @@ const RestaurantDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4]">
+    <div className="h-screen flex flex-col bg-[#F8F7F4] overflow-hidden">
       {/* Premium Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100/80 shadow-xs">
+      <header className="shrink-0 sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100/80 shadow-xs">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center gap-3">
@@ -404,9 +404,9 @@ const RestaurantDashboard = () => {
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex flex-1 min-h-0">
         {/* Sidebar - Desktop */}
-        <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-gray-100 min-h-[calc(100vh-5rem)] sticky top-20">
+        <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-gray-100 sticky top-20">
           <nav className="flex-1 px-3 py-6 space-y-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -514,7 +514,7 @@ const RestaurantDashboard = () => {
         </AnimatePresence>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 pb-24 lg:pb-8">
+        <main className="flex-1 min-w-0 overflow-y-auto pb-24 lg:pb-8">
           <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
             {/* Stats Overview */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

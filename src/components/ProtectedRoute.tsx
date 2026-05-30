@@ -11,23 +11,17 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, userRole, loading, roleLoading } = useAuth();
   const navigate = useNavigate();
   const [stalled, setStalled] = useState(false);
-  const [roleTimedOut, setRoleTimedOut] = useState(false);
 
   useEffect(() => {
     if (!loading && !(allowedRoles && roleLoading)) {
       setStalled(false);
-      setRoleTimedOut(false);
       return;
     }
     const t = setTimeout(() => setStalled(true), 12000);
-    const rt = setTimeout(() => setRoleTimedOut(true), 10000);
-    return () => {
-      clearTimeout(t);
-      clearTimeout(rt);
-    };
+    return () => clearTimeout(t);
   }, [loading, roleLoading, allowedRoles]);
 
-  if (loading || (allowedRoles && roleLoading && !roleTimedOut)) {
+  if (loading || (allowedRoles && roleLoading)) {
     return (
       <div className="h-full w-full bg-[#F5F5F7] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -57,7 +51,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   }
 
   if (allowedRoles && !userRole) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   if (!allowedRoles && userRole === 'admin') {
