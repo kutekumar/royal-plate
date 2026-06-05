@@ -296,7 +296,7 @@ const Confirmation = () => {
               transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
               className="animate-qr-draw"
             >
-              {qrValue && <QRCodeSVG value={qrValue} size={220} level="H" includeMargin className="w-full h-auto" />}
+              {qrValue && <QRCodeSVG value={qrValue} size={220} level="H" includeMargin />}
             </motion.div>
           </div>
           <p className="text-gray-400 text-[10px] text-center mt-2 font-medium">Show this to staff to claim your order</p>

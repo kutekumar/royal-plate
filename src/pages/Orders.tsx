@@ -325,16 +325,15 @@ const Orders = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
             onClick={() => { setSelectedOrder(null); setFullscreenQR(false); }}
           >
             <motion.div
-              initial={{ y: '100%' }}
+              initial={{ y: -50 }}
               animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              exit={{ y: -50 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl flex flex-col"
-              style={{ maxHeight: '90vh' }}
+              className="fixed top-[72px] left-0 lg:left-1/2 lg:-translate-x-[calc(50%+220px)] w-full max-w-md bg-white rounded-b-3xl shadow-2xl flex flex-col h-[calc(100vh-72px)] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -349,11 +348,11 @@ const Orders = () => {
                   <X className="w-4.5 h-4.5 text-gray-500" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto min-h-0 px-6 pb-6 scrollbar-hide">
                 <div className="mb-5">
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-200 rounded-3xl p-5">
-                    <button type="button" className="w-full" onClick={() => { play('tap'); setFullscreenQR(true); }}>
-                      <QRCodeSVG value={selectedOrder.qr_code} size={240} level="H" includeMargin className="w-full h-auto" />
+                    <button type="button" className="w-full flex justify-center" onClick={() => { play('tap'); setFullscreenQR(true); }}>
+                      <QRCodeSVG value={selectedOrder.qr_code} size={240} level="H" includeMargin />
                     </button>
                   </div>
                   <p className="text-gray-400 text-[11px] text-center mt-2 font-medium">Tap QR to enlarge · Show to staff</p>
@@ -412,7 +411,7 @@ const Orders = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center"
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center"
             onClick={() => setFullscreenQR(false)}
           >
             <motion.div
@@ -420,7 +419,7 @@ const Orders = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.85, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-[320px] flex flex-col items-center p-8"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-sm flex flex-col items-center p-8"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center mb-6">
@@ -428,8 +427,8 @@ const Orders = () => {
                 <p className="text-[#1D2956] text-lg font-bold mt-1">{selectedOrder.restaurants?.name}</p>
                 <p className="text-gray-400 text-[11px] font-mono mt-1">#{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
               </div>
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 border-2 border-gray-200 shadow-lg w-full max-w-[260px]">
-                <QRCodeSVG value={selectedOrder.qr_code} size={260} level="H" includeMargin={false} className="w-full h-auto" />
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-lg w-full flex items-center justify-center">
+                <QRCodeSVG value={selectedOrder.qr_code} size={200} level="H" includeMargin={false} />
               </div>
               <p className="text-gray-400 text-xs text-center mt-5 leading-relaxed max-w-[220px]">Present this code at the restaurant for order verification</p>
               <button onClick={() => setFullscreenQR(false)} className="w-full mt-6 bg-gradient-to-br from-[#536DFE] to-[#6B7FFF] hover:shadow-2xl hover:shadow-[#536DFE]/50 text-white font-bold py-4 rounded-2xl uppercase tracking-widest text-sm transition-all shadow-xl shadow-[#536DFE]/40 active:scale-[0.98]">Close</button>
